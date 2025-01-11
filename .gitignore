@@ -67,3 +67,5 @@ package-lock.json
 
 # project specific
 data/main.db
+.env
+logs/

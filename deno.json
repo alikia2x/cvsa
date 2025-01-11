@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net src/db/raw/insertAidsToDB.ts"
+    "crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/insertAidsToDB.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
