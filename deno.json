@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net src/db/raw/insertAidsToDB.ts"
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "@types/better-sqlite3": "npm:@types/better-sqlite3@^7.6.12",
+    "axios": "npm:axios@^1.7.9",
+    "better-sqlite3": "npm:better-sqlite3@^11.7.2"
+  }
+}

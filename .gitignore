@@ -64,3 +64,6 @@ package-lock.json
 .eslintcache
 *v8.log
 /lib/
+
+# project specific
+data/main.db
