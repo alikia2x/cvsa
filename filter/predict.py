@@ -5,6 +5,7 @@ import json
 import torch
 from modelV3_4 import VideoClassifierV3_4
 from sentence_transformers import SentenceTransformer
+from tqdm import tqdm  # 导入 tqdm
 
 # 数据库配置
 DATABASE_PATH = "./data/main.db"
@@ -76,7 +77,7 @@ def process_entries():
     # 批量处理并保存结果
     with open(OUTPUT_FILE, "w", encoding="utf-8") as output:
         batch_data = []
-        for idx, aid in enumerate(aids, 1):
+        for idx, aid in tqdm(enumerate(aids, 1), total=len(aids), desc="处理条目"):
             try:
                 # 获取并解析数据
                 raw_data = fetch_entry_data(conn, aid)
@@ -111,10 +112,6 @@ def process_entries():
                         }, ensure_ascii=False) + "\n")
                     batch_data = []  # 清空批量数据
 
-                # 进度显示
-                if idx % 100 == 0:
-                    print(f"已处理 {idx}/{len(aids)} 条...")
-                    
             except Exception as e:
                 print(f"处理aid {aid} 时出错: {str(e)}")
 
