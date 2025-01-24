@@ -1,11 +1,11 @@
 import os
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"]="1"
+import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from modelV3_3 import VideoClassifierV3_3
+from modelV3_5 import VideoClassifierV3_5, AdaptiveRecallLoss
 from sentence_transformers import SentenceTransformer
-import torch.nn as nn
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
@@ -37,17 +37,35 @@ train_loader = DataLoader(train_dataset, batch_size=24, shuffle=True)
 eval_loader = DataLoader(eval_dataset, batch_size=24, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=24, shuffle=False)
 
+train_labels = []
+for batch in train_loader:
+    train_labels.extend(batch['label'].tolist())
+    
+# 计算自适应类别权重
+class_counts = np.bincount(train_labels)
+median_freq = np.median(class_counts)
+class_weights = torch.tensor(
+    [median_freq / count for count in class_counts],
+    dtype=torch.float32,
+    device='cpu'
+)
+
 # 初始化模型和SentenceTransformer
 sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
-model = VideoClassifierV3_3()
-checkpoint_name = './filter/checkpoints/best_model_V3.3.pt'
+model = VideoClassifierV3_5()
+checkpoint_name = './filter/checkpoints/best_model_V3.5.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
 
 # 优化器
 optimizer = optim.AdamW(model.parameters(), lr=2e-3)
-criterion = nn.CrossEntropyLoss()
+criterion = AdaptiveRecallLoss(
+    class_weights=class_weights,
+    alpha=0.7,     # 召回率权重
+    gamma=1.5,     # 困难样本聚焦
+    fp_penalty=0.8 # 假阳性惩罚强度
+)
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -81,7 +99,7 @@ print(f"Trainable parameters: {count_trainable_parameters(model)}")
 # 训练循环
 best_f1 = 0
 step = 0
-eval_interval = 50
+eval_interval = 20
 num_epochs = 8
 
 for epoch in range(num_epochs):
