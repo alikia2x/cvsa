@@ -74,3 +74,4 @@ filter/runs
 data/filter/eval*
 data/filter/train*
 filter/checkpoints
+data/filter/model_predicted.jsonl

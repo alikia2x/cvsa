@@ -86,8 +86,6 @@ def label_entries(db_path, aids):
         title, description, tags, author_info, url = parse_entry_data(data)
         if not title:  # 如果解析失败，跳过
             continue
-        if '原创' not in title and '原创' not in description:
-            continue
         # 展示信息
         os.system("clear")
         print(f"AID: {aid}")
