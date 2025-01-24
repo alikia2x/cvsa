@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-class VideoClassifier(nn.Module):
+class VideoClassifierV1_5(nn.Module):
     def __init__(self, embedding_dim=1024, hidden_dim=256, output_dim=3):
         super().__init__()
         self.num_channels = 4
@@ -23,7 +23,9 @@ class VideoClassifier(nn.Module):
             batch_texts = input_texts[name]
             
             # 使用SentenceTransformer生成嵌入
-            embeddings = torch.tensor(sentence_transformer.encode(batch_texts))
+            embeddings = torch.tensor(
+                sentence_transformer.encode(batch_texts, task="classification")
+            )
             channel_features.append(embeddings)
         
         # 将通道特征堆叠并加权
@@ -43,4 +45,3 @@ class VideoClassifier(nn.Module):
     def get_channel_weights(self):
         """获取各通道的权重（用于解释性分析）"""
         return torch.softmax(self.channel_weights, dim=0).detach().cpu().numpy()
-

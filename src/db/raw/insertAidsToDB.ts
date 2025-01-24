@@ -8,6 +8,7 @@ const db = new Database("./data/main.db", { int64: true });
 const regions = ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"];
 const logDir = "./logs/bili-info-crawl";
 const logFile = path.join(logDir, `run-${Date.now() / 1000}.log`);
+const shouldReadTextFile = false;
 
 const SECOND = 1000;
 const SECONDS = SECOND;
@@ -28,7 +29,9 @@ async function setupLogging() {
     const logStream = await Deno.open(logFile, { write: true, create: true, append: true });
 
     const redirectConsole =
+        // deno-lint-ignore no-explicit-any
         (originalConsole: (...args: any[]) => void) =>
+        // deno-lint-ignore no-explicit-any
         (...args: any[]) => {
             const message = args.map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : arg)).join(" ");
             originalConsole(message);
@@ -49,7 +52,7 @@ function isRateLimited(): boolean {
     });
 }
 
-async function insertAidsToDB() {
+async function readFromText() {
     const aidRawcontent = await Deno.readTextFile(aidPath);
     const aids = aidRawcontent
         .split("\n")
@@ -73,11 +76,16 @@ async function insertAidsToDB() {
 
     // 找出 aids 数组中不存在于数据库的条目
     const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
-    console.log(newAids.length);
 
     // 插入这些新条目
     const insertStmt = db.prepare("INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (?, 'pending')");
     newAids.forEach((aid) => insertStmt.run(aid));
+}
+
+async function insertAidsToDB() {
+    if (shouldReadTextFile) {
+        await readFromText();
+    }
 
     const aidsInDB = db
         .prepare("SELECT aid FROM bili_info_crawl WHERE status = 'pending' OR status = 'failed'")
