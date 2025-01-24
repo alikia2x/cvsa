@@ -3,7 +3,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"]="1"
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from modelV3_2 import VideoClassifierV3_2
+from modelV5 import VideoClassifierV5
 from sentence_transformers import SentenceTransformer
 import torch.nn as nn
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
@@ -39,8 +39,8 @@ test_loader = DataLoader(test_dataset, batch_size=24, shuffle=False)
 
 # 初始化模型和SentenceTransformer
 sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
-model = VideoClassifierV3_2()
-checkpoint_name = './filter/checkpoints/best_model_V3.2.pt'
+model = VideoClassifierV5()
+checkpoint_name = './filter/checkpoints/best_model_V5.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
@@ -80,15 +80,23 @@ print(f"Trainable parameters: {count_trainable_parameters(model)}")
 
 # 训练循环
 best_f1 = 0
-total_step = 0
+step = 0
 eval_interval = 50
+num_epochs = 8
 
-for epoch in range(8):
+total_steps = num_epochs * len(train_loader)  # 总训练步数
+T_max = 1.4  # 初始温度
+T_min = 0.15  # 最终温度
+
+for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
     
     # 训练阶段
     for batch_idx, batch in enumerate(train_loader):
+        temperature = T_max - (T_max - T_min) * (step / total_steps)
+        model.set_temperature(temperature)
+
         optimizer.zero_grad()
         
         # 传入文本字典和sentence_transformer
@@ -100,18 +108,18 @@ for epoch in range(8):
         epoch_loss += loss.item()
         
         # 记录训练损失
-        writer.add_scalar('Train/Loss', loss.item(), total_step)
-        total_step += 1
+        writer.add_scalar('Train/Loss', loss.item(), step)
+        step += 1
         
         # 每隔 eval_interval 步执行验证
-        if total_step % eval_interval == 0:
+        if step % eval_interval == 0:
             eval_f1, eval_recall, eval_precision, eval_accuracy, eval_class_report = evaluate(model, eval_loader)
-            writer.add_scalar('Eval/F1', eval_f1, total_step)
-            writer.add_scalar('Eval/Recall', eval_recall, total_step)
-            writer.add_scalar('Eval/Precision', eval_precision, total_step)
-            writer.add_scalar('Eval/Accuracy', eval_accuracy, total_step)
+            writer.add_scalar('Eval/F1', eval_f1, step)
+            writer.add_scalar('Eval/Recall', eval_recall, step)
+            writer.add_scalar('Eval/Precision', eval_precision, step)
+            writer.add_scalar('Eval/Accuracy', eval_accuracy, step)
             
-            print(f"Step {total_step}")
+            print(f"Step {step}")
             print(f"  Eval F1: {eval_f1:.4f} | Eval Recall: {eval_recall:.4f} | Eval Precision: {eval_precision:.4f} | Eval Accuracy: {eval_accuracy:.4f}")
             print("  Eval Class Report:")
             for cls, metrics in eval_class_report.items():
@@ -123,6 +131,7 @@ for epoch in range(8):
                 best_f1 = eval_f1
                 torch.save(model.state_dict(), checkpoint_name)
                 print("  Saved best model")
+                print("Channel weights: ", model.get_channel_weights())
     
     # 记录每个 epoch 的平均训练损失
     avg_epoch_loss = epoch_loss / len(train_loader)
@@ -159,17 +168,17 @@ for epoch in range(8):
 print("\nTesting...")
 model.load_state_dict(torch.load(checkpoint_name))
 test_f1, test_recall, test_precision, test_accuracy, test_class_report = evaluate(model, test_loader)
-writer.add_scalar('Test/F1', test_f1, total_step)
-writer.add_scalar('Test/Recall', test_recall, total_step)
-writer.add_scalar('Test/Precision', test_precision, total_step)
-writer.add_scalar('Test/Accuracy', test_accuracy, total_step)
+writer.add_scalar('Test/F1', test_f1, step)
+writer.add_scalar('Test/Recall', test_recall, step)
+writer.add_scalar('Test/Precision', test_precision, step)
+writer.add_scalar('Test/Accuracy', test_accuracy, step)
 print(f"Test F1: {test_f1:.4f} | Test Recall: {test_recall:.4f} | Test Precision: {test_precision:.4f} | Test Accuracy: {test_accuracy:.4f}")
 print("  Test Class Report:")
 for cls, metrics in test_class_report.items():
     if cls.isdigit():  # 只打印类别的指标
         print(f"    Class {cls}: Precision: {metrics['precision']:.4f}, Recall: {metrics['recall']:.4f}, F1: {metrics['f1-score']:.4f}, Support: {metrics['support']}")
-        writer.add_scalar(f'Test/Class_{cls}_Precision', metrics['precision'], total_step)
-        writer.add_scalar(f'Test/Class_{cls}_Recall', metrics['recall'], total_step)
-        writer.add_scalar(f'Test/Class_{cls}_F1', metrics['f1-score'], total_step)
+        writer.add_scalar(f'Test/Class_{cls}_Precision', metrics['precision'], step)
+        writer.add_scalar(f'Test/Class_{cls}_Recall', metrics['recall'], step)
+        writer.add_scalar(f'Test/Class_{cls}_F1', metrics['f1-score'], step)
 # 关闭 TensorBoard
 writer.close()
