@@ -47,7 +47,7 @@ async function proxyRequestWithRegion(url: string, region: string): Promise<any 
         }
     }
     catch (e){
-        console.error(`Error proxying requestt ${url} to ${region}: ${e}`);
+        console.error(`Error proxying request ${url} to ${region}: ${e}`);
         return null;
     }
 }
