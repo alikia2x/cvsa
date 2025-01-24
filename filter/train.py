@@ -3,7 +3,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"]="1"
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from modelV5 import VideoClassifierV5
+from modelV3_3 import VideoClassifierV3_3
 from sentence_transformers import SentenceTransformer
 import torch.nn as nn
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
@@ -39,8 +39,8 @@ test_loader = DataLoader(test_dataset, batch_size=24, shuffle=False)
 
 # 初始化模型和SentenceTransformer
 sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
-model = VideoClassifierV5()
-checkpoint_name = './filter/checkpoints/best_model_V5.pt'
+model = VideoClassifierV3_3()
+checkpoint_name = './filter/checkpoints/best_model_V3.3.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
@@ -84,19 +84,12 @@ step = 0
 eval_interval = 50
 num_epochs = 8
 
-total_steps = num_epochs * len(train_loader)  # 总训练步数
-T_max = 1.4  # 初始温度
-T_min = 0.15  # 最终温度
-
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
     
     # 训练阶段
     for batch_idx, batch in enumerate(train_loader):
-        temperature = T_max - (T_max - T_min) * (step / total_steps)
-        model.set_temperature(temperature)
-
         optimizer.zero_grad()
         
         # 传入文本字典和sentence_transformer

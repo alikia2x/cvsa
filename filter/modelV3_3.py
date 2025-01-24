@@ -1,28 +1,26 @@
 import torch
 import torch.nn as nn
 
-class VideoClassifierV5(nn.Module):
-    def __init__(self, embedding_dim=1024, hidden_dim=640, output_dim=3):
+class VideoClassifierV3_3(nn.Module):
+    def __init__(self, embedding_dim=1024, hidden_dim=512, output_dim=3):
         super().__init__()
         self.num_channels = 4
         self.channel_names = ['title', 'description', 'tags', 'author_info']
         
-        # 改进1：带温度系数的通道权重（比原始固定权重更灵活）
+        # 带温度系数的通道权重（比原始固定权重更灵活）
         self.channel_weights = nn.Parameter(torch.ones(self.num_channels))
-        self.temperature = 1.4  # 可调节的平滑系数
+        self.temperature = 1.7  # 可调节的平滑系数
         
-        # 改进2：更稳健的全连接结构
+        # 改进后的非线性层
         self.fc = nn.Sequential(
             nn.Linear(embedding_dim * self.num_channels, hidden_dim*2),
             nn.BatchNorm1d(hidden_dim*2),
             nn.Dropout(0.1),
             nn.ReLU(),
-            nn.Linear(hidden_dim*2, hidden_dim),
-            nn.LayerNorm(hidden_dim),
-            nn.Linear(hidden_dim, output_dim)
+            nn.Linear(hidden_dim*2, output_dim)
         )
         
-        # 改进3：输出层初始化
+        # 输出层初始化
         nn.init.xavier_uniform_(self.fc[-1].weight)
         nn.init.zeros_(self.fc[-1].bias)
 
@@ -56,7 +54,3 @@ class VideoClassifierV5(nn.Module):
     def get_channel_weights(self):
         """获取各通道权重（带温度调节）"""
         return torch.softmax(self.channel_weights / self.temperature, dim=0).detach().cpu().numpy()
-
-    def set_temperature(self, temperature):
-        """设置温度值"""
-        self.temperature = temperature
