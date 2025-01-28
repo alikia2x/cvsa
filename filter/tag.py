@@ -6,6 +6,7 @@ import sys
 import tty
 import termios
 import argparse
+from db_utils import fetch_entry_data, parse_entry_data
 
 # 数据库路径
 DATABASE_PATH = "./data/main.db"
@@ -45,42 +46,12 @@ def fetch_random_aids(db_path, num_entries=10, start_from=None):
     conn.close()
     return aids
 
-def fetch_entry_data(db_path, aid):
-    """
-    根据aid从数据库中加载data
-    """
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT data FROM bili_info_crawl WHERE aid = ?", (aid,))
-    fet = cursor.fetchone()
-    if fet:
-        data = fet[0]
-    else:
-        data = None
-    conn.close()
-    return data
-
-def parse_entry_data(data):
-    """
-    解析JSON数据，提取视频标题、简介、标签、作者简介
-    """
-    try:
-        obj = json.loads(data)
-        title = obj["View"]["title"]
-        description = obj["View"]["desc"]
-        tags = [tag["tag_name"] for tag in obj["Tags"] if tag["tag_type"] in ["old_channel", "topic"]]
-        author_info = obj["Card"]["card"]["name"] + ": " + obj["Card"]["card"]["sign"]
-        url = "https://www.bilibili.com/video/" + obj["View"]["bvid"]
-        return title, description, tags, author_info, url
-    except (TypeError, json.JSONDecodeError) as e:
-        print(f"Error parsing data: {e}")
-        return None, None, None, None, None
-
 def label_entries(db_path, aids):
     """
     标注工具：展示条目信息，等待用户输入标签
     """
     labeled_data = []
+    label_counts = {0: 0, 1: 0, 2: 0}
     for aid in aids:
         data = fetch_entry_data(db_path, aid)
         title, description, tags, author_info, url = parse_entry_data(data)
@@ -88,6 +59,7 @@ def label_entries(db_path, aids):
             continue
         # 展示信息
         os.system("clear")
+        print(f"Count: {label_counts[0]}, {label_counts[1]}, {label_counts[2]}")
         print(f"AID: {aid}")
         print(f"URL: {url}")
         print(f"Title: {title}")
@@ -105,6 +77,8 @@ def label_entries(db_path, aids):
             continue
         if label == "q":  # 退出
             break
+        # 更新计数
+        label_counts[int(label)] += 1
         # 保存标注结果
         labeled_data.append({
             "aid": aid,
