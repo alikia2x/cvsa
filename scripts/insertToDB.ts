@@ -71,7 +71,7 @@ async function insertIntoPostgres(client: Client, data: Array<SQLiteEntry>) {
 			const views = jsonData.View.stat.view;
 			const length = jsonData.View.pages[0].duration;
 			const published_at = jsonData.View.pubdate;
-			const query = `INSERT INTO songs (aid, bvid, views, length, published_at, type) VALUES ($1, $2, $3, $4, $5, $6)`;
+			const query = `INSERT INTO songs (aid, bvid, views, length, published_at, type) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (aid) DO NOTHING;`;
 			await client.queryObject(query, [aid, bvid, views, length, formatDatetime(published_at), label]);
 			//console.log(`Inserted data for aid ${entry.aid}`)
 		}

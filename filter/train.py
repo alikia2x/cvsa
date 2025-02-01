@@ -4,7 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from modelV3_4 import VideoClassifierV3_4, AdaptiveRecallLoss
+from filter.modelV3_9 import VideoClassifierV3_9, AdaptiveRecallLoss
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
@@ -52,8 +52,8 @@ class_weights = torch.tensor(
 
 # 初始化模型和SentenceTransformer
 sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
-model = VideoClassifierV3_4()
-checkpoint_name = './filter/checkpoints/best_model_V3.8.pt'
+model = VideoClassifierV3_9()
+checkpoint_name = './filter/checkpoints/best_model_V3.9.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
