@@ -3,7 +3,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 import sqlite3
 import json
 import torch
-from modelV3_4 import VideoClassifierV3_4
+from modelV3_9 import VideoClassifierV3_9
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm  # 导入 tqdm
 
@@ -43,8 +43,8 @@ def parse_entry_data(data):
 
 def initialize_model():
     """初始化模型和文本编码器"""
-    model = VideoClassifierV3_4()
-    model.load_state_dict(torch.load('./filter/checkpoints/best_model_V3.8.pt', map_location=torch.device('cpu')))
+    model = VideoClassifierV3_9()
+    model.load_state_dict(torch.load('./filter/checkpoints/best_model_V3.9.pt', map_location=torch.device('cpu')))
     model.eval()
     
     st_model = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
