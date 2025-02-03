@@ -74,4 +74,5 @@ filter/runs
 data/filter/eval*
 data/filter/train*
 filter/checkpoints
-data/filter/model_predicted.jsonl
+data/filter/model_predicted*
+scripts/*.ipynb
