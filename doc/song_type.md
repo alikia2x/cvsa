@@ -3,7 +3,7 @@
 The `type` column used in the PostgreSQL database.
 
 | Type | Description            |
-|------|------------------------|
+| ---- | ---------------------- |
 | 0    | Other                  |
 | 1    | Original               |
 | 2    | Cover                  |
