@@ -1,6 +1,7 @@
+import { Buffer } from "node:buffer";
 "use strict";
 
-export const handler = async (event, context) => {
+export const handler = async (event, _context) => {
 	const eventObj = JSON.parse(event);
 	console.log(`receive event: ${JSON.stringify(eventObj)}`);
 

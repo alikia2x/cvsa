@@ -4,13 +4,14 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from filter.modelV3_9 import VideoClassifierV3_9, AdaptiveRecallLoss
+from filter.modelV3_10 import VideoClassifierV3_10, AdaptiveRecallLoss
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
 from torch.utils.tensorboard import SummaryWriter  # 引入 TensorBoard
 import time
+from embedding import prepare_batch
 
 
 # 动态生成子目录名称
@@ -52,8 +53,8 @@ class_weights = torch.tensor(
 
 # 初始化模型和SentenceTransformer
 sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")
-model = VideoClassifierV3_9()
-checkpoint_name = './filter/checkpoints/best_model_V3.9.pt'
+model = VideoClassifierV3_10()
+checkpoint_name = './filter/checkpoints/best_model_V3.11.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
@@ -77,8 +78,8 @@ def evaluate(model, dataloader):
     
     with torch.no_grad():
         for batch in dataloader:
-            # 传入文本字典和sentence_transformer
-            logits = model(input_texts=batch['texts'], sentence_transformer=sentence_transformer)
+            batch_tensor = prepare_batch(batch['texts'], device="cpu")
+            logits = model(batch_tensor)
             preds = torch.argmax(logits, dim=1)
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(batch['label'].cpu().numpy())
@@ -110,8 +111,10 @@ for epoch in range(num_epochs):
     for batch_idx, batch in enumerate(train_loader):
         optimizer.zero_grad()
         
+        batch_tensor = prepare_batch(batch['texts'], device="cpu")
+
         # 传入文本字典和sentence_transformer
-        logits = model(input_texts=batch['texts'], sentence_transformer=sentence_transformer)
+        logits = model(batch_tensor)
         
         loss = criterion(logits, batch['label'])
         loss.backward()

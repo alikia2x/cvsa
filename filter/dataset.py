@@ -97,7 +97,7 @@ class MultiChannelDataset(Dataset):
         example = self.examples[idx]
         
         # 处理tags（将数组转换为空格分隔的字符串）
-        tags_text = " ".join(example['tags'])
+        tags_text = ",".join(example['tags'])
         
         # 返回文本字典
         texts = {

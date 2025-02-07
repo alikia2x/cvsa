@@ -61,19 +61,6 @@ TEST-results.xml
 package-lock.json
 .eslintcache
 *v8.log
-/lib/
-
-# project specific
-data/main.db
-.env
-logs/
-__pycache__
-filter/runs
-data/filter/eval*
-data/filter/train*
-filter/checkpoints
-data/filter/model_predicted*
-scripts
 
 # dotenv environment variable files
 .env
@@ -86,3 +73,17 @@ scripts
 _fresh/
 # npm dependencies
 node_modules/
+
+
+# project specific
+data/main.db
+.env
+logs/
+__pycache__
+filter/runs
+data/filter/eval*
+data/filter/train*
+filter/checkpoints
+data/filter/model_predicted*
+scripts
+model/
