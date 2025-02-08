@@ -30,7 +30,8 @@
         "$std/": "https://deno.land/std@0.216.0/",
         "@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
         "bullmq": "npm:bullmq",
-        "lib/": "./lib/"
+        "lib/": "./lib/",
+        "ioredis": "npm:ioredis"
     },
     "compilerOptions": {
         "jsx": "react-jsx",

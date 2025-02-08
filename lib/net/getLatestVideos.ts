@@ -4,7 +4,7 @@ import { getVideoTags } from "lib/net/getVideoTags.ts";
 import { AllDataType } from "lib/db/schema.d.ts";
 import { sleep } from "lib/utils/sleep.ts";
 
-export async function getLatestVideos(page: number = 1, pageSize: number = 10): Promise<AllDataType[] | null> {
+export async function getLatestVideos(page: number = 1, pageSize: number = 10, sleepRate: number = 250, fetchTags: boolean = true): Promise<AllDataType[] | null> {
     try {
         const response = await fetch(`https://api.bilibili.com/x/web-interface/newlist?rid=30&ps=${pageSize}&pn=${page}`);
         const data: VideoListResponse = await response.json();
@@ -21,8 +21,11 @@ export async function getLatestVideos(page: number = 1, pageSize: number = 10): 
 
         const videoPromises = data.data.archives.map(async (video) => {
             const published_at = formatPublishedAt(video.pubdate + 3600 * 8);
-			sleep(Math.random() * pageSize * 250);
-            const tags = await getVideoTags(video.aid);
+            let tags = null;
+            if (fetchTags) {
+                sleep(Math.random() * pageSize * sleepRate);
+                tags = await getVideoTags(video.aid);
+            }
 			let processedTags = null;
 			if (tags !== null) {
 				processedTags = tags.join(',');

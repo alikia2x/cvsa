@@ -13,3 +13,14 @@ export async function insertIntoAllData(client: Client, data: AllDataType) {
 		[data.aid, data.bvid, data.description, data.uid, data.tags, data.title, data.published_at],
 	);
 }
+
+export async function getLatestVideoTimestampFromAllData(client: Client) {
+	return await client.queryObject<{ published_at: string }>("SELECT published_at FROM all_data ORDER BY published_at DESC LIMIT 1")
+		.then((result) => {
+			const date = new Date(result.rows[0].published_at);
+			if (isNaN(date.getTime())) {
+				return null;
+			}
+			return date.getTime();
+		});
+}

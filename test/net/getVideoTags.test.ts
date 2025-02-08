@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import { getVideoTags } from "lib/net/getVideoTags.ts";
 
 Deno.test("Get video tags - regular video", async () => {
-	const tags = (await getVideoTags(826597951)).sort();
+	const tags = (await getVideoTags(826597951))!.sort();
 	assertEquals(tags, [
 		"纯白P",
 		"中华墨水娘",
