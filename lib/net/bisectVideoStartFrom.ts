@@ -35,9 +35,9 @@ export async function bisectVideoPageInNewList(timestamp: number): Promise<numbe
 	while (lo <= hi) {
 		const mid = Math.floor((lo + hi) / 2);
 		const videos = await getLatestVideos(mid * pageSize, 1, 250, false);
-        if (!videos) {
-            return null;
-        }
+		if (!videos) {
+			return null;
+		}
 		if (videos.length === 0) {
 			hi = mid - 1;
 			continue;
@@ -56,5 +56,26 @@ export async function bisectVideoPageInNewList(timestamp: number): Promise<numbe
 		}
 	}
 
-    return boundaryPage * pageSize;
+	const boundaryVideos = await getLatestVideos(boundaryPage, pageSize, 250, false);
+	let indexInPage = 0;
+	if (boundaryVideos && boundaryVideos.length > 0) {
+		for (let i = 0; i < boundaryVideos.length; i++) {
+			const video = boundaryVideos[i];
+			if (!video.published_at) {
+				continue;
+			}
+			const videoTime = Date.parse(video.published_at);
+			if (videoTime > timestamp) {
+				indexInPage++;
+			} else {
+				break;
+			}
+		}
+	}
+
+	const count = (boundaryPage - 1) * pageSize + indexInPage;
+
+	const safetyMargin = 5;
+
+	return count + safetyMargin;
 }

@@ -5,5 +5,6 @@ async function configGetLatestVideos() {
 }
 
 export async function initMQ() {
-	await configGetLatestVideos();
+	await configGetLatestVideos()
+	console.log("Message queue initialized.")
 }

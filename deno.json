@@ -9,7 +9,8 @@
         "start": "deno run -A --watch=static/,routes/ dev.ts",
         "build": "deno run -A dev.ts build",
         "preview": "deno run -A main.ts",
-        "update": "deno run -A -r https://fresh.deno.dev/update ."
+        "update": "deno run -A -r https://fresh.deno.dev/update .",
+        "worker": "deno run worker.ts"
     },
     "lint": {
         "rules": {
@@ -31,7 +32,10 @@
         "@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
         "bullmq": "npm:bullmq",
         "lib/": "./lib/",
-        "ioredis": "npm:ioredis"
+        "ioredis": "npm:ioredis",
+        "@bull-board/api": "npm:@bull-board/api",
+        "@bull-board/express": "npm:@bull-board/express",
+        "express": "npm:express"
     },
     "compilerOptions": {
         "jsx": "react-jsx",

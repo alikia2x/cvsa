@@ -13,8 +13,12 @@ const worker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 4 },
+	{ connection: redis },
 );
+
+worker.on("active", () => {
+	console.log("[bullmq] Worker activated.");
+});
 
 worker.on("error", (err) => {
 	console.error(err);
