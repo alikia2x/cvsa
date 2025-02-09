@@ -1,6 +1,7 @@
 import { Job, Worker } from "bullmq";
 import { insertVideosWorker } from "lib/mq/executors.ts";
 import { redis } from "lib/db/redis.ts";
+import logger from "lib/log/logger.ts";
 
 const worker = new Worker(
 	"cvsa",
@@ -17,9 +18,9 @@ const worker = new Worker(
 );
 
 worker.on("active", () => {
-	console.log("[bullmq] Worker activated.");
+	logger.log("Worker activated.", "mq");
 });
 
 worker.on("error", (err) => {
-	console.error(err);
+	logger.error(err);
 });

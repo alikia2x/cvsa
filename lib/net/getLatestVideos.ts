@@ -3,6 +3,7 @@ import formatPublishedAt from "lib/utils/formatTimestampToPostgre.ts";
 import { getVideoTags } from "lib/net/getVideoTags.ts";
 import { AllDataType } from "lib/db/schema.d.ts";
 import { sleep } from "lib/utils/sleep.ts";
+import logger from "lib/log/logger.ts";
 
 export async function getLatestVideos(page: number = 1, pageSize: number = 10, sleepRate: number = 250, fetchTags: boolean = true): Promise<AllDataType[] | null> {
     try {
@@ -10,12 +11,12 @@ export async function getLatestVideos(page: number = 1, pageSize: number = 10, s
         const data: VideoListResponse = await response.json();
 
         if (data.code !== 0) {
-            console.error(`Error fetching videos: ${data.message}`);
+            logger.error(`Error fetching videos: ${data.message}`, 'net', 'getLatestVideos');
             return null;
         }
 
         if (data.data.archives.length === 0) {
-            console.warn("No more videos found");
+            logger.verbose("No more videos found", 'net', 'getLatestVideos');
             return [];
         }
 
@@ -45,7 +46,7 @@ export async function getLatestVideos(page: number = 1, pageSize: number = 10, s
 
         return result;
     } catch (error) {
-        console.error(error);
+        logger.error(error as Error, "net", "getLatestVideos");
         return null;
     }
 }

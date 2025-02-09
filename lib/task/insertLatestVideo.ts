@@ -4,6 +4,7 @@ import { getLatestVideoTimestampFromAllData, insertIntoAllData, videoExistsInAll
 import { sleep } from "lib/utils/sleep.ts";
 import { getVideoPositionInNewList } from "lib/net/bisectVideoStartFrom.ts";
 import { SECOND } from "$std/datetime/constants.ts";
+import logger from "lib/log/logger.ts";
 
 export async function insertLatestVideos(
 	client: Client,
@@ -13,13 +14,13 @@ export async function insertLatestVideos(
 ): Promise<number | null> {
 	const latestVideoTimestamp = await getLatestVideoTimestampFromAllData(client);
 	if (latestVideoTimestamp == null) {
-		console.error("[func:insertLatestVideos] Cannot get latest video timestamp from current database.");
+		logger.error("Cannot get latest video timestamp from current database.", "net", "fn:insertLatestVideos()");
 		return null
 	}
-	console.log(`[func:insertLatestVideos] Latest video in the database: ${new Date(latestVideoTimestamp).toISOString()}`)
+	logger.log(`Latest video in the database: ${new Date(latestVideoTimestamp).toISOString()}`, "net", "fn:insertLatestVideos()")
 	const videoIndex = await getVideoPositionInNewList(latestVideoTimestamp);
 	if (videoIndex == null) {
-		console.error("[func:insertLatestVideos] Cannot locate the video through bisect.");
+		logger.error("Cannot locate the video through bisect.", "net", "fn:insertLatestVideos()");
 		return null
 	}
 	if (typeof videoIndex == "object") {
@@ -46,7 +47,7 @@ export async function insertLatestVideos(
 			}
 			failCount = 0;
 			if (videos.length == 0) {
-				console.warn("No more videos found");
+				logger.verbose("No more videos found", "net", "fn:insertLatestVideos()");
 				break;
 			}
 			for (const video of videos) {
@@ -56,13 +57,13 @@ export async function insertLatestVideos(
 					insertedVideos.add(video.aid);
 				}
 			}
-			console.log(`[func:insertLatestVideos] Page ${page} crawled, total: ${insertedVideos.size} videos.`);
+			logger.log(`Page ${page} crawled, total: ${insertedVideos.size} videos.`, "net", "fn:insertLatestVideos()");
 			page--;
 			if (page < 1) {
 				return 0;
 			}
 		} catch (error) {
-			console.error(error);
+			logger.error(error as Error, "net", "fn:insertLatestVideos()");
 			failCount++;
 			if (failCount > 5) {
 				return null;
