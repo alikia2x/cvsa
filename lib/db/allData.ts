@@ -10,7 +10,7 @@ export async function videoExistsInAllData(client: Client, aid: number) {
 export async function insertIntoAllData(client: Client, data: AllDataType) {
     logger.log(`inserted ${data.aid}`, "db-all_data")
 	return await client.queryObject(
-		"INSERT INTO all_data (aid, bvid, description, uid, tags, title, published_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+		"INSERT INTO all_data (aid, bvid, description, uid, tags, title, published_at) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (aid) DO NOTHING",
 		[data.aid, data.bvid, data.description, data.uid, data.tags, data.title, data.published_at],
 	);
 }
