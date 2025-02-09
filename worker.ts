@@ -13,7 +13,7 @@ const worker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis },
+	{ connection: redis, concurrency: 4 },
 );
 
 worker.on("active", () => {

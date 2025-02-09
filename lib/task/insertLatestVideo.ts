@@ -2,7 +2,7 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getLatestVideos } from "lib/net/getLatestVideos.ts";
 import { getLatestVideoTimestampFromAllData, insertIntoAllData, videoExistsInAllData } from "lib/db/allData.ts";
 import { sleep } from "lib/utils/sleep.ts";
-import { bisectVideoPageInNewList } from "lib/net/bisectVideoStartFrom.ts";
+import { getVideoPositionInNewList } from "lib/net/bisectVideoStartFrom.ts";
 import { SECOND } from "$std/datetime/constants.ts";
 
 export async function insertLatestVideos(
@@ -17,10 +17,19 @@ export async function insertLatestVideos(
 		return null
 	}
 	console.log(`[func:insertLatestVideos] Latest video in the database: ${new Date(latestVideoTimestamp).toISOString()}`)
-	const videoIndex = await bisectVideoPageInNewList(latestVideoTimestamp);
+	const videoIndex = await getVideoPositionInNewList(latestVideoTimestamp);
 	if (videoIndex == null) {
 		console.error("[func:insertLatestVideos] Cannot locate the video through bisect.");
 		return null
+	}
+	if (typeof videoIndex == "object") {
+		for (const video of videoIndex) {
+			const videoExists = await videoExistsInAllData(client, video.aid);
+			if (!videoExists) {
+				insertIntoAllData(client, video);
+			}
+		}
+		return 0;
 	}
 	let page = Math.floor(videoIndex / pageSize) + 1;
 	let failCount = 0;

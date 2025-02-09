@@ -1,22 +1,29 @@
 import { getLatestVideos } from "lib/net/getLatestVideos.ts";
+import { AllDataType } from "lib/db/schema.d.ts";
 
-export async function bisectVideoPageInNewList(timestamp: number): Promise<number | null> {
-	const pageSize = 50;
+export async function getVideoPositionInNewList(timestamp: number): Promise<number | null | AllDataType[]> {
+	const virtualPageSize = 50;
 
 	let lowPage = 1;
 	let highPage = 1;
 	let foundUpper = false;
 	while (true) {
-		const videos = await getLatestVideos(highPage * pageSize, 1, 250, false);
+		const ps = highPage < 2 ? 50 : 1
+		const pn = highPage < 2 ? 1 : highPage * virtualPageSize;
+		const fetchTags = highPage < 2 ? true : false;
+		const videos = await getLatestVideos(pn, ps, 250, fetchTags);
 		if (!videos || videos.length === 0) {
 			break;
 		}
-		const lastVideo = videos[0];
+		const lastVideo = videos[videos.length - 1];
 		if (!lastVideo || !lastVideo.published_at) {
 			break;
 		}
 		const lastTime = Date.parse(lastVideo.published_at);
-		if (lastTime <= timestamp) {
+		if (lastTime <= timestamp && highPage == 1) {
+			return videos;
+		}
+		else if (lastTime <= timestamp) {
 			foundUpper = true;
 			break;
 		} else {
@@ -34,7 +41,7 @@ export async function bisectVideoPageInNewList(timestamp: number): Promise<numbe
 	let hi = highPage;
 	while (lo <= hi) {
 		const mid = Math.floor((lo + hi) / 2);
-		const videos = await getLatestVideos(mid * pageSize, 1, 250, false);
+		const videos = await getLatestVideos(mid * virtualPageSize, 1, 250, false);
 		if (!videos) {
 			return null;
 		}
@@ -56,7 +63,7 @@ export async function bisectVideoPageInNewList(timestamp: number): Promise<numbe
 		}
 	}
 
-	const boundaryVideos = await getLatestVideos(boundaryPage, pageSize, 250, false);
+	const boundaryVideos = await getLatestVideos(boundaryPage, virtualPageSize, 250, false);
 	let indexInPage = 0;
 	if (boundaryVideos && boundaryVideos.length > 0) {
 		for (let i = 0; i < boundaryVideos.length; i++) {
@@ -73,7 +80,7 @@ export async function bisectVideoPageInNewList(timestamp: number): Promise<numbe
 		}
 	}
 
-	const count = (boundaryPage - 1) * pageSize + indexInPage;
+	const count = (boundaryPage - 1) * virtualPageSize + indexInPage;
 
 	const safetyMargin = 5;
 
