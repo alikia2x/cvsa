@@ -1,8 +1,6 @@
 import { VideoListResponse } from "lib/net/bilibili.d.ts";
 import formatPublishedAt from "lib/utils/formatTimestampToPostgre.ts";
-import { getVideoTags } from "lib/net/getVideoTags.ts";
 import { AllDataType } from "lib/db/schema.d.ts";
-import { sleep } from "lib/utils/sleep.ts";
 import logger from "lib/log/logger.ts";
 
 export async function getLatestVideos(page: number = 1, pageSize: number = 10, sleepRate: number = 250, fetchTags: boolean = true): Promise<AllDataType[] | null> {
@@ -20,31 +18,20 @@ export async function getLatestVideos(page: number = 1, pageSize: number = 10, s
             return [];
         }
 
-        const videoPromises = data.data.archives.map(async (video) => {
+        const videoData = data.data.archives.map((video) => {
             const published_at = formatPublishedAt(video.pubdate + 3600 * 8);
-            let tags = null;
-            if (fetchTags) {
-                sleep(Math.random() * pageSize * sleepRate);
-                tags = await getVideoTags(video.aid);
-            }
-			let processedTags = null;
-			if (tags !== null) {
-				processedTags = tags.join(',');
-			}
             return {
                 aid: video.aid,
                 bvid: video.bvid,
                 description: video.desc,
                 uid: video.owner.mid,
-                tags: processedTags,
+                tags: null,
                 title: video.title,
                 published_at: published_at,
             } as AllDataType;
         });
 
-        const result = await Promise.all(videoPromises);
-
-        return result;
+        return videoData;
     } catch (error) {
         logger.error(error as Error, "net", "getLatestVideos");
         return null;
