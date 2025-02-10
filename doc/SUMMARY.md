@@ -2,16 +2,16 @@
 
 * [Welcome](README.md)
 
-## Getting Started
+## About
 
-* [Quickstart](getting-started/quickstart.md)
-* [Publish your docs](getting-started/publish-your-docs.md)
+* [About CVSA Project](about/this-project.md)
+* [Scope of Inclusion](about/scope-of-inclusion.md)
 
-## Basics
+## Architecure
 
-* [Editor](basics/editor.md)
-* [Markdown](basics/markdown.md)
-* [Images & media](basics/images-and-media.md)
-* [Interactive blocks](basics/interactive-blocks.md)
-* [OpenAPI](basics/openapi.md)
-* [Integrations](basics/integrations.md)
+* [Overview](architecure/overview.md)
+
+## API Doc
+
+* [Catalog](api-doc/catalog.md)
+* [Songs](api-doc/songs.md)
