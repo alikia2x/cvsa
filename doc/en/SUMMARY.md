@@ -10,6 +10,9 @@
 ## Architecure
 
 * [Overview](architecure/overview.md)
+* [Database Structure](architecure/database-structure/README.md)
+  * [Type of Song](architecure/database-structure/type-of-song.md)
+* [Artificial Intelligence](architecure/artificial-intelligence.md)
 
 ## API Doc
 
