@@ -13,7 +13,8 @@
         "worker": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write worker.ts",
         "adder": "deno run --allow-env --allow-read --allow-ffi --allow-net jobAdder.ts",
         "bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net bullui.ts",
-        "all": "concurrently 'deno task start' 'deno task worker' 'deno task adder' 'deno task bullui'"
+        "all": "concurrently 'deno task start' 'deno task worker' 'deno task adder' 'deno task bullui'",
+        "test": "deno test ./test/ --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run"
     },
     "lint": {
         "rules": {

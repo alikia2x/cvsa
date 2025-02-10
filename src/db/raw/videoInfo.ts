@@ -20,6 +20,7 @@ export async function getBiliBiliVideoInfo(bvidORaid?: string | number, region: 
 
 async function proxyRequestWithRegion(url: string, region: string): Promise<any | null> {
 	const td = new TextDecoder();
+	// aliyun configure set  --access-key-id $ALIYUN_AK --access-key-secret $ALIYUN_SK --region cn-shenzhen --profile CVSA-shenzhen --mode AK
 	const p = await new Deno.Command("aliyun", {
 		args: [
 			"fc",

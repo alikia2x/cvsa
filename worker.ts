@@ -1,5 +1,5 @@
 import { Job, Worker } from "bullmq";
-import { insertVideosWorker } from "lib/mq/executors.ts";
+import { getLatestVideosWorker } from "lib/mq/executors.ts";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
 
@@ -8,7 +8,7 @@ const worker = new Worker(
 	async (job: Job) => {
 		switch (job.name) {
 			case "getLatestVideos":
-				await insertVideosWorker(job);
+				await getLatestVideosWorker(job);
 				break;
 			default:
 				break;
