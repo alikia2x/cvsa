@@ -4,9 +4,6 @@ import {RateLimiter} from "lib/mq/rateLimiter.ts";
 interface Proxy {
 	type: string;
 	task: string;
-	data?: {
-		[key: string]: string;
-	};
 	limiter?: RateLimiter;
 }
 
@@ -56,11 +53,12 @@ export class NetScheduler {
      * - The native `fetch` function threw an error: with error code FETCH_ERROR
      * - The proxy type is not supported: with error code NOT_IMPLEMENTED
 	 */
-	async request<R>(url: string, method: string = "GET"): Promise<R | null> {
+	async request<R>(url: string, method: string = "GET", task: string): Promise<R | null> {
 		// find a available proxy
 		const proxiesNames = Object.keys(this.proxies);
 		for (const proxyName of proxiesNames) {
 			const proxy = this.proxies[proxyName];
+			if (proxy.task !== task) continue;
 			if (!proxy.limiter) {
 				return await this.proxyRequest<R>(url, proxyName, method);
 			}
