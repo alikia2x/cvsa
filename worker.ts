@@ -3,7 +3,7 @@ import { getLatestVideosWorker } from "lib/mq/executors.ts";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
 
-const worker = new Worker(
+const crawlerWorker = new Worker(
 	"cvsa",
 	async (job: Job) => {
 		switch (job.name) {
@@ -14,13 +14,13 @@ const worker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 4 },
+	{ connection: redis, concurrency: 10 },
 );
 
-worker.on("active", () => {
+crawlerWorker.on("active", () => {
 	logger.log("Worker activated.", "mq");
 });
 
-worker.on("error", (err) => {
+crawlerWorker.on("error", (err) => {
 	logger.error(err);
 });

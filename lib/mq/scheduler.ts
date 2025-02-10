@@ -1,7 +1,7 @@
 import logger from "lib/log/logger.ts";
-import { RateLimiter } from "lib/mq/rateLimiter.ts";
-import { SlidingWindow } from "lib/mq/slidingWindow.ts";
-import { redis } from "lib/db/redis.ts";
+import {RateLimiter} from "lib/mq/rateLimiter.ts";
+import {SlidingWindow} from "lib/mq/slidingWindow.ts";
+import {redis} from "lib/db/redis.ts";
 import Redis from "ioredis";
 
 interface Proxy {
@@ -23,10 +23,12 @@ type NetSchedulerErrorCode =
 
 export class NetSchedulerError extends Error {
 	public errorCode: NetSchedulerErrorCode;
-	constructor(message: string, errorCode: NetSchedulerErrorCode) {
+	public rawError: unknown | undefined;
+	constructor(message: string, errorCode: NetSchedulerErrorCode, rawError?: unknown) {
 		super(message);
 		this.name = "NetSchedulerError";
 		this.errorCode = errorCode;
+		this.rawError = rawError;
 	}
 }
 
@@ -56,7 +58,7 @@ class NetScheduler {
 	 * - The native `fetch` function threw an error: with error code FETCH_ERROR
 	 * - The proxy type is not supported: with error code NOT_IMPLEMENTED
 	 */
-	async request<R>(url: string, method: string = "GET", task: string): Promise<R | null> {
+	async request<R>(url: string, task: string, method: string = "GET"): Promise<R> {
 		// find a available proxy
 		const proxiesNames = Object.keys(this.proxies);
 		for (const proxyName of proxiesNames) {
@@ -133,29 +135,28 @@ class NetScheduler {
 	private async nativeRequest<R>(url: string, method: string): Promise<R> {
 		try {
 			const response = await fetch(url, { method });
-			const data = await response.json() as R;
-			return data;
+			return await response.json() as R;
 		} catch (e) {
-			logger.error(e as Error);
-			throw new NetSchedulerError("Fetch error", "FETCH_ERROR");
+			throw new NetSchedulerError("Fetch error", "FETCH_ERROR", e);
 		}
 	}
 }
 
 const netScheduler = new NetScheduler();
+netScheduler.addProxy("default", "native", "default");
 netScheduler.addProxy("tags-native", "native", "getVideoTags");
 const tagsRateLimiter = new RateLimiter("getVideoTags", [
 	{
-		window: new SlidingWindow(redis, 1.2),
-		max: 1,
+		window: new SlidingWindow(redis, 1),
+		max: 3,
 	},
 	{
 		window: new SlidingWindow(redis, 30),
-		max: 5,
+		max: 30,
 	},
 	{
-		window: new SlidingWindow(redis, 5 * 60),
-		max: 70,
+		window: new SlidingWindow(redis, 2 * 60),
+		max: 50,
 	},
 ]);
 netScheduler.setProxyLimiter("tags-native", tagsRateLimiter);
