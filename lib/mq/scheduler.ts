@@ -1,5 +1,8 @@
 import logger from "lib/log/logger.ts";
-import {RateLimiter} from "lib/mq/rateLimiter.ts";
+import { RateLimiter } from "lib/mq/rateLimiter.ts";
+import { SlidingWindow } from "lib/mq/slidingWindow.ts";
+import { redis } from "lib/db/redis.ts";
+import Redis from "ioredis";
 
 interface Proxy {
 	type: string;
@@ -27,7 +30,7 @@ export class NetSchedulerError extends Error {
 	}
 }
 
-export class NetScheduler {
+class NetScheduler {
 	private proxies: ProxiesMap = {};
 
 	addProxy(name: string, type: string, task: string): void {
@@ -48,10 +51,10 @@ export class NetScheduler {
 	 * @param {string} method - The HTTP method to use for the request. Default is "GET".
 	 * @returns {Promise<any>} - A promise that resolves to the response body.
 	 * @throws {NetSchedulerError} - The error will be thrown in following cases:
-     * - No available proxy currently: with error code NO_AVAILABLE_PROXY
-     * - Proxy is under rate limit: with error code PROXY_RATE_LIMITED
-     * - The native `fetch` function threw an error: with error code FETCH_ERROR
-     * - The proxy type is not supported: with error code NOT_IMPLEMENTED
+	 * - No available proxy currently: with error code NO_AVAILABLE_PROXY
+	 * - Proxy is under rate limit: with error code PROXY_RATE_LIMITED
+	 * - The native `fetch` function threw an error: with error code FETCH_ERROR
+	 * - The proxy type is not supported: with error code NOT_IMPLEMENTED
 	 */
 	async request<R>(url: string, method: string = "GET", task: string): Promise<R | null> {
 		// find a available proxy
@@ -59,11 +62,7 @@ export class NetScheduler {
 		for (const proxyName of proxiesNames) {
 			const proxy = this.proxies[proxyName];
 			if (proxy.task !== task) continue;
-			if (!proxy.limiter) {
-				return await this.proxyRequest<R>(url, proxyName, method);
-			}
-			const proxyIsNotRateLimited = await proxy.limiter.getAvailability();
-			if (proxyIsNotRateLimited) {
+			if (await this.getProxyAvailability(proxyName)) {
 				return await this.proxyRequest<R>(url, proxyName, method);
 			}
 		}
@@ -85,17 +84,24 @@ export class NetScheduler {
 	 */
 	async proxyRequest<R>(url: string, proxyName: string, method: string = "GET", force: boolean = false): Promise<R> {
 		const proxy = this.proxies[proxyName];
-		const limiterExists = proxy.limiter !== undefined;
 		if (!proxy) {
 			throw new NetSchedulerError(`Proxy "${proxy}" not found`, "PROXY_NOT_FOUND");
 		}
 
-		if (!force && limiterExists && !(await proxy.limiter!.getAvailability())) {
+		if (!force && await this.getProxyAvailability(proxyName) === false) {
 			throw new NetSchedulerError(`Proxy "${proxy}" is rate limited`, "PROXY_RATE_LIMITED");
 		}
 
-		if (limiterExists) {
-			await proxy.limiter!.trigger();
+		if (proxy.limiter) {
+			try {
+				await proxy.limiter!.trigger();
+			} catch (e) {
+				const error = e as Error;
+				if (e instanceof Redis.ReplyError) {
+					logger.error(error, "redis");
+				}
+				logger.warn(`Unhandled error: ${error.message}`, "mq", "proxyRequest");
+			}
 		}
 
 		switch (proxy.type) {
@@ -106,21 +112,52 @@ export class NetScheduler {
 		}
 	}
 
-	async getProxyAvailability(name: string): Promise<boolean> {
-		const proxyConfig = this.proxies[name];
-		if (!proxyConfig || !proxyConfig.limiter) {
-			return true;
+	private async getProxyAvailability(name: string): Promise<boolean> {
+		try {
+			const proxyConfig = this.proxies[name];
+			if (!proxyConfig || !proxyConfig.limiter) {
+				return true;
+			}
+			return await proxyConfig.limiter.getAvailability();
+		} catch (e) {
+			const error = e as Error;
+			if (e instanceof Redis.ReplyError) {
+				logger.error(error, "redis");
+				return false;
+			}
+			logger.warn(`Unhandled error: ${error.message}`, "mq", "getProxyAvailability");
+			return false;
 		}
-		return await proxyConfig.limiter.getAvailability();
 	}
 
 	private async nativeRequest<R>(url: string, method: string): Promise<R> {
 		try {
 			const response = await fetch(url, { method });
-			return await response.json() as R;
+			const data = await response.json() as R;
+			return data;
 		} catch (e) {
 			logger.error(e as Error);
 			throw new NetSchedulerError("Fetch error", "FETCH_ERROR");
 		}
 	}
 }
+
+const netScheduler = new NetScheduler();
+netScheduler.addProxy("tags-native", "native", "getVideoTags");
+const tagsRateLimiter = new RateLimiter("getVideoTags", [
+	{
+		window: new SlidingWindow(redis, 1.2),
+		max: 1,
+	},
+	{
+		window: new SlidingWindow(redis, 30),
+		max: 5,
+	},
+	{
+		window: new SlidingWindow(redis, 5 * 60),
+		max: 70,
+	},
+]);
+netScheduler.setProxyLimiter("tags-native", tagsRateLimiter);
+
+export default netScheduler;

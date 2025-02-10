@@ -4,9 +4,14 @@ export class SlidingWindow {
 	private redis: Redis;
 	private readonly windowSize: number;
 
+	/*
+	 * Create a new sliding window
+	 * @param redisClient The Redis client used to store the data
+	 * @param windowSize The size of the window in seconds
+	 */
 	constructor(redisClient: Redis, windowSize: number) {
 		this.redis = redisClient;
-		this.windowSize = windowSize;
+		this.windowSize = windowSize * 1000;
 	}
 
 	/*
@@ -39,8 +44,8 @@ export class SlidingWindow {
 		return this.redis.zcard(key);
 	}
 
-	async clear(eventName: string): Promise<number> {
+	clear(eventName: string): Promise<number> {
 		const key = `cvsa:sliding_window:${eventName}`;
-		return await this.redis.del(key);
+		return this.redis.del(key);
 	}
 }

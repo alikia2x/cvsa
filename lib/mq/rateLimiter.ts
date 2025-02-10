@@ -11,7 +11,9 @@ export class RateLimiter {
 
 	/*
 	 * @param name The name of the rate limiter
-	 * @param configs The configuration of the rate limiter
+	 * @param configs The configuration of the rate limiter, containing:
+	 * - window: The sliding window to use
+	 * - max: The maximum number of events allowed in the window
 	 */
 	constructor(name: string, configs: RateLimiterConfig[]) {
 		this.configs = configs;
@@ -41,6 +43,14 @@ export class RateLimiter {
 			const config = this.configs[i];
 			const eventName = this.configEventNames[i];
 			await config.window.event(eventName);
+		}
+	}
+
+	async clear(): Promise<void> {
+		for (let i = 0; i < this.configs.length; i++) {
+			const config = this.configs[i];
+			const eventName = this.configEventNames[i];
+			await config.window.clear(eventName);
 		}
 	}
 }
