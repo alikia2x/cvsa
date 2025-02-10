@@ -34,7 +34,7 @@
 
 受本文以[CC BY-NC-SA 4.0协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)提供。
 
-## 数据库
+### 数据库
 
 中V档案馆使用[PostgreSQL](https://postgresql.org)作为数据库，我们承诺定期导出数据库转储 (dump) 文件并公开，其内容遵从以下协议或条款：
 
@@ -44,7 +44,7 @@
     > 根据原始协议第四条第2项内容，CC BY-NC-SA 4.0协议为与原始协议具有相同授权要素的后续版本（“可适用的协议”）。
 - 中V档案馆文档使用[CC BY 4.0协议](https://creativecommons.org/licenses/by/4.0/)。
 
-## 软件代码
+### 软件代码
 
 用于构建中V档案馆的软件代码在[AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.html)许可证下公开，参见[LICENSE](./LICENSE)
 
