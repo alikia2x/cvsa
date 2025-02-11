@@ -13,6 +13,8 @@
 * [数据库结构](architecture/database-structure/README.md)
   * [歌曲类型](architecture/database-structure/type-of-song.md)
 * [人工智能](architecture/artificial-intelligence.md)
+* [消息队列](architecture/message-queue/README.md)
+  * [VideoTagsQueue队列](architecture/message-queue/video-tags-queue.md)
 
 ## API 文档 <a href="#api-doc" id="api-doc"></a>
 
