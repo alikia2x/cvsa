@@ -78,6 +78,7 @@ export const getVideoTagsWorker = async (job: Job) => {
 export const getVideoTagsInitializer = async () => {
 	const client = await db.connect();
 	const videos = await getNullVideoTagsList(client);
+	client.release();
 	if (videos.length == 0) {
 		return 4;
 	}
