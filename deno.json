@@ -10,9 +10,9 @@
         "build": "deno run -A dev.ts build",
         "preview": "deno run -A main.ts",
         "update": "deno run -A -r https://fresh.deno.dev/update .",
-        "worker": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write worker.ts",
-        "adder": "deno run --allow-env --allow-read --allow-ffi --allow-net jobAdder.ts",
-        "bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net bullui.ts",
+        "worker": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/worker.ts",
+        "adder": "deno run --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
+        "bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net ./src/bullui.ts",
         "all": "concurrently 'deno task start' 'deno task worker' 'deno task adder' 'deno task bullui'",
         "test": "deno test ./test/ --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run"
     },
@@ -39,7 +39,8 @@
         "ioredis": "npm:ioredis",
         "@bull-board/api": "npm:@bull-board/api",
         "@bull-board/express": "npm:@bull-board/express",
-        "express": "npm:express"
+        "express": "npm:express",
+        "src/": "./src/"
     },
     "compilerOptions": {
         "jsx": "react-jsx",
@@ -50,6 +51,7 @@
         "useTabs": true,
         "lineWidth": 120,
         "indentWidth": 4,
-        "semiColons": true
+        "semiColons": true,
+        "proseWrap": "always"
     }
 }

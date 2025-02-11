@@ -22,12 +22,12 @@ type NetSchedulerErrorCode =
 	| "NOT_IMPLEMENTED";
 
 export class NetSchedulerError extends Error {
-	public errorCode: NetSchedulerErrorCode;
+	public code: NetSchedulerErrorCode;
 	public rawError: unknown | undefined;
 	constructor(message: string, errorCode: NetSchedulerErrorCode, rawError?: unknown) {
 		super(message);
 		this.name = "NetSchedulerError";
-		this.errorCode = errorCode;
+		this.code = errorCode;
 		this.rawError = rawError;
 	}
 }
@@ -87,11 +87,11 @@ class NetScheduler {
 	async proxyRequest<R>(url: string, proxyName: string, method: string = "GET", force: boolean = false): Promise<R> {
 		const proxy = this.proxies[proxyName];
 		if (!proxy) {
-			throw new NetSchedulerError(`Proxy "${proxy}" not found`, "PROXY_NOT_FOUND");
+			throw new NetSchedulerError(`Proxy "${proxyName}" not found`, "PROXY_NOT_FOUND");
 		}
 
 		if (!force && await this.getProxyAvailability(proxyName) === false) {
-			throw new NetSchedulerError(`Proxy "${proxy}" is rate limited`, "PROXY_RATE_LIMITED");
+			throw new NetSchedulerError(`Proxy "${proxyName}" is rate limited`, "PROXY_RATE_LIMITED");
 		}
 
 		if (proxy.limiter) {
