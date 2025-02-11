@@ -31,7 +31,7 @@ Deno.addSignalListener("SIGTERM", async () => {
 	await latestVideoWorker.close(true);
 	await videoTagsWorker.close(true);
 	Deno.exit();
-})
+});
 
 const latestVideoWorker = new Worker(
 	"latestVideos",
@@ -44,7 +44,7 @@ const latestVideoWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 1 },
+	{ connection: redis, concurrency: 1, removeOnComplete: { count: 1440 } },
 );
 
 latestVideoWorker.on("active", () => {
@@ -72,7 +72,13 @@ const videoTagsWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 6 },
+	{
+		connection: redis,
+		concurrency: 6,
+		removeOnComplete: {
+			count: 1000,
+		},
+	},
 );
 
 videoTagsWorker.on("active", () => {
