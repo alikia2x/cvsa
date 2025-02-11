@@ -21,7 +21,7 @@ export async function getVideoTags(aid: number): Promise<string[] | null> {
     }
 	catch (e) {
         const error = e as NetSchedulerError;
-        if (error.errorCode == "FETCH_ERROR") {
+        if (error.code == "FETCH_ERROR") {
             const rawError = error.rawError! as Error;
             rawError.message = `Error fetching tags for video ${aid}: ` + rawError.message;
             logger.error(rawError, 'net', 'getVideoTags');

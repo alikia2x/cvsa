@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
 
-const MainQueue = new Queue("cvsa");
+export const LatestVideosQueue = new Queue("latestVideos");
 
-export default MainQueue;
+export const VideoTagsQueue = new Queue("videoTags");
