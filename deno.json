@@ -40,7 +40,9 @@
         "@bull-board/api": "npm:@bull-board/api",
         "@bull-board/express": "npm:@bull-board/express",
         "express": "npm:express",
-        "src/": "./src/"
+        "src/": "./src/",
+        "onnxruntime": "npm:onnxruntime-node",
+        "chalk": "npm:chalk"
     },
     "compilerOptions": {
         "jsx": "react-jsx",

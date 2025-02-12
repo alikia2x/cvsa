@@ -1,6 +1,6 @@
 import winston, { format, transports } from "npm:winston";
 import { TransformableInfo } from "npm:logform";
-import chalk from "npm:chalk";
+import chalk from "chalk";
 
 const customFormat = format.printf((info: TransformableInfo) => {
 	const { timestamp, level, message, service, codePath, error } = info;
