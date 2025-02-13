@@ -9,7 +9,6 @@ import logger from "lib/log/logger.ts";
 export async function insertLatestVideos(
 	client: Client,
 	pageSize: number = 10,
-	sleepRate: number = 250,
 	intervalRate: number = 4000,
 ): Promise<number | null> {
 	const latestVideoTimestamp = await getLatestVideoTimestampFromAllData(client);
@@ -27,7 +26,7 @@ export async function insertLatestVideos(
 		for (const video of videoIndex) {
 			const videoExists = await videoExistsInAllData(client, video.aid);
 			if (!videoExists) {
-				insertIntoAllData(client, video);
+				await insertIntoAllData(client, video);
 			}
 		}
 		return 0;
@@ -37,7 +36,7 @@ export async function insertLatestVideos(
 	const insertedVideos = new Set();
 	while (true) {
 		try {
-			const videos = await getLatestVideos(page, pageSize, sleepRate);
+			const videos = await getLatestVideos(page, pageSize);
 			if (videos == null) {
 				failCount++;
 				if (failCount > 5) {
@@ -53,7 +52,7 @@ export async function insertLatestVideos(
 			for (const video of videos) {
 				const videoExists = await videoExistsInAllData(client, video.aid);
 				if (!videoExists) {
-					insertIntoAllData(client, video);
+					await insertIntoAllData(client, video);
 					insertedVideos.add(video.aid);
 				}
 			}
@@ -68,7 +67,7 @@ export async function insertLatestVideos(
 			if (failCount > 5) {
 				return null;
 			}
-			continue;
+
 		} finally {
 			await sleep(Math.random() * intervalRate + failCount * 3 * SECOND + SECOND);
 		}

@@ -1,20 +1,26 @@
 import { Client, Transaction } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { AllDataType } from "lib/db/schema.d.ts";
 import logger from "lib/log/logger.ts";
-import { parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
+import { formatTimestampToPsql, parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
+import { VideoListVideo } from "lib/net/bilibili.d.ts";
+import { HOUR, SECOND } from "$std/datetime/constants.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
 	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
 		.then((result) => result.rows[0].exists);
 }
 
-export async function insertIntoAllData(client: Client, data: AllDataType) {
+export async function biliUserExists(client: Client, uid: number) {
+	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bili_user WHERE uid = $1)`, [uid])
+		.then((result) => result.rows[0].exists);
+}
+
+export async function insertIntoAllData(client: Client, data: VideoListVideo) {
 	logger.log(`inserted ${data.aid}`, "db-all_data");
-	return await client.queryObject(
-		`INSERT INTO all_data (aid, bvid, description, uid, tags, title, published_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+	await client.queryObject(
+		`INSERT INTO all_data (aid, bvid, description, uid, tags, title, published_at, duration)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (aid) DO NOTHING`,
-		[data.aid, data.bvid, data.description, data.uid, data.tags, data.title, data.published_at],
+		[data.aid, data.bvid, data.desc, data.owner.mid, null, data.title, formatTimestampToPsql(data.pubdate * SECOND + 8 * HOUR), data.duration],
 	);
 }
 
