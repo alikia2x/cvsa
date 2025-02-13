@@ -76,13 +76,11 @@ node_modules/
 
 
 # project specific
-data/main.db
 .env
 logs/
 __pycache__
 filter/runs
 data/
 filter/checkpoints
-data/filter/model_predicted*
 scripts
 model/
