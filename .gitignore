@@ -81,8 +81,7 @@ data/main.db
 logs/
 __pycache__
 filter/runs
-data/filter/eval*
-data/filter/train*
+data/
 filter/checkpoints
 data/filter/model_predicted*
 scripts
