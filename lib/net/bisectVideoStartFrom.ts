@@ -1,5 +1,5 @@
 import { getLatestVideos } from "lib/net/getLatestVideos.ts";
-import { HOUR, SECOND } from "$std/datetime/constants.ts";
+import { SECOND } from "$std/datetime/constants.ts";
 import { VideoListVideo } from "lib/net/bilibili.d.ts";
 
 export async function getVideoPositionInNewList(timestamp: number): Promise<number | null | VideoListVideo[]> {
@@ -19,7 +19,7 @@ export async function getVideoPositionInNewList(timestamp: number): Promise<numb
 		if (!lastVideo || !lastVideo.pubdate) {
 			break;
 		}
-		const lastTime = lastVideo.pubdate * SECOND + 8 * HOUR;
+		const lastTime = lastVideo.pubdate * SECOND
 		if (lastTime <= timestamp && highPage == 1) {
 			return videos;
 		}
@@ -54,7 +54,7 @@ export async function getVideoPositionInNewList(timestamp: number): Promise<numb
 			hi = mid - 1;
 			continue;
 		}
-		const lastTime = lastVideo.pubdate * SECOND + 8 * HOUR;
+		const lastTime = lastVideo.pubdate * SECOND
 		if (lastTime > timestamp) {
 			lo = mid + 1;
 		} else {
@@ -71,7 +71,7 @@ export async function getVideoPositionInNewList(timestamp: number): Promise<numb
 			if (!video.pubdate) {
 				continue;
 			}
-			const videoTime = video.pubdate * SECOND + 8 * HOUR;
+			const videoTime = video.pubdate * SECOND
 			if (videoTime > timestamp) {
 				indexInPage++;
 			} else {
