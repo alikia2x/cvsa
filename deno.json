@@ -42,7 +42,7 @@
         "@bull-board/express": "npm:@bull-board/express",
         "express": "npm:express",
         "src/": "./src/",
-        "onnxruntime": "npm:onnxruntime-node",
+        "onnxruntime": "npm:onnxruntime-node@1.20.1",
         "chalk": "npm:chalk"
     },
     "compilerOptions": {

@@ -5,7 +5,7 @@ import logger from "lib/log/logger.ts";
 import { getVideoTagsWorker } from "lib/mq/exec/getVideoTags.ts";
 import { getVideoTagsInitializer } from "lib/mq/exec/getVideoTags.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
-import { WorkerError } from "../lib/mq/schema.ts";
+import { WorkerError } from "lib/mq/schema.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
