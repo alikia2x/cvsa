@@ -4,6 +4,7 @@ import logger from "lib/log/logger.ts";
 import { classifyVideosWorker, classifyVideoWorker } from "lib/mq/exec/classifyVideo.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
+import { initializeModels } from "lib/ml/filter_inference.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -16,6 +17,9 @@ Deno.addSignalListener("SIGTERM", async () => {
 	await filterWorker.close(true);
 	Deno.exit();
 });
+
+
+await initializeModels();
 
 const filterWorker = new Worker(
 	"classifyVideo",

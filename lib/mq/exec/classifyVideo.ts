@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
 import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel} from "lib/db/allData.ts";
-import { classifyVideo, initializeModels } from "lib/ml/filter_inference.ts";
+import { classifyVideo } from "lib/ml/filter_inference.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
@@ -40,8 +40,6 @@ export const classifyVideosWorker = async () => {
 	}
 	
 	lockManager.acquireLock("classifyVideos");
-
-	await initializeModels();
 
 	const client = await db.connect();
 	const videos = await getUnlabelledVideos(client);
