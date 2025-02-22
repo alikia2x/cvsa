@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
-import { getUnlabeledVideos, getVideoInfoFromAllData, insertVideoLabel} from "lib/db/allData.ts";
+import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel} from "lib/db/allData.ts";
 import { classifyVideo, initializeModels } from "lib/ml/filter_inference.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
@@ -35,7 +35,8 @@ export const classifyVideoWorker = async (job: Job) => {
 export const classifyVideosWorker = async () => {
 	await initializeModels();
 	const client = await db.connect();
-	const videos = await getUnlabeledVideos(client);
+	const videos = await getUnlabelledVideos(client);
+	logger.log(`Found ${videos.length} unlabelled videos`)
 	client.release();
 	let i = 0;
 	for (const aid of videos) {

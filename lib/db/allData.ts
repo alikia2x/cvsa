@@ -77,7 +77,7 @@ export async function getNullVideoTagsList(client: Client) {
 	);
 }
 
-export async function getUnlabeledVideos(client: Client) {
+export async function getUnlabelledVideos(client: Client) {
 	const queryResult = await client.queryObject<{ aid: number }>(
 		`SELECT a.aid FROM all_data a LEFT JOIN labelling_result l ON a.aid = l.aid WHERE l.aid IS NULL`,
 	);

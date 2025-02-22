@@ -28,6 +28,7 @@ export async function initializeModels() {
 
 		sessionClassifier = classifierSession;
 		sessionEmbedding = embeddingSession;
+		logger.log("Filter models initialized", "ml");
 	} catch (error) {
 		const e = new WorkerError(error as Error, "ml", "fn:initializeModels");
 		throw e;
