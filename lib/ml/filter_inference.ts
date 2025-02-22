@@ -1,7 +1,7 @@
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import * as ort from "onnxruntime";
 import logger from "lib/log/logger.ts";
-import { WorkerError } from "src/worker.ts";
+import { WorkerError } from "../mq/schema.ts";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
 const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
@@ -97,7 +97,6 @@ export async function classifyVideo(
 		tags,
 		author_info,
 	], sessionEmbedding);
-
 	const probabilities = await runClassification(embeddings);
 	logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml")
 	return probabilities.indexOf(Math.max(...probabilities));

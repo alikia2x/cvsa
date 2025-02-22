@@ -5,19 +5,7 @@ import logger from "lib/log/logger.ts";
 import { getVideoTagsWorker } from "lib/mq/exec/getVideoTags.ts";
 import { getVideoTagsInitializer } from "lib/mq/exec/getVideoTags.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
-
-export class WorkerError extends Error {
-	public service?: string;
-	public codePath?: string;
-	public rawError: Error;
-	constructor(rawError: Error, service?: string, codePath?: string) {
-		super(rawError.message);
-		this.name = "WorkerFailure";
-		this.codePath = codePath;
-		this.service = service;
-		this.rawError = rawError;
-	}
-}
+import { WorkerError } from "../lib/mq/schema.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -48,7 +36,7 @@ const latestVideoWorker = new Worker(
 );
 
 latestVideoWorker.on("active", () => {
-	logger.log("Worker activated.", "mq");
+	logger.log("Worker (latestVideos) activated.", "mq");
 });
 
 latestVideoWorker.on("error", (err) => {
@@ -82,7 +70,7 @@ const videoTagsWorker = new Worker(
 );
 
 videoTagsWorker.on("active", () => {
-	logger.log("Worker activated.", "mq");
+	logger.log("Worker (videoTags) activated.", "mq");
 });
 
 videoTagsWorker.on("error", (err) => {

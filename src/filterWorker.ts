@@ -1,8 +1,8 @@
 import { Job, Worker } from "bullmq";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
-import { WorkerError } from "src/worker.ts";
 import { classifyVideosWorker, classifyVideoWorker } from "lib/mq/exec/classifyVideo.ts";
+import { WorkerError } from "../lib/mq/schema.ts";
 
 const filterWorker = new Worker(
 	"classifyVideo",
@@ -16,11 +16,11 @@ const filterWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 1, removeOnComplete: { count: 1000 } },
+	{ connection: redis, concurrency: 4, removeOnComplete: { count: 1000 } },
 );
 
 filterWorker.on("active", () => {
-	logger.log("Worker activated.", "mq");
+	logger.log("Worker (filter) activated.", "mq");
 });
 
 filterWorker.on("error", (err) => {
