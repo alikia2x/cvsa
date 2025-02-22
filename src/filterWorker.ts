@@ -29,7 +29,7 @@ const filterWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 4, removeOnComplete: { count: 1000 } },
+	{ connection: redis, concurrency: 2, removeOnComplete: { count: 1000 } },
 );
 
 filterWorker.on("active", () => {
