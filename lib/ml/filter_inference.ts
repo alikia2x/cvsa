@@ -18,8 +18,7 @@ export async function initializeModels() {
 	}
 
 	try {
-		const tokenizerConfig = { local_files_only: true };
-		tokenizer = await AutoTokenizer.from_pretrained(tokenizerModel, tokenizerConfig);
+		tokenizer = await AutoTokenizer.from_pretrained(tokenizerModel);
 
 		const [classifierSession, embeddingSession] = await Promise.all([
 			ort.InferenceSession.create(onnxClassifierPath),
