@@ -18,7 +18,6 @@ export async function insertLatestVideos(
 	}
 	logger.log(`Latest video in the database: ${new Date(latestVideoTimestamp).toISOString()}`, "net", "fn:insertLatestVideos()")
 	const videoIndex = await getVideoPositionInNewList(latestVideoTimestamp);
-	logger.log(`Position of the video in the latest list: ${videoIndex}`, "net", "fn:insertLatestVideos()")
 	if (videoIndex == null) {
 		logger.error("Cannot locate the video through bisect.", "net", "fn:insertLatestVideos()");
 		return null

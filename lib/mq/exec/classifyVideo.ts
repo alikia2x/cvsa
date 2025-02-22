@@ -4,6 +4,7 @@ import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel} from "l
 import { classifyVideo, initializeModels } from "lib/ml/filter_inference.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
+import { lockManager } from "lib/mq/lockManager.ts";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const client = await db.connect();
@@ -33,16 +34,29 @@ export const classifyVideoWorker = async (job: Job) => {
 };
 
 export const classifyVideosWorker = async () => {
+	if (await lockManager.isLocked("classifyVideos")) {
+		logger.log("job:classifyVideos is locked, skipping.", "mq");
+		return;
+	}
+	
+	lockManager.acquireLock("classifyVideos");
+
 	await initializeModels();
+
 	const client = await db.connect();
 	const videos = await getUnlabelledVideos(client);
 	logger.log(`Found ${videos.length} unlabelled videos`)
 	client.release();
+
 	let i = 0;
 	for (const aid of videos) {
-		if (i > 200) return 10000 + i;
+		if (i > 200) {
+			lockManager.releaseLock("classifyVideos");
+			return 10000 + i;
+		}
 		await ClassifyVideoQueue.add("classifyVideo", { aid: Number(aid) });
 		i++;
 	}
+	lockManager.releaseLock("classifyVideos");
 	return 0;
 };
