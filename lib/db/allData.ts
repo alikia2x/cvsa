@@ -1,8 +1,10 @@
 import { Client, Transaction } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { AllDataType } from "lib/db/schema.d.ts";
 import logger from "lib/log/logger.ts";
 import { formatTimestampToPsql, parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import { VideoListVideo } from "lib/net/bilibili.d.ts";
 import { HOUR, SECOND } from "$std/datetime/constants.ts";
+import { modelVersion } from "lib/ml/filter_inference.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
 	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
@@ -20,7 +22,16 @@ export async function insertIntoAllData(client: Client, data: VideoListVideo) {
 		`INSERT INTO all_data (aid, bvid, description, uid, tags, title, published_at, duration)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (aid) DO NOTHING`,
-		[data.aid, data.bvid, data.desc, data.owner.mid, null, data.title, formatTimestampToPsql(data.pubdate * SECOND + 8 * HOUR), data.duration],
+		[
+			data.aid,
+			data.bvid,
+			data.desc,
+			data.owner.mid,
+			null,
+			data.title,
+			formatTimestampToPsql(data.pubdate * SECOND + 8 * HOUR),
+			data.duration,
+		],
 	);
 }
 
@@ -64,4 +75,26 @@ export async function getNullVideoTagsList(client: Client) {
 			};
 		},
 	);
+}
+
+export async function getUnlabeledVideos(client: Client) {
+	const queryResult = await client.queryObject<{ aid: number }>(
+		`SELECT a.aid FROM all_data a LEFT JOIN labelling_result l ON a.aid = l.aid WHERE l.aid IS NULL`,
+	);
+	return queryResult.rows.map((row) => row.aid);
+}
+
+export async function insertVideoLabel(client: Client, aid: number, label: number) {
+	return await client.queryObject(
+		`INSERT INTO labelling_result (aid, label, model_version) VALUES ($1, $2, $3) ON CONFLICT (aid, model_version) DO NOTHING`,
+		[aid, label, modelVersion],
+	);
+}
+
+export async function getVideoInfoFromAllData(client: Client, aid: number) {
+	const queryResult = await client.queryObject<AllDataType>(
+		`SELECT * FROM all_data WHERE aid = $1`,
+		[aid],
+	);
+	return queryResult.rows[0];
 }
