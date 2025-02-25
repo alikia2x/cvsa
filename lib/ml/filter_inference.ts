@@ -1,7 +1,7 @@
-import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
+import {AutoTokenizer, PreTrainedTokenizer} from "@huggingface/transformers";
 import * as ort from "onnxruntime";
 import logger from "lib/log/logger.ts";
-import { WorkerError } from "../mq/schema.ts";
+import {WorkerError} from "lib/mq/schema.ts";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
 const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
@@ -29,12 +29,11 @@ export async function initializeModels() {
 		sessionEmbedding = embeddingSession;
 		logger.log("Filter models initialized", "ml");
 	} catch (error) {
-		const e = new WorkerError(error as Error, "ml", "fn:initializeModels");
-		throw e;
+		throw new WorkerError(error as Error, "ml", "fn:initializeModels");
 	}
 }
 
-function softmax(logits: Float32Array): number[] {
+export function softmax(logits: Float32Array): number[] {
 	const maxLogit = Math.max(...logits);
 	const exponents = logits.map((logit) => Math.exp(logit - maxLogit));
 	const sumOfExponents = exponents.reduce((sum, exp) => sum + exp, 0);

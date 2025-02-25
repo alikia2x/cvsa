@@ -76,7 +76,6 @@ node_modules/
 
 
 # project specific
-.env
 logs/
 __pycache__
 filter/runs

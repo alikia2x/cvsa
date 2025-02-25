@@ -7,6 +7,7 @@ import Redis from "ioredis";
 interface Proxy {
 	type: string;
 	task: string;
+	provider: string;
 	limiter?: RateLimiter;
 }
 
@@ -32,11 +33,16 @@ export class NetSchedulerError extends Error {
 	}
 }
 
+interface LimiterMap {
+	[name: string]: RateLimiter;
+}
+
 class NetScheduler {
 	private proxies: ProxiesMap = {};
+	private providerLimiters: LimiterMap = {};
 
-	addProxy(name: string, type: string, task: string): void {
-		this.proxies[name] = { type, task };
+	addProxy(name: string, type: string, task: string, provider: string): void {
+		this.proxies[name] = { type, task, provider };
 	}
 
 	removeProxy(name: string): void {
@@ -45,6 +51,10 @@ class NetScheduler {
 
 	setProxyLimiter(name: string, limiter: RateLimiter): void {
 		this.proxies[name].limiter = limiter;
+	}
+
+	setProviderLimiter(name: string, limiter: RateLimiter): void {
+		this.providerLimiters[name] = limiter;
 	}
 
 	/*
@@ -117,7 +127,15 @@ class NetScheduler {
 	private async getProxyAvailability(name: string): Promise<boolean> {
 		try {
 			const proxyConfig = this.proxies[name];
-			if (!proxyConfig || !proxyConfig.limiter) {
+			if (!proxyConfig) {
+				return true;
+			}
+			const provider = proxyConfig.provider;
+			const providerLimiter = await this.providerLimiters[provider].getAvailability();
+			if (!providerLimiter) {
+				return false;
+			}
+			if (!proxyConfig.limiter) {
 				return true;
 			}
 			return await proxyConfig.limiter.getAvailability();
@@ -143,8 +161,8 @@ class NetScheduler {
 }
 
 const netScheduler = new NetScheduler();
-netScheduler.addProxy("default", "native", "default");
-netScheduler.addProxy("tags-native", "native", "getVideoTags");
+netScheduler.addProxy("default", "native", "default", "bilibili-native");
+netScheduler.addProxy("tags-native", "native", "getVideoTags", "bilibili-native");
 const tagsRateLimiter = new RateLimiter("getVideoTags", [
 	{
 		window: new SlidingWindow(redis, 1),
@@ -159,6 +177,21 @@ const tagsRateLimiter = new RateLimiter("getVideoTags", [
 		max: 50,
 	},
 ]);
+const biliLimiterNative = new RateLimiter("bilibili-native", [
+	{
+		window: new SlidingWindow(redis, 1),
+		max: 5
+	},
+	{
+		window: new SlidingWindow(redis, 30),
+		max: 100
+	},
+	{
+		window: new SlidingWindow(redis, 5 * 60),
+		max: 180
+	}
+]);
 netScheduler.setProxyLimiter("tags-native", tagsRateLimiter);
+netScheduler.setProviderLimiter("bilibili-native", biliLimiterNative)
 
 export default netScheduler;

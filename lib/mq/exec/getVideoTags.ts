@@ -8,7 +8,7 @@ import logger from "lib/log/logger.ts";
 import { getNullVideoTagsList, updateVideoTags } from "lib/db/allData.ts";
 import { getVideoTags } from "lib/net/getVideoTags.ts";
 import { NetSchedulerError } from "lib/mq/scheduler.ts";
-import { WorkerError } from "../schema.ts";
+import { WorkerError } from "lib/mq/schema.ts";
 
 const delayMap = [0.5, 3, 5, 15, 30, 60];
 const getJobPriority = (diff: number) => {

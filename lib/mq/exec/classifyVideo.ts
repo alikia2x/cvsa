@@ -22,11 +22,11 @@ export const classifyVideoWorker = async (job: Job) => {
 	if (label == -1) {
 		logger.warn(`Failed to classify video ${aid}`, "ml");
 	}
-	insertVideoLabel(client, aid, label);
+	await insertVideoLabel(client, aid, label);
 
 	client.release();
 
-	job.updateData({
+	await job.updateData({
 		...job.data, label: label,
 	});
 
@@ -39,7 +39,7 @@ export const classifyVideosWorker = async () => {
 		return;
 	}
 	
-	lockManager.acquireLock("classifyVideos");
+	await lockManager.acquireLock("classifyVideos");
 
 	const client = await db.connect();
 	const videos = await getUnlabelledVideos(client);
@@ -49,12 +49,12 @@ export const classifyVideosWorker = async () => {
 	let i = 0;
 	for (const aid of videos) {
 		if (i > 200) {
-			lockManager.releaseLock("classifyVideos");
+			await lockManager.releaseLock("classifyVideos");
 			return 10000 + i;
 		}
 		await ClassifyVideoQueue.add("classifyVideo", { aid: Number(aid) });
 		i++;
 	}
-	lockManager.releaseLock("classifyVideos");
+	await lockManager.releaseLock("classifyVideos");
 	return 0;
 };

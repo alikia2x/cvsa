@@ -37,7 +37,7 @@ export const getLatestVideosWorker = async (job: Job) => {
 		return;
 	}
 
-	lockManager.acquireLock("getLatestVideos");
+	await lockManager.acquireLock("getLatestVideos");
 
 	const failedCount = (job.data.failedCount ?? 0) as number;
 	const client = await db.connect();
@@ -46,7 +46,7 @@ export const getLatestVideosWorker = async (job: Job) => {
 		await executeTask(client, failedCount);
 	} finally {
 		client.release();
-		lockManager.releaseLock("getLatestVideos");
+		await lockManager.releaseLock("getLatestVideos");
 	}
 	return;
 };
