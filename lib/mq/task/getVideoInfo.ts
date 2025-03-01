@@ -35,6 +35,12 @@ export async function insertVideoInfo(client: Client, aid: number) {
 			[uid, data.View.owner.name, data.Card.card.sign, data.Card.follower],
 		);
 	}
+	else {
+		await client.queryObject(
+			`UPDATE bili_user SET fans = $1 WHERE uid = $2`,
+			[data.Card.follower, uid],
+		);
+	}
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
 	await ClassifyVideoQueue.add("classifyVideo", { aid });
 }

@@ -17,7 +17,7 @@ export const classifyVideoWorker = async (job: Job) => {
 	const title = videoInfo.title?.trim() || "untitled";
 	const description = videoInfo.description?.trim() || "N/A";
 	const tags = videoInfo.tags?.trim() || "empty";
-	const authorInfo = "No";
+	const authorInfo = videoInfo.author_info;
 	const label = await classifyVideo(title, description, tags, authorInfo, aid);
 	if (label == -1) {
 		logger.warn(`Failed to classify video ${aid}`, "ml");

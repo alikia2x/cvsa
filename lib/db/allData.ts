@@ -1,6 +1,6 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { AllDataType } from "lib/db/schema.d.ts";
-import { modelVersion } from "lib/ml/filter_inference.ts";
+import {Client} from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import {AllDataType, BiliUserType} from "lib/db/schema.d.ts";
+import {modelVersion} from "lib/ml/filter_inference.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
 	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
@@ -30,5 +30,16 @@ export async function getVideoInfoFromAllData(client: Client, aid: number) {
 		`SELECT * FROM all_data WHERE aid = $1`,
 		[aid],
 	);
-	return queryResult.rows[0];
+	const row = queryResult.rows[0];
+	const q = await client.queryObject<BiliUserType>(
+		`SELECT * FROM bili_user WHERE uid = $1`,
+		[row.uid],
+	)
+	const userRow = q.rows[0];
+	return {
+		title: row.title,
+		description: row.description,
+		tags: row.tags,
+		author_info: userRow.desc
+	};
 }
