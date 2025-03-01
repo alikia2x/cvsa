@@ -7,13 +7,13 @@ Deno.test("SlidingWindow - event and count", async () => {
 	const windowSize = 5000; // 5 seconds
 	const slidingWindow = new SlidingWindow(redis, windowSize);
 	const eventName = "test_event";
-    await slidingWindow.clear(eventName);
+	await slidingWindow.clear(eventName);
 
 	await slidingWindow.event(eventName);
 	const count = await slidingWindow.count(eventName);
 
 	assertEquals(count, 1);
-    redis.quit();
+	redis.quit();
 });
 
 Deno.test("SlidingWindow - multiple events", async () => {
@@ -21,7 +21,7 @@ Deno.test("SlidingWindow - multiple events", async () => {
 	const windowSize = 5000; // 5 seconds
 	const slidingWindow = new SlidingWindow(redis, windowSize);
 	const eventName = "test_event";
-    await slidingWindow.clear(eventName);
+	await slidingWindow.clear(eventName);
 
 	await slidingWindow.event(eventName);
 	await slidingWindow.event(eventName);
@@ -29,7 +29,7 @@ Deno.test("SlidingWindow - multiple events", async () => {
 	const count = await slidingWindow.count(eventName);
 
 	assertEquals(count, 3);
-    redis.quit();
+	redis.quit();
 });
 
 Deno.test("SlidingWindow - no events", async () => {
@@ -37,12 +37,12 @@ Deno.test("SlidingWindow - no events", async () => {
 	const windowSize = 5000; // 5 seconds
 	const slidingWindow = new SlidingWindow(redis, windowSize);
 	const eventName = "test_event";
-    await slidingWindow.clear(eventName);
+	await slidingWindow.clear(eventName);
 
 	const count = await slidingWindow.count(eventName);
 
 	assertEquals(count, 0);
-    redis.quit();
+	redis.quit();
 });
 
 Deno.test("SlidingWindow - different event names", async () => {
@@ -51,8 +51,8 @@ Deno.test("SlidingWindow - different event names", async () => {
 	const slidingWindow = new SlidingWindow(redis, windowSize);
 	const eventName1 = "test_event_1";
 	const eventName2 = "test_event_2";
-    await slidingWindow.clear(eventName1);
-    await slidingWindow.clear(eventName2);
+	await slidingWindow.clear(eventName1);
+	await slidingWindow.clear(eventName2);
 
 	await slidingWindow.event(eventName1);
 	await slidingWindow.event(eventName2);
@@ -62,7 +62,7 @@ Deno.test("SlidingWindow - different event names", async () => {
 
 	assertEquals(count1, 1);
 	assertEquals(count2, 1);
-    redis.quit();
+	redis.quit();
 });
 
 Deno.test("SlidingWindow - large number of events", async () => {
@@ -70,7 +70,7 @@ Deno.test("SlidingWindow - large number of events", async () => {
 	const windowSize = 5000; // 5 seconds
 	const slidingWindow = new SlidingWindow(redis, windowSize);
 	const eventName = "test_event";
-    await slidingWindow.clear(eventName);
+	await slidingWindow.clear(eventName);
 	const numEvents = 1000;
 
 	for (let i = 0; i < numEvents; i++) {
@@ -80,5 +80,5 @@ Deno.test("SlidingWindow - large number of events", async () => {
 	const count = await slidingWindow.count(eventName);
 
 	assertEquals(count, numEvents);
-    redis.quit();
+	redis.quit();
 });

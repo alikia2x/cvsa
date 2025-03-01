@@ -18,7 +18,6 @@ Deno.addSignalListener("SIGTERM", async () => {
 	Deno.exit();
 });
 
-
 await initializeModels();
 
 const filterWorker = new Worker(
@@ -45,6 +44,6 @@ filterWorker.on("error", (err) => {
 	logger.error(e.rawError, e.service, e.codePath);
 });
 
-filterWorker.on("closed", async() => {
+filterWorker.on("closed", async () => {
 	await lockManager.releaseLock("classifyVideos");
-})
+});

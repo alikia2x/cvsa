@@ -1,7 +1,7 @@
-import {AutoTokenizer, PreTrainedTokenizer} from "@huggingface/transformers";
+import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import * as ort from "onnxruntime";
 import logger from "lib/log/logger.ts";
-import {WorkerError} from "lib/mq/schema.ts";
+import { WorkerError } from "lib/mq/schema.ts";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
 const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
@@ -66,7 +66,6 @@ async function getONNXEmbeddings(texts: string[], session: ort.InferenceSession)
 	return Array.from(embeddings.data as Float32Array);
 }
 
-
 async function runClassification(embeddings: number[]): Promise<number[]> {
 	if (!sessionClassifier) {
 		throw new Error("Classifier session is not initialized. Call initializeModels() first.");
@@ -85,7 +84,7 @@ export async function classifyVideo(
 	description: string,
 	tags: string,
 	author_info: string,
-	aid: number
+	aid: number,
 ): Promise<number> {
 	if (!sessionEmbedding) {
 		throw new Error("Embedding session is not initialized. Call initializeModels() first.");
@@ -97,6 +96,6 @@ export async function classifyVideo(
 		author_info,
 	], sessionEmbedding);
 	const probabilities = await runClassification(embeddings);
-	logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml")
+	logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml");
 	return probabilities.indexOf(Math.max(...probabilities));
 }

@@ -7,7 +7,7 @@ export interface RateLimiterConfig {
 
 export class RateLimiter {
 	private readonly configs: RateLimiterConfig[];
-    private readonly configEventNames: string[];
+	private readonly configEventNames: string[];
 
 	/*
 	 * @param name The name of the rate limiter
@@ -17,7 +17,7 @@ export class RateLimiter {
 	 */
 	constructor(name: string, configs: RateLimiterConfig[]) {
 		this.configs = configs;
-        this.configEventNames = configs.map((_, index) => `${name}_config_${index}`);
+		this.configEventNames = configs.map((_, index) => `${name}_config_${index}`);
 	}
 
 	/*

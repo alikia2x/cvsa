@@ -2,21 +2,22 @@ import express from "express";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
-import { ClassifyVideoQueue, LatestVideosQueue, VideoTagsQueue } from "lib/mq/index.ts";
+import { ClassifyVideoQueue, LatestVideosQueue } from "lib/mq/index.ts";
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/");
 
 createBullBoard({
-	queues: [new BullMQAdapter(LatestVideosQueue), new BullMQAdapter(VideoTagsQueue), new BullMQAdapter(ClassifyVideoQueue)],
+	queues: [
+		new BullMQAdapter(LatestVideosQueue),
+		new BullMQAdapter(ClassifyVideoQueue),
+	],
 	serverAdapter: serverAdapter,
 });
 
 const app = express();
 
 app.use("/", serverAdapter.getRouter());
-
-// other configurations of your server
 
 app.listen(3000, () => {
 	console.log("Running on 3000...");

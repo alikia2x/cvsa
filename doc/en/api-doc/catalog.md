@@ -1,4 +1,3 @@
 # Catalog
 
-* [**Songs**](songs.md)
-
+- [**Songs**](songs.md)

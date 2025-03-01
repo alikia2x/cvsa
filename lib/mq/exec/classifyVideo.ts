@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
-import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel} from "lib/db/allData.ts";
+import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "lib/db/allData.ts";
 import { classifyVideo } from "lib/ml/filter_inference.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
@@ -27,7 +27,8 @@ export const classifyVideoWorker = async (job: Job) => {
 	client.release();
 
 	await job.updateData({
-		...job.data, label: label,
+		...job.data,
+		label: label,
 	});
 
 	return 0;
@@ -38,12 +39,12 @@ export const classifyVideosWorker = async () => {
 		logger.log("job:classifyVideos is locked, skipping.", "mq");
 		return;
 	}
-	
+
 	await lockManager.acquireLock("classifyVideos");
 
 	const client = await db.connect();
 	const videos = await getUnlabelledVideos(client);
-	logger.log(`Found ${videos.length} unlabelled videos`)
+	logger.log(`Found ${videos.length} unlabelled videos`);
 	client.release();
 
 	let i = 0;

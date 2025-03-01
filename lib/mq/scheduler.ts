@@ -1,7 +1,7 @@
 import logger from "lib/log/logger.ts";
-import {RateLimiter, RateLimiterConfig} from "lib/mq/rateLimiter.ts";
-import {SlidingWindow} from "lib/mq/slidingWindow.ts";
-import {redis} from "lib/db/redis.ts";
+import { RateLimiter, RateLimiterConfig } from "lib/mq/rateLimiter.ts";
+import { SlidingWindow } from "lib/mq/slidingWindow.ts";
+import { redis } from "lib/db/redis.ts";
 import Redis from "ioredis";
 import { SECOND } from "$std/datetime/constants.ts";
 
@@ -152,7 +152,7 @@ class NetScheduler {
 		const proxiesNames = this.getTaskProxies(task);
 		for (const proxyName of shuffleArray(proxiesNames)) {
 			if (await this.getProxyAvailability(proxyName, task)) {
-				return await this.proxyRequest<R>(url, proxyName, method);
+				return await this.proxyRequest<R>(url, proxyName, task, method);
 			}
 		}
 		throw new NetSchedulerError("No available proxy currently.", "NO_AVAILABLE_PROXY");
@@ -186,8 +186,9 @@ class NetScheduler {
 
 		if (!force) {
 			const isAvailable = await this.getProxyAvailability(proxyName, task);
+			const limiter = "proxy-" + proxyName + "-" + task
 			if (!isAvailable) {
-				throw new NetSchedulerError(`Proxy "${proxyName}" is rate limited`, "PROXY_RATE_LIMITED");
+				throw new NetSchedulerError(`Proxy "${limiter}" is rate limited`, "PROXY_RATE_LIMITED");
 			}
 		}
 
@@ -225,7 +226,7 @@ class NetScheduler {
 				logger.error(error, "redis");
 				return false;
 			}
-			logger.warn(`Unhandled error: ${error.message}`, "mq", "getProxyAvailability");
+			logger.error(error, "mq", "getProxyAvailability");
 			return false;
 		}
 	}
@@ -237,7 +238,7 @@ class NetScheduler {
 
 			const response = await fetch(url, {
 				method,
-				signal: controller.signal
+				signal: controller.signal,
 			});
 
 			clearTimeout(timeout);
@@ -281,7 +282,7 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 netScheduler.addProxy("native", "native", "");
 netScheduler.addTask("getVideoInfo", "bilibili", "all");
 netScheduler.addTask("getLatestVideos", "bilibili", "all");
-netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig)
+netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 netScheduler.setTaskLimiter("getLatestVideos", null);
 netScheduler.setProviderLimiter("bilibili", biliLimiterConfig);
 

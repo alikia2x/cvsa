@@ -3,7 +3,7 @@ const requiredEnvVars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_POR
 const unsetVars = requiredEnvVars.filter((key) => Deno.env.get(key) === undefined);
 
 if (unsetVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
+	throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
 }
 
 const databaseHost = Deno.env.get("DB_HOST")!;

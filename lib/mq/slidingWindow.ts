@@ -21,7 +21,7 @@ export class SlidingWindow {
 	async event(eventName: string): Promise<void> {
 		const now = Date.now();
 		const key = `cvsa:sliding_window:${eventName}`;
-		
+
 		const uniqueMember = `${now}-${Math.random()}`;
 		// Add current timestamp to an ordered set
 		await this.redis.zadd(key, now, uniqueMember);

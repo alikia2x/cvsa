@@ -23,12 +23,12 @@ class LockManager {
 		const result = await this.redis.set(key, "locked", "NX");
 
 		if (result !== "OK") {
-            return false;
+			return false;
 		}
-        if (timeout) {
-            await this.redis.expire(key, timeout);
-        }
-        return true;
+		if (timeout) {
+			await this.redis.expire(key, timeout);
+		}
+		return true;
 	}
 
 	/*

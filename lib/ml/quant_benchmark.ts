@@ -1,6 +1,6 @@
-import {AutoTokenizer, PreTrainedTokenizer} from "@huggingface/transformers";
+import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import * as ort from "onnxruntime";
-import {softmax} from "lib/ml/filter_inference.ts";
+import { softmax } from "lib/ml/filter_inference.ts";
 
 // 配置参数
 const sentenceTransformerModelName = "alikia2x/jina-embedding-v3-m2v-1024";

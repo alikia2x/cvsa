@@ -2,7 +2,8 @@
 
 ### Jobs
 
-The VideoTagsQueue contains two jobs: `getVideoTags`and `getVideosTags`. The former is used to fetch the tags of a video, and the latter is responsible for scheduling the former.
+The VideoTagsQueue contains two jobs: `getVideoTags`and `getVideosTags`. The former is used to fetch the tags of a
+video, and the latter is responsible for scheduling the former.
 
 ### Return value
 

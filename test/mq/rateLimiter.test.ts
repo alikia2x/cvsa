@@ -1,7 +1,7 @@
-import {assertEquals} from "jsr:@std/assert";
-import {SlidingWindow} from "lib/mq/slidingWindow.ts";
-import {RateLimiter, RateLimiterConfig} from "lib/mq/rateLimiter.ts";
-import {Redis} from "npm:ioredis@5.5.0";
+import { assertEquals } from "jsr:@std/assert";
+import { SlidingWindow } from "lib/mq/slidingWindow.ts";
+import { RateLimiter, RateLimiterConfig } from "lib/mq/rateLimiter.ts";
+import { Redis } from "npm:ioredis@5.5.0";
 
 Deno.test("RateLimiter works correctly", async () => {
 	const redis = new Redis({ maxRetriesPerRequest: null });
@@ -71,7 +71,7 @@ Deno.test("Multiple configs work correctly", async () => {
 	await new Promise((resolve) => setTimeout(resolve, windowSize1 * 1000 + 500));
 
 	// Availability should now be true (due to config1)
-	assertEquals(await rateLimiter.getAvailability(), true); 
+	assertEquals(await rateLimiter.getAvailability(), true);
 
 	// Trigger events up to the limit of the second config
 	for (let i = maxRequests1; i < maxRequests2; i++) {
