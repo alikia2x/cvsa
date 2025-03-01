@@ -108,7 +108,7 @@ class NetScheduler {
 	}
 
 	async triggerLimiter(task: string, proxy: string): Promise<void> {
-		const limiterId = proxy + "-" + task;
+		const limiterId = "proxy-" + proxy + "-" + task;
 		if (!this.proxyLimiters[limiterId]) {
 			return;
 		}
@@ -252,6 +252,10 @@ class NetScheduler {
 
 const netScheduler = new NetScheduler();
 const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
+	{
+		window: new SlidingWindow(redis, 0.3),
+		max: 1,
+	},
 	{
 		window: new SlidingWindow(redis, 3),
 		max: 5,
