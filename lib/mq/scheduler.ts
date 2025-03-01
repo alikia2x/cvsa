@@ -253,8 +253,8 @@ class NetScheduler {
 const netScheduler = new NetScheduler();
 const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
 	{
-		window: new SlidingWindow(redis, 1),
-		max: 3,
+		window: new SlidingWindow(redis, 3),
+		max: 5,
 	},
 	{
 		window: new SlidingWindow(redis, 30),

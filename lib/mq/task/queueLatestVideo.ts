@@ -35,7 +35,7 @@ export async function queueLatestVideos(
 			});
 			videosFound.add(aid);
 			allExists = false;
-			delay += Math.random() * SECOND * 0.5;
+			delay += Math.random() * SECOND * 1.5;
 		}
 		i += aids.length;
 		logger.log(
