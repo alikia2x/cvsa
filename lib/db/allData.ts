@@ -31,15 +31,19 @@ export async function getVideoInfoFromAllData(client: Client, aid: number) {
 		[aid],
 	);
 	const row = queryResult.rows[0];
-	const q = await client.queryObject<BiliUserType>(
-		`SELECT * FROM bili_user WHERE uid = $1`,
-		[row.uid],
-	)
-	const userRow = q.rows[0];
+	let authorInfo = "";
+	if (row.uid && await userExistsInBiliUsers(client, row.uid)) {
+		const q = await client.queryObject<BiliUserType>(
+			`SELECT * FROM bili_user WHERE uid = $1`,
+			[row.uid],
+		)
+		const userRow = q.rows[0];
+		authorInfo = userRow.desc;
+	}
 	return {
 		title: row.title,
 		description: row.description,
 		tags: row.tags,
-		author_info: userRow.desc
+		author_info: authorInfo
 	};
 }
