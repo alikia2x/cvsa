@@ -38,7 +38,8 @@ export async function getVideoInfoFromAllData(client: Client, aid: number) {
 			[row.uid],
 		)
 		const userRow = q.rows[0];
-		authorInfo = userRow.desc;
+		if (userRow)
+			authorInfo = userRow.desc;
 	}
 	return {
 		title: row.title,
