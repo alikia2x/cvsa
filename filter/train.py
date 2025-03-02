@@ -4,16 +4,16 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from filter.modelV6_0 import VideoClassifierV6_0, AdaptiveRecallLoss
+from filter.modelV3_12 import VideoClassifierV3_12
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
-from torch.utils.tensorboard import SummaryWriter  # 引入 TensorBoard
+from torch.utils.tensorboard import SummaryWriter
 import time
-from embedding import prepare_batch_per_token
+from embedding import prepare_batch
+import torch.nn as nn
 
 
-# 动态生成子目录名称
 run_name = f"run_{time.strftime('%Y%m%d_%H%M')}"
 log_dir = os.path.join('./filter/runs', run_name)
 
@@ -51,20 +51,16 @@ class_weights = torch.tensor(
 )
 
 # 初始化模型和SentenceTransformer
-model = VideoClassifierV6_0()
-checkpoint_name = './filter/checkpoints/best_model_V6.0.pt'
+model = VideoClassifierV3_12()
+checkpoint_name = './filter/checkpoints/best_model_V3.12.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
 
 # 优化器
 optimizer = optim.AdamW(model.parameters(), lr=4e-4)
-criterion = AdaptiveRecallLoss(
-    class_weights=class_weights,
-    alpha=0.9,     # 召回率权重
-    gamma=1.6,     # 困难样本聚焦
-    fp_penalty=0.8 # 假阳性惩罚强度
-)
+# Cross entropy loss
+criterion = nn.CrossEntropyLoss()
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -76,7 +72,7 @@ def evaluate(model, dataloader):
     
     with torch.no_grad():
         for batch in dataloader:
-            batch_tensor = prepare_batch_per_token(batch['texts'], max_length=1024)
+            batch_tensor = prepare_batch(batch['texts'])
             logits = model(batch_tensor)
             preds = torch.argmax(logits, dim=1)
             all_preds.extend(preds.cpu().numpy())
@@ -109,7 +105,7 @@ for epoch in range(num_epochs):
     for batch_idx, batch in enumerate(train_loader):
         optimizer.zero_grad()
         
-        batch_tensor = prepare_batch_per_token(batch['texts'], max_length=1024)
+        batch_tensor = prepare_batch(batch['texts'])
 
         logits = model(batch_tensor)
         

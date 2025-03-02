@@ -26,10 +26,14 @@ class VideoClassifierV6_0(nn.Module):
             nn.Conv2d(128, 256, kernel_size=(3, 3), padding=1),
             nn.BatchNorm2d(256),
             nn.GELU(),
+
+            # 全局平均池化层
+            # 输出形状为 [batch_size, 256, 1, 1]
+            nn.AdaptiveAvgPool2d((1, 1))  
         )
         
-        # 计算卷积后的特征维度
-        self.feature_dim = self._get_conv_output_size(seq_length, embedding_dim)
+        # 全局池化后的特征维度固定为 256
+        self.feature_dim = 256
         
         # 全连接层
         self.fc = nn.Sequential(
@@ -41,12 +45,6 @@ class VideoClassifierV6_0(nn.Module):
         )
         
         self._init_weights()
-    
-    def _get_conv_output_size(self, seq_length, embedding_dim):
-        # 用于计算卷积输出尺寸
-        x = torch.zeros(1, self.num_channels, seq_length, embedding_dim)
-        x = self.conv_layers(x)
-        return x.view(1, -1).size(1)
     
     def _init_weights(self):
         for module in self.modules():
@@ -63,8 +61,8 @@ class VideoClassifierV6_0(nn.Module):
         # CNN特征提取
         conv_features = self.conv_layers(channel_features)
         
-        # 展平特征
-        flat_features = conv_features.view(conv_features.size(0), -1)
+        # 展平特征（全局池化后形状为 [batch_size, 256, 1, 1]）
+        flat_features = conv_features.view(conv_features.size(0), -1)  # [batch_size, 256]
         
         # 全连接层分类
         return self.fc(flat_features)
