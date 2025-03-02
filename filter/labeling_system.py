@@ -10,7 +10,7 @@ import tty
 import termios
 from sentence_transformers import SentenceTransformer
 from db_utils import fetch_entry_data, parse_entry_data
-from modelV3_9 import VideoClassifierV3_9
+from modelV3_10 import VideoClassifierV3_10
 
 class LabelingSystem:
     def __init__(self, mode='model_testing', database_path="./data/main.db", 
@@ -27,7 +27,7 @@ class LabelingSystem:
         self.model = None
         self.sentence_transformer = None
         if self.mode == 'model_testing':
-            self.model = VideoClassifierV3_9()
+            self.model = VideoClassifierV3_10()
             self.model.load_state_dict(torch.load(model_path))
             self.model.eval()
             self.sentence_transformer = SentenceTransformer("Thaweewat/jina-embedding-v3-m2v-1024")

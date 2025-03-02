@@ -3,13 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class VideoClassifierV3_10(nn.Module):
-    def __init__(self, embedding_dim=1024, hidden_dim=648, output_dim=3):
+    def __init__(self, embedding_dim=1024, hidden_dim=648, output_dim=3, temperature=1.7):
         super().__init__()
         self.num_channels = 4
         self.channel_names = ['title', 'description', 'tags', 'author_info']
         
         # 可学习温度系数
-        self.temperature = nn.Parameter(torch.tensor(1.7))
+        self.temperature = nn.Parameter(torch.tensor(temperature))
         
         # 带约束的通道权重（使用Sigmoid替代Softmax）
         self.channel_weights = nn.Parameter(torch.ones(self.num_channels))

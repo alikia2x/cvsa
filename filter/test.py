@@ -1,7 +1,7 @@
 from labeling_system import LabelingSystem
 
 DATABASE_PATH = "./data/main.db"
-MODEL_PATH = "./filter/checkpoints/best_model_V3.9.pt"
+MODEL_PATH = "./filter/checkpoints/best_model_V3.11.pt"
 OUTPUT_FILE = "./data/filter/real_test.jsonl"
 BATCH_SIZE = 50
 
