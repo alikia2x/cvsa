@@ -1,11 +1,11 @@
 import torch
-from modelV3_10 import VideoClassifierV3_10
+from modelV3_12 import VideoClassifierV3_12
 
 
-def export_onnx(model_path="./filter/checkpoints/best_model_V3.11.pt", 
-               onnx_path="./model/video_classifier_v3_11.onnx"):
+def export_onnx(model_path="./filter/checkpoints/best_model_V3.13.pt", 
+               onnx_path="./model/video_classifier_v3_13.onnx"):
     # 初始化模型
-    model = VideoClassifierV3_10()
+    model = VideoClassifierV3_12()
     model.load_state_dict(torch.load(model_path))
     model.eval()
     

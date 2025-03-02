@@ -6,7 +6,7 @@ import { softmax } from "lib/ml/filter_inference.ts";
 const sentenceTransformerModelName = "alikia2x/jina-embedding-v3-m2v-1024";
 const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
 const onnxEmbeddingOriginalPath = "./model/embedding_original.onnx";
-const onnxEmbeddingQuantizedPath = "./model/model.onnx";
+const onnxEmbeddingQuantizedPath = "./model/embedding_original.onnx";
 
 // 初始化会话
 const [sessionClassifier, sessionEmbeddingOriginal, sessionEmbeddingQuantized] = await Promise.all([
@@ -111,7 +111,7 @@ async function evaluateModel(session: ort.InferenceSession): Promise<{
 	recall: number;
 	f1: number;
 }> {
-	const data = await Deno.readTextFile("./data/filter/test.jsonl");
+	const data = await Deno.readTextFile("./data/filter/test1.jsonl");
 	const samples = data.split("\n")
 		.map((line) => {
 			try {
