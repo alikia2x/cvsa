@@ -103,8 +103,7 @@ class MultiChannelDataset(Dataset):
         texts = {
             'title': example['title'],
             'description': example['description'],
-            'tags': tags_text,
-            'author_info': example['author_info']
+            'tags': tags_text
         }
         
         return {

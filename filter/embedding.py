@@ -11,8 +11,7 @@ def prepare_batch(batch_data, device="cpu"):
         batch_data (dict): 输入的 batch 数据，格式为 {
             "title": [text1, text2, ...],
             "description": [text1, text2, ...],
-            "tags": [text1, text2, ...],
-            "author_info": [text1, text2, ...]
+            "tags": [text1, text2, ...]
         }
         device (str): 模型运行的设备（如 "cpu" 或 "cuda"）。
     
@@ -22,7 +21,7 @@ def prepare_batch(batch_data, device="cpu"):
     # 1. 对每个通道的文本分别编码
     channel_embeddings = []
     model = StaticModel.from_pretrained("./model/embedding_1024/")
-    for channel in ["title", "description", "tags", "author_info"]:
+    for channel in ["title", "description", "tags"]:
         texts = batch_data[channel]  # 获取当前通道的文本列表
         embeddings = torch.from_numpy(model.encode(texts)).to(torch.float32).to(device)  # 编码为 [batch_size, embedding_dim]
         channel_embeddings.append(embeddings)

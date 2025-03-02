@@ -4,9 +4,9 @@ import { softmax } from "lib/ml/filter_inference.ts";
 
 // 配置参数
 const sentenceTransformerModelName = "alikia2x/jina-embedding-v3-m2v-1024";
-const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
+const onnxClassifierPath = "./model/video_classifier_v3_17.onnx";
 const onnxEmbeddingPath = "./model/embedding_original.onnx";
-const testDataPath = "./data/filter/test.jsonl";
+const testDataPath = "./data/filter/test1.jsonl";
 
 // 初始化会话
 const [sessionClassifier, sessionEmbedding] = await Promise.all([
@@ -53,7 +53,7 @@ async function getONNXEmbeddings(texts: string[], session: ort.InferenceSession)
 async function runClassification(embeddings: number[]): Promise<number[]> {
     const inputTensor = new ort.Tensor(
         Float32Array.from(embeddings),
-        [1, 4, 1024],
+        [1, 3, 1024],
     );
 
     const { logits } = await sessionClassifier.run({ channel_features: inputTensor });
@@ -69,6 +69,14 @@ function calculateMetrics(labels: number[], predictions: number[], elapsedTime: 
     "Class 0 Prec": number;
     speed: string;
 } {
+    // 输出label和prediction不一样的index列表
+    const arr = []
+    for (let i = 0; i < labels.length; i++) {
+        if (labels[i] !== predictions[i] && predictions[i] == 0) {
+            arr.push([i + 1, labels[i], predictions[i]])
+        }
+    }
+    console.log(arr)
     // 初始化混淆矩阵
     const classCount = Math.max(...labels, ...predictions) + 1;
     const matrix = Array.from({ length: classCount }, () => Array.from({ length: classCount }, () => 0));
@@ -138,8 +146,7 @@ async function evaluateModel(session: ort.InferenceSession): Promise<{
             const embeddings = await getONNXEmbeddings([
                 sample.title,
                 sample.description,
-                sample.tags.join(","),
-                sample.author_info,
+                sample.tags.join(",")
             ], session);
 
             const probabilities = await runClassification(embeddings);

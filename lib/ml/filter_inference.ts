@@ -4,9 +4,9 @@ import logger from "lib/log/logger.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
-const onnxClassifierPath = "./model/video_classifier_v3_11.onnx";
+const onnxClassifierPath = "./model/video_classifier_v3_17.onnx";
 const onnxEmbeddingOriginalPath = "./model/model.onnx";
-export const modelVersion = "3.11";
+export const modelVersion = "3.17";
 
 let sessionClassifier: ort.InferenceSession | null = null;
 let sessionEmbedding: ort.InferenceSession | null = null;
@@ -72,7 +72,7 @@ async function runClassification(embeddings: number[]): Promise<number[]> {
 	}
 	const inputTensor = new ort.Tensor(
 		Float32Array.from(embeddings),
-		[1, 4, 1024],
+		[1, 3, 1024],
 	);
 
 	const { logits } = await sessionClassifier.run({ channel_features: inputTensor });
@@ -83,7 +83,6 @@ export async function classifyVideo(
 	title: string,
 	description: string,
 	tags: string,
-	author_info: string,
 	aid: number,
 ): Promise<number> {
 	if (!sessionEmbedding) {
@@ -93,7 +92,6 @@ export async function classifyVideo(
 		title,
 		description,
 		tags,
-		author_info,
 	], sessionEmbedding);
 	const probabilities = await runClassification(embeddings);
 	logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml");

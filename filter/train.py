@@ -4,7 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from filter.modelV3_12 import VideoClassifierV3_12
+from filter.modelV3_15 import AdaptiveRecallLoss, VideoClassifierV3_15
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
@@ -51,16 +51,20 @@ class_weights = torch.tensor(
 )
 
 # 初始化模型和SentenceTransformer
-model = VideoClassifierV3_12()
-checkpoint_name = './filter/checkpoints/best_model_V3.12.pt'
+model = VideoClassifierV3_15()
+checkpoint_name = './filter/checkpoints/best_model_V3.17.pt'
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
 
 # 优化器
 optimizer = optim.AdamW(model.parameters(), lr=4e-4)
-# Cross entropy loss
-criterion = nn.CrossEntropyLoss()
+criterion = AdaptiveRecallLoss(
+    class_weights=class_weights,
+    alpha=0.9,     # 召回率权重
+    gamma=1.6,     # 困难样本聚焦
+    fp_penalty=0.8 # 假阳性惩罚强度
+)
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)

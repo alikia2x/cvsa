@@ -1,16 +1,16 @@
 import torch
-from modelV3_12 import VideoClassifierV3_12
+from modelV3_15 import VideoClassifierV3_15
 
 
-def export_onnx(model_path="./filter/checkpoints/best_model_V3.13.pt", 
-               onnx_path="./model/video_classifier_v3_13.onnx"):
+def export_onnx(model_path="./filter/checkpoints/best_model_V3.17.pt", 
+               onnx_path="./model/video_classifier_v3_17.onnx"):
     # 初始化模型
-    model = VideoClassifierV3_12()
+    model = VideoClassifierV3_15()
     model.load_state_dict(torch.load(model_path))
     model.eval()
     
     # 创建符合输入规范的虚拟输入
-    dummy_input = torch.randn(1, 4, 1024)  # [batch=1, channels=4, embedding_dim=1024]
+    dummy_input = torch.randn(1, 3, 1024)  # [batch=1, channels=4, embedding_dim=1024]
     
     # 导出ONNX
     torch.onnx.export(
