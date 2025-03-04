@@ -48,3 +48,17 @@ export async function getVideoInfoFromAllData(client: Client, aid: number) {
 		author_info: authorInfo
 	};
 }
+
+export async function getUnArchivedBiliUsers(client: Client) {
+	const queryResult = await client.queryObject<{uid: number}>(
+		`
+		SELECT ad.uid
+		FROM all_data ad
+		LEFT JOIN bili_user bu ON ad.uid = bu.uid
+		WHERE bu.uid IS NULL;
+		`,
+		[]
+	);
+	const rows = queryResult.rows;
+	return rows.map((row) => row.uid);
+}
