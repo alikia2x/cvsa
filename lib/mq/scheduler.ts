@@ -24,7 +24,8 @@ type NetSchedulerErrorCode =
 	| "PROXY_RATE_LIMITED"
 	| "PROXY_NOT_FOUND"
 	| "FETCH_ERROR"
-	| "NOT_IMPLEMENTED";
+	| "NOT_IMPLEMENTED"
+	| "ALICLOUD_PROXY_ERR";
 
 export class NetSchedulerError extends Error {
 	public code: NetSchedulerErrorCode;
@@ -186,7 +187,7 @@ class NetScheduler {
 
 		if (!force) {
 			const isAvailable = await this.getProxyAvailability(proxyName, task);
-			const limiter = "proxy-" + proxyName + "-" + task
+			const limiter = "proxy-" + proxyName + "-" + task;
 			if (!isAvailable) {
 				throw new NetSchedulerError(`Proxy "${limiter}" is rate limited`, "PROXY_RATE_LIMITED");
 			}
@@ -201,6 +202,8 @@ class NetScheduler {
 		switch (proxy.type) {
 			case "native":
 				return await this.nativeRequest<R>(url, method);
+			case "alicloud-fc":
+				return await this.alicloudFcRequest<R>(url, proxy.data);
 			default:
 				throw new NetSchedulerError(`Proxy type ${proxy.type} not supported`, "NOT_IMPLEMENTED");
 		}
@@ -246,6 +249,39 @@ class NetScheduler {
 			return await response.json() as R;
 		} catch (e) {
 			throw new NetSchedulerError("Fetch error", "FETCH_ERROR", e);
+		}
+	}
+
+	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
+		const decoder = new TextDecoder();
+		const output = await new Deno.Command("aliyun", {
+			args: [
+				"fc",
+				"POST",
+				`/2023-03-30/functions/proxy-${region}/invocations`,
+				"--qualifier",
+				"LATEST",
+				"--header",
+				"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
+				"--body",
+				JSON.stringify({ url: url }),
+				"--profile",
+				`CVSA-${region}`,
+			],
+		}).output();
+		try {
+			const out = decoder.decode(output.stdout);
+			const rawData = JSON.parse(out);
+			if (rawData.statusCode !== 200) {
+				throw new NetSchedulerError(
+					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
+					"ALICLOUD_PROXY_ERR",
+				);
+			} else {
+				return JSON.parse(rawData.body) as R;
+			}
+		} catch (e) {
+			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
 		}
 	}
 }
