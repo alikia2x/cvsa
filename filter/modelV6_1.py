@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 class VideoClassifierV6_1(nn.Module):
-    def __init__(self, embedding_dim=256, seq_length=1024, hidden_dim=256, output_dim=3, num_heads=4):
+    def __init__(self, embedding_dim=256, hidden_dim=256, output_dim=3, num_heads=4):
         super().__init__()
         self.num_channels = 3
         self.channel_names = ['title', 'description', 'tags']

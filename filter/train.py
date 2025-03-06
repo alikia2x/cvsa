@@ -44,6 +44,9 @@ test_loader = DataLoader(test_dataset, batch_size=24, shuffle=False)
 train_labels = []
 for batch in train_loader:
     train_labels.extend(batch['label'].tolist())
+
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+print(f"Using device: {device}")
     
 # 计算自适应类别权重
 class_counts = np.bincount(train_labels)
@@ -51,11 +54,11 @@ median_freq = np.median(class_counts)
 class_weights = torch.tensor(
     [median_freq / count for count in class_counts],
     dtype=torch.float32,
-    device='cpu'
+    device=device
 )
 
-model = VideoClassifierV6_1()
-checkpoint_name = './filter/checkpoints/best_model_V6.2-test2.pt'
+model = VideoClassifierV6_1().to(device)
+checkpoint_name = './filter/checkpoints/best_model_V6.2-mps.pt'
 
 # 初始化tokenizer和embedding模型
 tokenizer = AutoTokenizer.from_pretrained("alikia2x/jina-embedding-v3-m2v-1024")
@@ -73,7 +76,7 @@ optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
 cosine_annealing_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps - int(total_steps * warmup_rate))
 warmup_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.1, end_factor=1.0, total_iters=int(total_steps * warmup_rate))
 scheduler = optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_annealing_scheduler], milestones=[int(total_steps * warmup_rate)])
-criterion = nn.CrossEntropyLoss(weight=class_weights)
+criterion = nn.CrossEntropyLoss(weight=class_weights).to(device)
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -85,11 +88,11 @@ def evaluate(model, dataloader):
     
     with torch.no_grad():
         for batch in dataloader:
-            batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'])
+            batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts']).to(device)
             logits = model(batch_tensor)
             preds = torch.argmax(logits, dim=1)
             all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(batch['label'].cpu().numpy())
+            all_labels.extend(batch['label'].to(device).cpu().numpy())
     
     # 计算每个类别的 F1、Recall、Precision 和 Accuracy
     f1 = f1_score(all_labels, all_preds, average='weighted')
@@ -117,11 +120,11 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
 
         
-        batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'])
+        batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts']).to(device)
 
         logits = model(batch_tensor)
         
-        loss = criterion(logits, batch['label'])
+        loss = criterion(logits, batch['label'].to(device))
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
@@ -187,6 +190,7 @@ for epoch in range(num_epochs):
 # 测试阶段
 print("\nTesting...")
 model.load_state_dict(torch.load(checkpoint_name))
+model.to(device)
 test_f1, test_recall, test_precision, test_accuracy, test_class_report = evaluate(model, test_loader)
 writer.add_scalar('Test/F1', test_f1, step)
 writer.add_scalar('Test/Recall', test_recall, step)
