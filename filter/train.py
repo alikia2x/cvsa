@@ -4,14 +4,16 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from filter.modelV3_15 import AdaptiveRecallLoss, VideoClassifierV3_15
+from filter.modelV6_1 import VideoClassifierV6_1
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import time
-from embedding import prepare_batch
-import torch.nn as nn
+from embedding import prepare_batch_per_token
+import onnxruntime as ort
+from transformers import AutoTokenizer
+from torch import nn
 
 
 run_name = f"run_{time.strftime('%Y%m%d_%H%M')}"
@@ -23,6 +25,8 @@ writer = SummaryWriter(log_dir=log_dir)
 # 创建数据集
 train_dataset = MultiChannelDataset('./data/filter/labeled_data.jsonl', mode='train')
 eval_dataset = MultiChannelDataset('./data/filter/labeled_data.jsonl', mode='eval')
+
+samples_count = len(train_dataset)
 
 # 加载test数据集
 test_file = './data/filter/test.jsonl'
@@ -50,21 +54,26 @@ class_weights = torch.tensor(
     device='cpu'
 )
 
-# 初始化模型和SentenceTransformer
-model = VideoClassifierV3_15()
-checkpoint_name = './filter/checkpoints/best_model_V3.17.pt'
+model = VideoClassifierV6_1()
+checkpoint_name = './filter/checkpoints/best_model_V6.2-test2.pt'
+
+# 初始化tokenizer和embedding模型
+tokenizer = AutoTokenizer.from_pretrained("alikia2x/jina-embedding-v3-m2v-1024")
+session = ort.InferenceSession("./model/embedding_256/onnx/model.onnx")
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
 
 # 优化器
-optimizer = optim.AdamW(model.parameters(), lr=4e-4)
-criterion = AdaptiveRecallLoss(
-    class_weights=class_weights,
-    alpha=0.9,     # 召回率权重
-    gamma=1.6,     # 困难样本聚焦
-    fp_penalty=0.8 # 假阳性惩罚强度
-)
+eval_interval = 20
+num_epochs = 20
+total_steps = samples_count * num_epochs / train_loader.batch_size
+warmup_rate = 0.1
+optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+cosine_annealing_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps - int(total_steps * warmup_rate))
+warmup_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.1, end_factor=1.0, total_iters=int(total_steps * warmup_rate))
+scheduler = optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_annealing_scheduler], milestones=[int(total_steps * warmup_rate)])
+criterion = nn.CrossEntropyLoss(weight=class_weights)
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -76,7 +85,7 @@ def evaluate(model, dataloader):
     
     with torch.no_grad():
         for batch in dataloader:
-            batch_tensor = prepare_batch(batch['texts'])
+            batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'])
             logits = model(batch_tensor)
             preds = torch.argmax(logits, dim=1)
             all_preds.extend(preds.cpu().numpy())
@@ -98,8 +107,6 @@ print(f"Trainable parameters: {count_trainable_parameters(model)}")
 # 训练循环
 best_f1 = 0
 step = 0
-eval_interval = 20
-num_epochs = 8
 
 for epoch in range(num_epochs):
     model.train()
@@ -108,8 +115,9 @@ for epoch in range(num_epochs):
     # 训练阶段
     for batch_idx, batch in enumerate(train_loader):
         optimizer.zero_grad()
+
         
-        batch_tensor = prepare_batch(batch['texts'])
+        batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'])
 
         logits = model(batch_tensor)
         
@@ -142,7 +150,8 @@ for epoch in range(num_epochs):
                 best_f1 = eval_f1
                 torch.save(model.state_dict(), checkpoint_name)
                 print("  Saved best model")
-                print("Channel weights: ", model.get_channel_weights())
+        scheduler.step()
+        writer.add_scalar('Train/LR', scheduler.get_last_lr()[0], step)
     
     # 记录每个 epoch 的平均训练损失
     avg_epoch_loss = epoch_loss / len(train_loader)

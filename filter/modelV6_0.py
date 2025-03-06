@@ -5,8 +5,8 @@ import torch.nn.functional as F
 class VideoClassifierV6_0(nn.Module):
     def __init__(self, embedding_dim=256, seq_length=1024, hidden_dim=512, output_dim=3):
         super().__init__()
-        self.num_channels = 4
-        self.channel_names = ['title', 'description', 'tags', 'author_info']
+        self.num_channels = 3
+        self.channel_names = ['title', 'description', 'tags']
         
         # CNN特征提取层
         self.conv_layers = nn.Sequential(
@@ -66,28 +66,3 @@ class VideoClassifierV6_0(nn.Module):
         
         # 全连接层分类
         return self.fc(flat_features)
-
-# 损失函数保持不变
-class AdaptiveRecallLoss(nn.Module):
-    def __init__(self, class_weights, alpha=0.8, gamma=2.0, fp_penalty=0.5):
-        super().__init__()
-        self.class_weights = class_weights
-        self.alpha = alpha
-        self.gamma = gamma
-        self.fp_penalty = fp_penalty
-
-    def forward(self, logits, targets):
-        ce_loss = F.cross_entropy(logits, targets, weight=self.class_weights, reduction='none')
-        pt = torch.exp(-ce_loss)
-        focal_loss = ((1 - pt) ** self.gamma) * ce_loss
-        
-        class_mask = F.one_hot(targets, num_classes=len(self.class_weights))
-        class_weights = (self.alpha + (1 - self.alpha) * pt.unsqueeze(-1)) * class_mask
-        recall_loss = (class_weights * focal_loss.unsqueeze(-1)).sum(dim=1)
-        
-        probs = F.softmax(logits, dim=1)
-        fp_mask = (targets != 0) & (torch.argmax(logits, dim=1) == 0)
-        fp_loss = self.fp_penalty * probs[:, 0][fp_mask].pow(2).sum()
-        
-        total_loss = recall_loss.mean() + fp_loss / len(targets)
-        return total_loss
