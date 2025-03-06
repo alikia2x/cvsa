@@ -32,7 +32,7 @@ def prepare_batch(batch_data, device="cpu"):
 
 import onnxruntime as ort
 
-def prepare_batch_per_token(session, tokenizer, batch_data, device = 'cpu', max_length=1024):
+def prepare_batch_per_token(session, tokenizer, batch_data, device = 'cpu', max_length=1024, embedding_dim=256):
     """
     将输入的 batch_data 转换为模型所需的输入格式 [batch_size, num_channels, seq_length, embedding_dim]。
 
@@ -49,16 +49,16 @@ def prepare_batch_per_token(session, tokenizer, batch_data, device = 'cpu', max_
     """
 
     batch_size = len(batch_data["title"])
-    batch_tensor = torch.zeros(batch_size, 3, max_length, 256, device=device)
+    batch_tensor = torch.zeros(batch_size, 3, max_length, embedding_dim, device=device)
     for i in range(batch_size):
-        channel_embeddings = torch.zeros((3, 1024, 256), device=device)
+        channel_embeddings = torch.zeros((3, 1024, embedding_dim), device=device)
         for j, channel in enumerate(["title", "description", "tags"]):
             # 获取当前通道的文本
             text = batch_data[channel][i]  
             encoded_inputs = tokenizer(text, truncation=True, max_length=max_length, return_tensors='np')
 
             # embeddings: [max_length, embedding_dim]
-            embeddings = torch.zeros((1024, 256), device=device)
+            embeddings = torch.zeros((1024, embedding_dim), device=device)
             for idx, token in enumerate(encoded_inputs['input_ids'][0]):
                 inputs = {
                     "input_ids": ort.OrtValue.ortvalue_from_numpy(np.array([token])),

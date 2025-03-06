@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
 from filter.modelV6_1 import VideoClassifierV6_1
-from filter.modelV3_15 import AdaptiveRecallLoss
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
@@ -38,9 +37,13 @@ if not os.path.exists(test_file):
 test_dataset = MultiChannelDataset(test_file, mode='test')
 
 # 创建DataLoader
-train_loader = DataLoader(train_dataset, batch_size=24, shuffle=True)
-eval_loader = DataLoader(eval_dataset, batch_size=24, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=24, shuffle=False)
+batch_size = 24
+accu_steps = 3
+real_bs = batch_size // accu_steps
+
+train_loader = DataLoader(train_dataset, batch_size=real_bs, shuffle=True)
+eval_loader = DataLoader(eval_dataset, batch_size=real_bs, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=real_bs, shuffle=False)
 
 train_labels = []
 for batch in train_loader:
@@ -52,18 +55,18 @@ print(f"Using device: {device}")
 # 计算自适应类别权重
 class_counts = np.bincount(train_labels)
 median_freq = np.median(class_counts)
-class_weights = torch.tensor(
+class_weights = torch.tensor(   
     [median_freq / count for count in class_counts],
     dtype=torch.float32,
     device=device
 )
 
 model = VideoClassifierV6_1().to(device)
-checkpoint_name = './filter/checkpoints/best_model_V6.2-mps-adloss.pt'
+checkpoint_name = './filter/checkpoints/best_model_V6.3.pt'
 
 # 初始化tokenizer和embedding模型
 tokenizer = AutoTokenizer.from_pretrained("alikia2x/jina-embedding-v3-m2v-1024")
-session = ort.InferenceSession("./model/embedding_256/onnx/model.onnx")
+session = ort.InferenceSession("./model/embedding_72/onnx/model.onnx")
 
 # 模型保存路径
 os.makedirs('./filter/checkpoints', exist_ok=True)
@@ -73,9 +76,9 @@ eval_interval = 20
 num_epochs = 20
 total_steps = samples_count * num_epochs / train_loader.batch_size
 warmup_rate = 0.1
-optimizer = optim.AdamW(model.parameters(), lr=6e-5, weight_decay=1e-5)
+optimizer = optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-5)
 cosine_annealing_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps - int(total_steps * warmup_rate))
-warmup_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.14, end_factor=1.0, total_iters=int(total_steps * warmup_rate))
+warmup_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.4, end_factor=1.0, total_iters=int(total_steps * warmup_rate))
 scheduler = optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_annealing_scheduler], milestones=[int(total_steps * warmup_rate)])
 criterion = nn.CrossEntropyLoss(weight=class_weights).to(device)
 
@@ -89,7 +92,7 @@ def evaluate(model, dataloader):
     
     with torch.no_grad():
         for batch in dataloader:
-            batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts']).to(device)
+            batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'], embedding_dim=72).to(device)
             logits = model(batch_tensor)
             preds = torch.argmax(logits, dim=1)
             all_preds.extend(preds.cpu().numpy())
@@ -121,7 +124,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
 
         
-        batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts']).to(device)
+        batch_tensor = prepare_batch_per_token(session, tokenizer, batch['texts'], embedding_dim=72).to(device)
 
         logits = model(batch_tensor)
         
@@ -129,6 +132,10 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
+
+        # 梯度累积
+        if (batch_idx + 1) % accu_steps != 0:
+            continue
         
         # 记录训练损失
         writer.add_scalar('Train/Loss', loss.item(), step)
@@ -156,6 +163,11 @@ for epoch in range(num_epochs):
                 print("  Saved best model")
         scheduler.step()
         writer.add_scalar('Train/LR', scheduler.get_last_lr()[0], step)
+    
+    # 处理最后一个未满累积步数的batch
+    if (batch_idx + 1) % accu_steps != 0:
+        optimizer.step()
+        optimizer.zero_grad()
     
     # 记录每个 epoch 的平均训练损失
     avg_epoch_loss = epoch_loss / len(train_loader)
