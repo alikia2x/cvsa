@@ -11,6 +11,10 @@ export async function initMQ() {
 		every: 5 * MINUTE,
 		immediately: true,
 	});
+	await LatestVideosQueue.upsertJobScheduler("collectSongs", {
+		every: 3 * MINUTE,
+		immediately: true,
+	});
 
 	logger.log("Message queue initialized.");
 }

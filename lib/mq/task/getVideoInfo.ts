@@ -30,12 +30,11 @@ export async function insertVideoInfo(client: Client, aid: number) {
 	);
 	const userExists = await userExistsInBiliUsers(client, aid);
 	if (!userExists) {
-	    await client.queryObject(
+		await client.queryObject(
 			`INSERT INTO bili_user (uid, username, "desc", fans) VALUES ($1, $2, $3, $4)`,
 			[uid, data.View.owner.name, data.Card.card.sign, data.Card.follower],
 		);
-	}
-	else {
+	} else {
 		await client.queryObject(
 			`UPDATE bili_user SET fans = $1 WHERE uid = $2`,
 			[data.Card.follower, uid],

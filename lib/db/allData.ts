@@ -1,6 +1,6 @@
-import {Client} from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import {AllDataType, BiliUserType} from "lib/db/schema.d.ts";
-import {modelVersion} from "lib/ml/filter_inference.ts";
+import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { AllDataType, BiliUserType } from "lib/db/schema.d.ts";
+import { modelVersion } from "lib/ml/filter_inference.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
 	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
@@ -8,7 +8,9 @@ export async function videoExistsInAllData(client: Client, aid: number) {
 }
 
 export async function userExistsInBiliUsers(client: Client, uid: number) {
-	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bili_user WHERE uid = $1)`, [uid])
+	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bili_user WHERE uid = $1)`, [
+		uid,
+	]);
 }
 
 export async function getUnlabelledVideos(client: Client) {
@@ -36,28 +38,29 @@ export async function getVideoInfoFromAllData(client: Client, aid: number) {
 		const q = await client.queryObject<BiliUserType>(
 			`SELECT * FROM bili_user WHERE uid = $1`,
 			[row.uid],
-		)
+		);
 		const userRow = q.rows[0];
-		if (userRow)
+		if (userRow) {
 			authorInfo = userRow.desc;
+		}
 	}
 	return {
 		title: row.title,
 		description: row.description,
 		tags: row.tags,
-		author_info: authorInfo
+		author_info: authorInfo,
 	};
 }
 
 export async function getUnArchivedBiliUsers(client: Client) {
-	const queryResult = await client.queryObject<{uid: number}>(
+	const queryResult = await client.queryObject<{ uid: number }>(
 		`
 		SELECT ad.uid
 		FROM all_data ad
 		LEFT JOIN bili_user bu ON ad.uid = bu.uid
 		WHERE bu.uid IS NULL;
 		`,
-		[]
+		[],
 	);
 	const rows = queryResult.rows;
 	return rows.map((row) => row.uid);

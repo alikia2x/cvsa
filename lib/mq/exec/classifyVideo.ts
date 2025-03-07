@@ -5,6 +5,8 @@ import { classifyVideo } from "lib/ml/filter_inference.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
+import { aidExistsInSongs } from "lib/db/songs.ts";
+import { insertIntoSongs } from "lib/mq/task/collectSongs.ts";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const client = await db.connect();
@@ -22,6 +24,11 @@ export const classifyVideoWorker = async (job: Job) => {
 		logger.warn(`Failed to classify video ${aid}`, "ml");
 	}
 	await insertVideoLabel(client, aid, label);
+
+	const exists = await aidExistsInSongs(client, aid);
+	if (!exists) {
+		await insertIntoSongs(client, aid);
+	}
 
 	client.release();
 

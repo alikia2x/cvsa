@@ -1,10 +1,10 @@
 import { Job, Worker } from "bullmq";
-import { getLatestVideosWorker } from "lib/mq/executors.ts";
+import { collectSongsWorker, getLatestVideosWorker } from "lib/mq/executors.ts";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
-import { getVideoInfoWorker } from "lib/mq/exec/getVideoInfo.ts";
+import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -27,6 +27,9 @@ const latestVideoWorker = new Worker(
 				break;
 			case "getVideoInfo":
 				await getVideoInfoWorker(job);
+				break;
+			case "collectSongs":
+				await collectSongsWorker(job);
 				break;
 			default:
 				break;

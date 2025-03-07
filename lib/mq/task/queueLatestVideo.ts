@@ -26,12 +26,13 @@ export async function queueLatestVideos(
 			if (videoExists) {
 				continue;
 			}
-			await LatestVideosQueue.add("getVideoInfo", { aid }, { delay,
+			await LatestVideosQueue.add("getVideoInfo", { aid }, {
+				delay,
 				attempts: 100,
 				backoff: {
 					type: "fixed",
-					delay: SECOND * 5
-				}
+					delay: SECOND * 5,
+				},
 			});
 			videosFound.add(aid);
 			allExists = false;
