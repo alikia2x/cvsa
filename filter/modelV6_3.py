@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class VideoClassifierV6_3(nn.Module):
-    def __init__(self, embedding_dim=72, hidden_dim=256, output_dim=3, num_heads=4, num_layers=2):
+    def __init__(self, embedding_dim=256, hidden_dim=256, output_dim=3, num_heads=4, num_layers=2):
         super().__init__()
         self.num_channels = 3
         self.channel_names = ['title', 'description', 'tags']
