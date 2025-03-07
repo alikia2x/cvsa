@@ -4,7 +4,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from dataset import MultiChannelDataset
-from filter.modelV6_3 import VideoClassifierV6_3
+from filter.modelV6_1 import VideoClassifierV6_1
 from sklearn.metrics import f1_score, recall_score, precision_score, accuracy_score, classification_report
 import os
 import torch
@@ -61,8 +61,8 @@ class_weights = torch.tensor(
     device=device
 )
 
-model = VideoClassifierV6_3().to(device)
-checkpoint_name = './filter/checkpoints/best_model_V6.3-II.pt'
+model = VideoClassifierV6_1().to(device)
+checkpoint_name = './filter/checkpoints/best_model_V6.1.pt'
 
 # 初始化tokenizer和embedding模型
 tokenizer = AutoTokenizer.from_pretrained("alikia2x/jina-embedding-v3-m2v-1024")
@@ -74,9 +74,9 @@ os.makedirs('./filter/checkpoints', exist_ok=True)
 # 优化器
 eval_interval = 20
 num_epochs = 20
-total_steps = samples_count * num_epochs / batch_size
+total_steps = samples_count * num_epochs / train_loader.batch_size
 warmup_rate = 0.1
-optimizer = optim.AdamW(model.parameters(), lr=1e-5, weight_decay=1e-3)
+optimizer = optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-5)
 cosine_annealing_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=total_steps - int(total_steps * warmup_rate))
 warmup_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=0.4, end_factor=1.0, total_iters=int(total_steps * warmup_rate))
 scheduler = optim.lr_scheduler.SequentialLR(optimizer, schedulers=[warmup_scheduler, cosine_annealing_scheduler], milestones=[int(total_steps * warmup_rate)])
