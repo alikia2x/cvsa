@@ -18,3 +18,16 @@ export interface BiliUserType {
 	desc: string;
 	fans: number;
 }
+
+export interface VideoSnapshotType {
+	id: number;
+	created_at: string;
+	views: number;
+	coins: number;
+	likes: number;
+	favorites: number;
+	shares: number;
+	danmakus: number;
+	aid: bigint;
+	replies: number;
+}

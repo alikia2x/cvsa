@@ -110,11 +110,10 @@ class NetScheduler {
 
 	async triggerLimiter(task: string, proxy: string): Promise<void> {
 		const limiterId = "proxy-" + proxy + "-" + task;
-		if (!this.proxyLimiters[limiterId]) {
-			return;
-		}
+		const providerLimiterId = "provider-" + proxy + "-" + this.tasks[task].provider;
 		try {
-			await this.proxyLimiters[limiterId].trigger();
+			await this.proxyLimiters[limiterId]?.trigger();
+			await this.providerLimiters[providerLimiterId]?.trigger();
 		} catch (e) {
 			const error = e as Error;
 			if (e instanceof Redis.ReplyError) {
@@ -215,8 +214,10 @@ class NetScheduler {
 			const provider = task.provider;
 			const proxyLimiterId = "proxy-" + proxyName + "-" + task;
 			const providerLimiterId = "provider-" + proxyName + "-" + provider;
-			if (!this.proxyLimiters[proxyLimiterId] || !this.providerLimiters[providerLimiterId]) {
-				return true;
+			if (!this.proxyLimiters[proxyLimiterId]) {
+				const providerLimiter = this.providerLimiters[providerLimiterId];
+				const providerAvailable = await providerLimiter.getAvailability();
+				return providerAvailable;
 			}
 			const proxyLimiter = this.proxyLimiters[proxyLimiterId];
 			const providerLimiter = this.providerLimiters[providerLimiterId];
@@ -253,23 +254,23 @@ class NetScheduler {
 	}
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
-		const decoder = new TextDecoder();
-		const output = await new Deno.Command("aliyun", {
-			args: [
-				"fc",
-				"POST",
-				`/2023-03-30/functions/proxy-${region}/invocations`,
-				"--qualifier",
-				"LATEST",
-				"--header",
-				"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
-				"--body",
-				JSON.stringify({ url: url }),
-				"--profile",
-				`CVSA-${region}`,
-			],
-		}).output();
 		try {
+			const decoder = new TextDecoder();
+			const output = await new Deno.Command("aliyun", {
+				args: [
+					"fc",
+					"POST",
+					`/2023-03-30/functions/proxy-${region}/invocations`,
+					"--qualifier",
+					"LATEST",
+					"--header",
+					"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
+					"--body",
+					JSON.stringify({ url: url }),
+					"--profile",
+					`CVSA-${region}`,
+				],
+			}).output();
 			const out = decoder.decode(output.stdout);
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
@@ -278,7 +279,7 @@ class NetScheduler {
 					"ALICLOUD_PROXY_ERR",
 				);
 			} else {
-				return JSON.parse(rawData.body) as R;
+				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
@@ -308,7 +309,7 @@ const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
 const biliLimiterConfig: RateLimiterConfig[] = [
 	{
 		window: new SlidingWindow(redis, 1),
-		max: 5,
+		max: 6,
 	},
 	{
 		window: new SlidingWindow(redis, 30),
@@ -316,14 +317,51 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 	},
 	{
 		window: new SlidingWindow(redis, 5 * 60),
-		max: 180,
+		max: 200,
 	},
 ];
+
+/*
+Execution order for setup:
+
+1. addProxy(proxyName, type, data):
+   - Must be called first. Registers proxies in the system, making them available for tasks.
+   - Define all proxies before proceeding to define tasks or set up limiters.
+2. addTask(taskName, provider, proxies):
+   - Call after addProxy. Defines tasks and associates them with providers and proxies.
+   - Relies on proxies being already added.
+   - Must be called before setting task-specific or provider-specific limiters.
+3. setTaskLimiter(taskName, config):
+   - Call after addProxy and addTask. Configures rate limiters specifically for tasks and their associated proxies.
+   - Depends on tasks and proxies being defined to apply limiters correctly.
+4. setProviderLimiter(providerName, config):
+   - Call after addProxy and addTask. Sets rate limiters at the provider level, affecting all proxies used by tasks of that provider.
+   - Depends on tasks and proxies being defined to identify which proxies to apply provider-level limiters to.
+
+In summary: addProxy -> addTask -> (setTaskLimiter and/or setProviderLimiter).
+The order of setTaskLimiter and setProviderLimiter relative to each other is flexible,
+but both should come after addProxy and addTask to ensure proper setup and dependencies are met.
+*/
+
 netScheduler.addProxy("native", "native", "");
-netScheduler.addTask("getVideoInfo", "bilibili", "all");
-netScheduler.addTask("getLatestVideos", "bilibili", "all");
+for (const region of ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"]) {
+	netScheduler.addProxy(`alicloud-${region}`, "alicloud-fc", region);
+}
+netScheduler.addTask("getVideoInfo", "bilibili", ["native"]);
+netScheduler.addTask("getLatestVideos", "bilibili", ["native"]);
+netScheduler.addTask("snapshotMilestoneVideo", "bilibili", "all");
+netScheduler.addTask("snapshotVideo", "bilibili", [
+	"alicloud-qingdao",
+	"alicloud-shanghai",
+	"alicloud-zhangjiakou",
+	"alicloud-chengdu",
+	"alicloud-shenzhen",
+	"alicloud-hohhot",
+]);
 netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 netScheduler.setTaskLimiter("getLatestVideos", null);
+netScheduler.setTaskLimiter("snapshotMilestoneVideo", null);
+netScheduler.setTaskLimiter("snapshotVideo", videoInfoRateLimiterConfig);
 netScheduler.setProviderLimiter("bilibili", biliLimiterConfig);
 
 export default netScheduler;

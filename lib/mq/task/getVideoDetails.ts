@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { getVideoInfo } from "lib/net/getVideoInfo.ts";
+import { getVideoDetails } from "lib/net/getVideoDetails.ts";
 import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import logger from "lib/log/logger.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
@@ -10,7 +10,7 @@ export async function insertVideoInfo(client: Client, aid: number) {
 	if (videoExists) {
 		return;
 	}
-	const data = await getVideoInfo(aid);
+	const data = await getVideoDetails(aid);
 	if (data === null) {
 		return null;
 	}

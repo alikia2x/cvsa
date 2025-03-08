@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { queueLatestVideos } from "lib/mq/task/queueLatestVideo.ts";
 import { db } from "lib/db/init.ts";
-import { insertVideoInfo } from "lib/mq/task/getVideoInfo.ts";
+import { insertVideoInfo } from "lib/mq/task/getVideoDetails.ts";
 import { collectSongs } from "lib/mq/task/collectSongs.ts";
 
 export const getLatestVideosWorker = async (_job: Job): Promise<void> => {

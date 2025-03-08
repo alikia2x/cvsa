@@ -5,6 +5,7 @@ import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
+import { snapshotTickWorker, takeSnapshotForMilestoneVideoWorker, takeSnapshotForVideoWorker } from "lib/mq/exec/snapshotTick.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -50,3 +51,32 @@ latestVideoWorker.on("error", (err) => {
 latestVideoWorker.on("closed", async () => {
 	await lockManager.releaseLock("getLatestVideos");
 });
+
+const snapshotWorker = new Worker(
+	"snapshot",
+	async (job: Job) => {
+		switch (job.name) {
+			case "scheduleSnapshotTick":
+				await snapshotTickWorker(job);
+				break;
+			case "snapshotMilestoneVideo":
+				await takeSnapshotForMilestoneVideoWorker(job);
+				break;
+			case "snapshotVideo":
+				await takeSnapshotForVideoWorker(job);
+				break;
+			default:
+				break;
+		}
+	},
+	{ connection: redis, concurrency: 20, removeOnComplete: { count: 1440 } },
+);
+
+snapshotWorker.on("active", () => {
+	logger.log("Worker (snapshot) activated.", "mq");
+})
+
+snapshotWorker.on("error", (err) => {
+	const e = err as WorkerError;
+	logger.error(e.rawError, e.service, e.codePath);
+})

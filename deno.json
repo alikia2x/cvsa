@@ -10,7 +10,7 @@
 		"build": "deno run -A dev.ts build",
 		"preview": "deno run -A main.ts",
 		"update": "deno run -A -r https://fresh.deno.dev/update .",
-		"worker:main": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/worker.ts",
+		"worker:main": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write --allow-run ./src/worker.ts",
 		"worker:filter": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/filterWorker.ts",
 		"adder": "deno run --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
 		"bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net ./src/bullui.ts",

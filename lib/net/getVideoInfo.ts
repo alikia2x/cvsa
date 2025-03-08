@@ -1,10 +1,10 @@
 import netScheduler from "lib/mq/scheduler.ts";
-import { VideoDetailsData, VideoDetailsResponse } from "lib/net/bilibili.d.ts";
+import { VideoInfoData, VideoInfoResponse } from "lib/net/bilibili.d.ts";
 import logger from "lib/log/logger.ts";
 
-export async function getVideoInfo(aid: number): Promise<VideoDetailsData | null> {
-	const url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`;
-	const data = await netScheduler.request<VideoDetailsResponse>(url, "getVideoInfo");
+export async function getVideoInfo(aid: number, task: string): Promise<VideoInfoData | null> {
+	const url = `https://api.bilibili.com/x/web-interface/view?aid=${aid}`;
+	const data = await netScheduler.request<VideoInfoResponse>(url, task);
 	const errMessage = `Error fetching metadata for ${aid}:`;
 	if (data.code !== 0) {
 		logger.error(errMessage + data.message, "net", "fn:getVideoInfo");

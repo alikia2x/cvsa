@@ -8,6 +8,27 @@ interface BaseResponse<T> {
 export type VideoListResponse = BaseResponse<VideoListData>;
 export type VideoDetailsResponse = BaseResponse<VideoDetailsData>;
 export type VideoTagsResponse = BaseResponse<VideoTagsData>;
+export type VideoInfoResponse = BaseResponse<VideoInfoData>;
+
+interface VideoInfoData {
+	bvid: string;
+	aid: number;
+	copyright: number;
+	pic: string;
+	title: string;
+	pubdate: number;
+	ctime: number;
+	desc: string;
+	desc_v2: string;
+	state: number;
+	duration: number;
+	owner: {
+		mid: number;
+		name: string;
+		face: string;
+	},
+	stat: VideoStats,
+}
 
 interface VideoDetailsData {
 	View: {
