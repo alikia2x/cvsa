@@ -255,7 +255,8 @@ class NetScheduler {
 	}
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
-		let rawOuput: null | Uint8Array = null;
+		let rawOutput: null | Uint8Array = null;
+		let rawErr: null | Uint8Array = null;
 		try {
 			const decoder = new TextDecoder();
 			const output = await new Deno.Command("aliyun", {
@@ -273,14 +274,15 @@ class NetScheduler {
 					`CVSA-${region}`,
 				],
 			}).output();
-			rawOuput = output.stdout;
+			rawOutput = output.stdout;
+			rawErr = output.stderr;
 			const out = decoder.decode(output.stdout);
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
 				const fileId = randomUUID();
-				const filePath = `./logs/files/${fileId}`;
-				await Deno.writeFile(filePath, rawOuput);
-				logger.log(`Returned non-200 status code. Raw ouput saved to ${filePath}.`, "net", "fn:alicloudFcRequest")
+				await Deno.writeFile(`./logs/files/${fileId}.stdout`, output.stdout);
+				await Deno.writeFile(`./logs/files/${fileId}.stderr`, output.stderr);
+				logger.log(`Returned non-200 status code. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`, "net", "fn:alicloudFcRequest")
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",
@@ -289,11 +291,11 @@ class NetScheduler {
 				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
-			if (rawOuput !== null) {
+			if (rawOutput !== null || rawErr !== null) {
 				const fileId = randomUUID();
-				const filePath = `./logs/files/${fileId}`;
-				await Deno.writeFile(filePath, rawOuput);
-				logger.log(`Error occurred. Raw ouput saved to ${filePath}.`, "net", "fn:alicloudFcRequest")
+				rawOutput && await Deno.writeFile(`./logs/files/${fileId}.stdout`, rawOutput);
+				rawErr && await Deno.writeFile(`./logs/files/${fileId}.stderr`, rawErr);
+				logger.log(`Error occurred. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`, "net", "fn:alicloudFcRequest")
 			}
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
