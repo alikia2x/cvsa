@@ -4,8 +4,8 @@ import { getVideoInfo } from "lib/net/getVideoInfo.ts";
 export async function insertVideoStats(client: Client, aid: number, task: string) {
 	const data = await getVideoInfo(aid, task);
     const time = new Date().getTime();
-    if (data === null) {
-		return null;
+    if (typeof data == 'number') {
+		return data;
 	}
     const views = data.stat.view;
     const danmakus = data.stat.danmaku;

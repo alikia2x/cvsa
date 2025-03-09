@@ -106,8 +106,13 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 		const { aid, currentViews, snapshotedAt } = job.data;
 		const lastSnapshoted = snapshotedAt;
 		const stat = await insertVideoStats(client, aid, "snapshotMilestoneVideo");
-		if (stat == null) {
-			await setSnapshotScheduled(aid, false, 0);
+		if (typeof stat === "number") {
+			if (stat === -404 || stat === 62002) {
+				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
+			}
+			else {
+				await setSnapshotScheduled(aid, false, 0);
+			}
 			return;
 		}
 		const nextMilestone = currentViews >= 100000 ? 1000000 : 100000;
@@ -166,6 +171,15 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 	try {
 		const { aid } = job.data;
 		const stat = await insertVideoStats(client, aid, "getVideoInfo");
+		if (typeof stat === "number") {
+			if (stat === -404 || stat === 62002) {
+				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
+			}
+			else {
+				await setSnapshotScheduled(aid, false, 0);
+			}
+			return;
+		}
 		logger.log(`Taken snapshot for ${aid}`, "mq");
 		if (stat == null) {
 			setSnapshotScheduled(aid, false, 0);
