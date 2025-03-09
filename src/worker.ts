@@ -36,7 +36,7 @@ const latestVideoWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 6, removeOnComplete: { count: 1440 } },
+	{ connection: redis, concurrency: 6, removeOnComplete: { count: 1440 }, removeOnFail: { count: 0 } },
 );
 
 latestVideoWorker.on("active", () => {

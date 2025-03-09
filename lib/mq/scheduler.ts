@@ -270,6 +270,12 @@ class NetScheduler {
 					"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
 					"--body",
 					JSON.stringify({ url: url }),
+					"--retry-count",
+					"5",
+					"--read-timeout",
+					"30",
+					"--connect-timeout",
+					"10",
 					"--profile",
 					`CVSA-${region}`,
 				],
@@ -368,8 +374,8 @@ netScheduler.addProxy("native", "native", "");
 for (const region of regions) {
 	netScheduler.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
-netScheduler.addTask("getVideoInfo", "bilibili", ["native"]);
-netScheduler.addTask("getLatestVideos", "bilibili", ["native"]);
+netScheduler.addTask("getVideoInfo", "bilibili", "all");
+netScheduler.addTask("getLatestVideos", "bilibili", "all");
 netScheduler.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
 netScheduler.addTask("snapshotVideo", "bilibili", [
 	"alicloud-qingdao",
