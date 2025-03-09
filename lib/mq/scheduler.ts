@@ -312,6 +312,10 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 		max: 6,
 	},
 	{
+		window: new SlidingWindow(redis, 5),
+		max: 20,
+	},
+	{
 		window: new SlidingWindow(redis, 30),
 		max: 100,
 	},

@@ -52,7 +52,7 @@ const createTransport = (level: string, filename: string) => {
 	});
 };
 
-const verboseLogPath = Deno.env.get("LOG_VERBOSE") ?? "logs/verbose.log";
+const sillyLogPath = Deno.env.get("LOG_VERBOSE") ?? "logs/verbose.log";
 const warnLogPath = Deno.env.get("LOG_WARN") ?? "logs/warn.log";
 const errorLogPath = Deno.env.get("LOG_ERROR") ?? "logs/error.log";
 
@@ -68,13 +68,16 @@ const winstonLogger = winston.createLogger({
 				customFormat,
 			),
 		}),
-		createTransport("verbose", verboseLogPath),
+		createTransport("silly", sillyLogPath),
 		createTransport("warn", warnLogPath),
 		createTransport("error", errorLogPath),
 	],
 });
 
 const logger = {
+	silly: (message: string, service?: string, codePath?: string) => {
+		winstonLogger.silly(message, { service, codePath });
+	},
 	verbose: (message: string, service?: string, codePath?: string) => {
 		winstonLogger.verbose(message, { service, codePath });
 	},

@@ -69,12 +69,8 @@ const snapshotWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 20, removeOnComplete: { count: 1440 } },
+	{ connection: redis, concurrency: 10, removeOnComplete: { count: 2000 } },
 );
-
-snapshotWorker.on("active", () => {
-	logger.log("Worker (snapshot) activated.", "mq");
-})
 
 snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
