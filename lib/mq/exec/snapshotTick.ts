@@ -107,7 +107,7 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 		const lastSnapshoted = snapshotedAt;
 		const stat = await insertVideoStats(client, aid, "snapshotMilestoneVideo");
 		if (typeof stat === "number") {
-			if (stat === -404 || stat === 62002) {
+			if (stat === -404 || stat === 62002 || stat == 62012) {
 				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
 			}
 			else {
@@ -172,7 +172,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		const { aid } = job.data;
 		const stat = await insertVideoStats(client, aid, "getVideoInfo");
 		if (typeof stat === "number") {
-			if (stat === -404 || stat === 62002) {
+			if (stat === -404 || stat === 62002 || stat == 62012) {
 				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
 			}
 			else {
