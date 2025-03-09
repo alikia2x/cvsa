@@ -10,6 +10,7 @@ import { redis } from "lib/db/redis.ts";
 import { NetSchedulerError } from "lib/mq/scheduler.ts";
 import logger from "lib/log/logger.ts";
 import { formatSeconds } from "lib/utils/formatSeconds.ts";
+import { truncate } from "lib/utils/truncate.ts";
 
 async function snapshotScheduled(aid: number) {
 	try {
@@ -122,7 +123,8 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 		const eta = viewsToIncrease / (incrementSpeed + DELTA);
 		const scheduledNextSnapshotDelay = eta * SECOND / 3;
 		const maxInterval = 20 * MINUTE;
-		const delay = Math.min(scheduledNextSnapshotDelay, maxInterval);
+		const minInterval = 1 * SECOND;
+		const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 		await SnapshotQueue.add("snapshotMilestoneVideo", {
 			aid,
 			currentViews: stat.views,
