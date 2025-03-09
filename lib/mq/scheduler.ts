@@ -4,6 +4,7 @@ import { SlidingWindow } from "lib/mq/slidingWindow.ts";
 import { redis } from "lib/db/redis.ts";
 import Redis from "ioredis";
 import { SECOND } from "$std/datetime/constants.ts";
+import { randomUUID } from "node:crypto";
 
 interface Proxy {
 	type: string;
@@ -254,6 +255,7 @@ class NetScheduler {
 	}
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
+		let rawOuput: null | Uint8Array = null;
 		try {
 			const decoder = new TextDecoder();
 			const output = await new Deno.Command("aliyun", {
@@ -271,9 +273,14 @@ class NetScheduler {
 					`CVSA-${region}`,
 				],
 			}).output();
+			rawOuput = output.stdout;
 			const out = decoder.decode(output.stdout);
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
+				const fileId = randomUUID();
+				const filePath = `./logs/files/${fileId}`;
+				await Deno.writeFile(filePath, rawOuput);
+				logger.log(`Returned non-200 status code. Raw ouput saved to ${filePath}.`, "net", "fn:alicloudFcRequest")
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",
@@ -282,7 +289,13 @@ class NetScheduler {
 				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
-			logger.error(e, "net", "alicloudFcRequest");
+			if (rawOuput !== null) {
+				const fileId = randomUUID();
+				const filePath = `./logs/files/${fileId}`;
+				await Deno.writeFile(filePath, rawOuput);
+				logger.log(`Error occurred. Raw ouput saved to ${filePath}.`, "net", "fn:alicloudFcRequest")
+			}
+			logger.error(e as Error, "net", "fn:alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
 		}
 	}
