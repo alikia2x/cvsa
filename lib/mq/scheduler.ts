@@ -282,6 +282,7 @@ class NetScheduler {
 				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
+			logger.error(e, "net", "alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
 		}
 	}
@@ -347,13 +348,14 @@ The order of setTaskLimiter and setProviderLimiter relative to each other is fle
 but both should come after addProxy and addTask to ensure proper setup and dependencies are met.
 */
 
+const regions = ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"];
 netScheduler.addProxy("native", "native", "");
-for (const region of ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"]) {
+for (const region of regions) {
 	netScheduler.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
 netScheduler.addTask("getVideoInfo", "bilibili", ["native"]);
 netScheduler.addTask("getLatestVideos", "bilibili", ["native"]);
-netScheduler.addTask("snapshotMilestoneVideo", "bilibili", "all");
+netScheduler.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
 netScheduler.addTask("snapshotVideo", "bilibili", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",

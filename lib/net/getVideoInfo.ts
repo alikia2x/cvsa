@@ -7,7 +7,7 @@ export async function getVideoInfo(aid: number, task: string): Promise<VideoInfo
 	const data = await netScheduler.request<VideoInfoResponse>(url, task);
 	const errMessage = `Error fetching metadata for ${aid}:`;
 	if (data.code !== 0) {
-		logger.error(errMessage + data.message, "net", "fn:getVideoInfo");
+		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");
 		return null;
 	}
 	return data.data;
