@@ -90,8 +90,25 @@ export async function getShortTermEtaPrediction(client: Client, aid: number) {
 		)
 		SELECT
 			CASE 
-				WHEN n.views > 100000 THEN (1000000 - n.views) / ((n.views - o.views) / (EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.01))
-				ELSE (100000 - n.views) / ((n.views - o.views) / (EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.01))
+				WHEN n.views > 100000 
+				THEN 
+					(1000000 - n.views) -- Views remaining
+					/ 
+					(
+						(n.views - o.views)  -- Views delta
+						/
+						(EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.001) -- Time delta in seconds
+					    + 0.001
+					) -- Increment per second
+				ELSE 
+					(100000 - n.views) -- Views remaining
+			        /
+					(
+					    (n.views - o.views) -- Views delta
+			            /
+					    (EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.001) -- Time delta in seconds
+					    + 0.001
+			        ) -- Increment per second
 			END AS eta
 		FROM old_snapshot o, new_snapshot n;
 		`,
