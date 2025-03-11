@@ -2,7 +2,12 @@ import { Job } from "bullmq";
 import { MINUTE, SECOND } from "$std/datetime/constants.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { db } from "lib/db/init.ts";
-import { getSongsNearMilestone, getUnsnapshotedSongs, songEligibleForMilestoneSnapshot } from "lib/db/snapshot.ts";
+import {
+	getShortTermEtaPrediction,
+	getSongsNearMilestone,
+	getUnsnapshotedSongs,
+	songEligibleForMilestoneSnapshot,
+} from "lib/db/snapshot.ts";
 import { SnapshotQueue } from "lib/mq/index.ts";
 import { insertVideoStats } from "lib/mq/task/getVideoStats.ts";
 import { parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
@@ -50,11 +55,19 @@ async function processMilestoneSnapshots(client: Client, vidoesNearMilestone: So
 	let i = 0;
 	for (const snapshot of vidoesNearMilestone) {
 		if (await snapshotScheduled(snapshot.aid)) {
-			logger.silly(`Video ${snapshot.aid} is already scheduled for snapshot`, "mq", "fn:processMilestoneSnapshots");
+			logger.silly(
+				`Video ${snapshot.aid} is already scheduled for snapshot`,
+				"mq",
+				"fn:processMilestoneSnapshots",
+			);
 			continue;
 		}
 		if (await songEligibleForMilestoneSnapshot(client, snapshot.aid) === false) {
-			logger.silly(`Video ${snapshot.aid} is not eligible for milestone snapshot`, "mq", "fn:processMilestoneSnapshots");
+			logger.silly(
+				`Video ${snapshot.aid} is not eligible for milestone snapshot`,
+				"mq",
+				"fn:processMilestoneSnapshots",
+			);
 			continue;
 		}
 		const factor = Math.floor(i / 8);
@@ -103,14 +116,14 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 	const client = await db.connect();
 	await setSnapshotScheduled(job.data.aid, true, 20 * 60);
 	try {
-		const { aid, currentViews, snapshotedAt } = job.data;
-		const lastSnapshoted = snapshotedAt;
+		const aid: number = job.data.aid;
+		const currentViews: number = job.data.currentViews;
+		const lastSnapshoted: string = job.data.snapshotedAt;
 		const stat = await insertVideoStats(client, aid, "snapshotMilestoneVideo");
 		if (typeof stat === "number") {
 			if (stat === -404 || stat === 62002 || stat == 62012) {
 				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
-			}
-			else {
+			} else {
 				await setSnapshotScheduled(aid, false, 0);
 			}
 			return;
@@ -120,12 +133,15 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			await setSnapshotScheduled(aid, false, 0);
 			return;
 		}
-		const DELTA = 0.001;
-		const intervalSeconds = (Date.now() - parseTimestampFromPsql(lastSnapshoted)) / SECOND;
-		const viewsIncrement = stat.views - currentViews;
-		const incrementSpeed = viewsIncrement / (intervalSeconds + DELTA);
-		const viewsToIncrease = nextMilestone - stat.views;
-		const eta = viewsToIncrease / (incrementSpeed + DELTA);
+		let eta = await getShortTermEtaPrediction(client, aid);
+		if (eta === null) {
+			const DELTA = 0.001;
+			const intervalSeconds = (Date.now() - parseTimestampFromPsql(lastSnapshoted)) / SECOND;
+			const viewsIncrement = stat.views - currentViews;
+			const incrementSpeed = viewsIncrement / (intervalSeconds + DELTA);
+			const viewsToIncrease = nextMilestone - stat.views;
+			eta = viewsToIncrease / (incrementSpeed + DELTA);
+		}
 		const scheduledNextSnapshotDelay = eta * SECOND / 3;
 		const maxInterval = 20 * MINUTE;
 		const minInterval = 1 * SECOND;
@@ -134,7 +150,7 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			aid,
 			currentViews: stat.views,
 			snapshotedAt: stat.time,
-		}, { delay, priority: 1});
+		}, { delay, priority: 1 });
 		await job.updateData({
 			...job.data,
 			updatedViews: stat.views,
@@ -142,7 +158,9 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			etaInMins: eta / 60,
 		});
 		logger.log(
-			`Scheduled next milestone snapshot for ${aid} in ${formatSeconds(delay / 1000)}, current views: ${stat.views}`,
+			`Scheduled next milestone snapshot for ${aid} in ${
+				formatSeconds(delay / 1000)
+			}, current views: ${stat.views}`,
 			"mq",
 		);
 	} catch (e) {
@@ -174,8 +192,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		if (typeof stat === "number") {
 			if (stat === -404 || stat === 62002 || stat == 62012) {
 				await setSnapshotScheduled(aid, true, 6 * 60 * 60);
-			}
-			else {
+			} else {
 				await setSnapshotScheduled(aid, false, 0);
 			}
 			return;

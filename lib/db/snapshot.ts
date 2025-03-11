@@ -59,12 +59,48 @@ export async function getUnsnapshotedSongs(client: Client) {
 }
 
 export async function getSongSnapshotCount(client: Client, aid: number) {
-	const queryResult = await client.queryObject<{ count: number }>(`
+	const queryResult = await client.queryObject<{ count: number }>(
+		`
 		SELECT COUNT(*) AS count
 		FROM video_snapshot
 		WHERE aid = $1;
-	`, [aid]);
+	`,
+		[aid],
+	);
 	return queryResult.rows[0].count;
+}
+
+export async function getShortTermEtaPrediction(client: Client, aid: number) {
+	const queryResult = await client.queryObject<{eta: number}>(
+		`
+		WITH old_snapshot AS (
+			SELECT created_at, views 
+			FROM video_snapshot 
+			WHERE aid = $1 AND
+			NOW() - created_at > '20 min'
+			ORDER BY created_at DESC 
+			LIMIT 1
+		),
+		new_snapshot AS (
+			SELECT created_at, views
+			FROM video_snapshot
+			WHERE aid = $1
+			ORDER BY created_at DESC
+			LIMIT 1
+		)
+		SELECT
+			CASE 
+				WHEN n.views > 100000 THEN (1000000 - n.views) / ((n.views - o.views) / (EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.01))
+				ELSE (100000 - n.views) / ((n.views - o.views) / (EXTRACT(EPOCH FROM (n.created_at - o.created_at)) + 0.01))
+			END AS eta
+		FROM old_snapshot o, new_snapshot n;
+		`,
+		[aid],
+	);
+	if (queryResult.rows.length === 0) {
+		return null;
+	}
+	return queryResult.rows[0].eta;
 }
 
 export async function songEligibleForMilestoneSnapshot(client: Client, aid: number) {
@@ -72,7 +108,9 @@ export async function songEligibleForMilestoneSnapshot(client: Client, aid: numb
 	if (count < 2) {
 		return true;
 	}
-	const queryResult = await client.queryObject<{ views1: number, created_at1: string, views2: number, created_at2: string }>(
+	const queryResult = await client.queryObject<
+		{ views1: number; created_at1: string; views2: number; created_at2: string }
+	>(
 		`
 			WITH latest_snapshot AS (
 				SELECT 
