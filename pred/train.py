@@ -1,76 +1,83 @@
+import random
+import time
 import numpy as np
+from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
-from model import MultiTaskWrapper, VideoPlayPredictor
 import torch
-import torch.nn.functional as F
 from dataset import VideoPlayDataset, collate_fn
+from pred.model import CompactPredictor
 
-def train(model, dataloader, epochs=100, device='mps'):
-    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, epochs)
+def train(model, dataloader, device, epochs=100):
+    writer = SummaryWriter(f'./pred/runs/play_predictor_{time.strftime("%Y%m%d_%H%M")}')
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3,
+                                                  total_steps=len(dataloader)*epochs)
+    criterion = torch.nn.MSELoss()
     
-    steps = 0
+    model.train()
+    global_step = 0
     for epoch in range(epochs):
-        model.train()
-        total_loss = 0
-        
-        for batch in dataloader:
+        total_loss = 0.0
+        for batch_idx, batch in enumerate(dataloader):
+            features = batch['features'].to(device)
+            targets = batch['targets'].to(device)
+            
             optimizer.zero_grad()
-            
-            # movel whole batch to device
-            for k, v in batch.items():
-                if isinstance(v, torch.Tensor):
-                    batch[k] = v.to(device)
-
-            # 前向传播
-            pred = model(batch)
-
-            y_play = batch['y_play']
-
-            real = np.expm1(y_play.cpu().detach().numpy())
-            yhat = np.expm1(pred.cpu().detach().numpy())
-            print("real", [int(real[0][0]), int(real[1][0])])
-            print("yhat", [int(yhat[0][0]), int(yhat[1][0])], [float(pred.cpu().detach().numpy()[0][0]), float(pred.cpu().detach().numpy()[1][0])])
-
-            # 计算加权损失
-            weights = torch.log1p(batch['forecast_span'])  # 时间越长权重越低
-            loss_per_sample = F.huber_loss(pred, y_play, reduction='none')
-            loss = (loss_per_sample * weights).mean()
-
-            # 反向传播
+            outputs = model(features)
+            loss = criterion(outputs, targets)
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            #torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
+            scheduler.step()
             
-            steps += 1
+            total_loss += loss.item()
+            global_step += 1
+            
+            if global_step % 100 == 0:
+                writer.add_scalar('Loss/train', loss.item(), global_step)
+                writer.add_scalar('LR', scheduler.get_last_lr()[0], global_step)
+            if batch_idx % 50 == 0:
+                # 监控梯度
+                grad_norms = [
+                    torch.norm(p.grad).item() 
+                    for p in model.parameters() if p.grad is not None
+                ]
+                writer.add_scalar('Grad/Norm', sum(grad_norms)/len(grad_norms), global_step)
+                
+                # 监控参数值
+                param_means = [torch.mean(p.data).item() for p in model.parameters()]
+                writer.add_scalar('Params/Mean', sum(param_means)/len(param_means), global_step)
 
-            print(f"Epoch {epoch+1} | Step {steps} | Loss: {loss.item():.4f}")
-        
-        scheduler.step()
-        avg_loss = total_loss / len(dataloader)
-        print(f"Epoch {epoch+1:03d} | Loss: {avg_loss:.4f}")
+                samples_count = len(targets)
+                r = random.randint(0, samples_count-1)
+                t = float(torch.exp2(targets[r])) - 1
+                o = float(torch.exp2(outputs[r])) - 1
+                d = features[r].cpu().numpy()[0]
+                speed = np.exp2(features[r].cpu().numpy()[2])
+                time_diff = np.exp2(d) / 3600
+                inc = speed * time_diff
+                model_error = abs(t - o)
+                reg_error = abs(inc - t)
+                print(f"{t:07.1f} | {o:07.1f} | {d:07.1f} | {inc:07.1f} | {model_error < reg_error}")
+            
+        print(f"Epoch {epoch+1} | Avg Loss: {total_loss/len(dataloader):.4f}")
+    
+    writer.close()
+    return model
 
-# 初始化模型
-device = 'mps'
-model = MultiTaskWrapper(VideoPlayPredictor())
-model = model.to(device)
-
-data_dir = './data/pred'
-publish_time_path = './data/pred/publish_time.csv'
-dataset = VideoPlayDataset(
-    data_dir=data_dir,
-    publish_time_path=publish_time_path,
-    min_seq_len=2,    # 至少2个历史点
-    max_seq_len=350,  # 最多350个历史点
-    min_forecast_span=60,    # 预测跨度1分钟到
-    max_forecast_span=86400 * 10 # 10天
-)
-dataloader = DataLoader(
-    dataset,
-    batch_size=2,
-    shuffle=True,
-    collate_fn=collate_fn,  # 使用自定义collate函数
-)
-
-# 开始训练
-train(model, dataloader, epochs=20, device=device)
+if __name__ == "__main__":
+    device = 'mps'
+    
+    # 初始化数据集和模型
+    dataset = VideoPlayDataset('./data/pred', './data/pred/publish_time.csv')
+    dataloader = DataLoader(dataset, batch_size=128, shuffle=True, collate_fn=collate_fn)
+    
+    # 获取特征维度
+    sample = next(iter(dataloader))
+    input_size = sample['features'].shape[1]
+    
+    model = CompactPredictor(input_size).to(device)
+    trained_model = train(model, dataloader, device, epochs=30)
+    
+    # 保存模型
+    torch.save(trained_model.state_dict(), 'play_predictor.pth')

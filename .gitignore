@@ -79,6 +79,8 @@ node_modules/
 logs/
 __pycache__
 filter/runs
+pred/runs
+pred/checkpoints
 data/
 filter/checkpoints
 scripts
