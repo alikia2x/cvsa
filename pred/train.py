@@ -26,7 +26,7 @@ def train(model, dataloader, device, epochs=100):
             outputs = model(features)
             loss = criterion(outputs, targets)
             loss.backward()
-            #torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             scheduler.step()
             
@@ -49,16 +49,21 @@ def train(model, dataloader, device, epochs=100):
                 writer.add_scalar('Params/Mean', sum(param_means)/len(param_means), global_step)
 
                 samples_count = len(targets)
-                r = random.randint(0, samples_count-1)
-                t = float(torch.exp2(targets[r])) - 1
-                o = float(torch.exp2(outputs[r])) - 1
-                d = features[r].cpu().numpy()[0]
-                speed = np.exp2(features[r].cpu().numpy()[2])
-                time_diff = np.exp2(d) / 3600
-                inc = speed * time_diff
-                model_error = abs(t - o)
-                reg_error = abs(inc - t)
-                print(f"{t:07.1f} | {o:07.1f} | {d:07.1f} | {inc:07.1f} | {model_error < reg_error}")
+                good = 0
+                for r in range(samples_count):
+                    r = random.randint(0, samples_count-1)
+                    t = float(torch.exp2(targets[r])) - 1
+                    o = float(torch.exp2(outputs[r])) - 1
+                    d = features[r].cpu().numpy()[0]
+                    speed = np.exp2(features[r].cpu().numpy()[5]) / 24
+                    time_diff = np.exp2(d) / 3600
+                    inc = speed * time_diff
+                    model_error = abs(t - o)
+                    reg_error = abs(inc - t)
+                    if model_error < reg_error:
+                        good += 1
+                    #print(f"{t:07.1f} | {o:07.1f} | {d:07.1f} | {inc:07.1f} | {good/samples_count*100:.1f}%")
+                writer.add_scalar('Train/WinRate', good/samples_count, global_step)
             
         print(f"Epoch {epoch+1} | Avg Loss: {total_loss/len(dataloader):.4f}")
     

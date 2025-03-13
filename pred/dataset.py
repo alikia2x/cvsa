@@ -14,7 +14,7 @@ class VideoPlayDataset(Dataset):
         self.max_future_seconds = max_future_days * 86400
         self.series_dict = self._load_and_process_data(publish_time_path)
         self.valid_series = [s for s in self.series_dict.values() if len(s['abs_time']) > 1]
-        self.feature_windows = [3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600]  # 1h,6h,24h,3d,7d
+        self.feature_windows = [3600, 3*3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600, 60*24*3600]
 
     def _extract_features(self, series, current_idx, target_idx):
         """提取增量特征"""
@@ -23,7 +23,7 @@ class VideoPlayDataset(Dataset):
         dt = datetime.datetime.fromtimestamp(current_time)
         # 时间特征
         time_features = [
-            dt.hour / 24, (dt.weekday() + 1) / 7,
+            (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400, (dt.weekday() * 24 + dt.hour) / 168,
             np.log2(max(current_time - series['create_time'],1))
         ]
         
@@ -76,18 +76,18 @@ class VideoPlayDataset(Dataset):
     def _get_nearest_value(self, series, target_time, current_idx):
         """获取指定时间前最近的数据点"""
         min_diff = float('inf')
-        for i in range(current_idx + 1, len(series['abs_time']), 1):
+        for i in range(current_idx + 1, len(series['abs_time'])):
             diff = abs(series['abs_time'][i] - target_time)
             if diff < min_diff:
                 min_diff = diff
             else:
                 return i - 1
-        return None
+        return len(series['abs_time']) - 1
 
     def __getitem__(self, idx):
         series = random.choice(self.valid_series)
         current_idx = random.randint(0, len(series['abs_time'])-2)
-        target_idx = random.randint(max(0, current_idx-50), current_idx)
+        target_idx = random.randint(max(0, current_idx-10), current_idx)
         
         # 提取特征
         features = self._extract_features(series, current_idx, target_idx)
