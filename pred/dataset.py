@@ -9,21 +9,49 @@ from torch.utils.data import Dataset
 import datetime
 
 class VideoPlayDataset(Dataset):
-    def __init__(self, data_dir, publish_time_path, term='long'):
+    def __init__(self, data_dir, publish_time_path, term='long', seed=42):
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+            torch.manual_seed(seed)
+        
         self.data_dir = data_dir
         self.series_dict = self._load_and_process_data(publish_time_path)
         self.valid_series = [s for s in self.series_dict.values() if len(s['abs_time']) > 1]
         self.term = term
         # Set time window based on term
         self.time_window = 1000 * 24 * 3600 if term == 'long' else 7 * 24 * 3600
+        MINUTE = 60
+        HOUR = 3600
+        DAY = 24 * HOUR
+
         if term == 'long':
-            self.feature_windows = [3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600, 30*24*3600, 100*24*3600]
+            self.feature_windows = [
+                1 * HOUR,
+                6 * HOUR,
+                1 *DAY,
+                3 * DAY,
+                7 * DAY,
+                30 * DAY,
+                100 * DAY
+            ]
         else:
             self.feature_windows = [
-                (3600, 0), (7200, 3600), (10800, 7200), (10800, 0),
-                (21600, 10800), (21600, 0), (64800, 43200), (86400, 21600),
-                (86400, 0), (172800, 86400), (259200, 0), (345600, 86400),
-                (604800, 0)
+                ( 15 * MINUTE,  0 * MINUTE),
+                ( 40 * MINUTE,  0 * MINUTE),
+                ( 1 * HOUR,  0 * HOUR),
+                ( 2 * HOUR,  1 * HOUR),
+                ( 3 * HOUR,  2 * HOUR),
+                ( 3 * HOUR,  0 * HOUR),
+                #( 6 * HOUR,  3 * HOUR),
+                ( 6 * HOUR,  0 * HOUR),
+                (18 * HOUR, 12 * HOUR),
+                #( 1 * DAY,   6 * HOUR),
+                ( 1 * DAY,   0 * DAY),
+                #( 2 * DAY,   1 * DAY),
+                ( 3 * DAY,   0 * DAY),
+                #( 4 * DAY,   1 * DAY),
+                ( 7 * DAY,   0 * DAY)
             ]
 
     def _extract_features(self, series, current_idx, target_idx):
