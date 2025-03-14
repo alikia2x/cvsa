@@ -1,6 +1,7 @@
 import os
 import json
 import random
+import bisect
 import numpy as np
 import pandas as pd
 import torch
@@ -8,51 +9,69 @@ from torch.utils.data import Dataset
 import datetime
 
 class VideoPlayDataset(Dataset):
-    def __init__(self, data_dir, publish_time_path, term = 'long'):
+    def __init__(self, data_dir, publish_time_path, term='long'):
         self.data_dir = data_dir
         self.series_dict = self._load_and_process_data(publish_time_path)
         self.valid_series = [s for s in self.series_dict.values() if len(s['abs_time']) > 1]
         self.term = term
+        # Set time window based on term
+        self.time_window = 1000 * 24 * 3600 if term == 'long' else 7 * 24 * 3600
         if term == 'long':
             self.feature_windows = [3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600, 30*24*3600, 100*24*3600]
         else:
-            self.feature_windows = [3600, 6*3600, 12*3600, 24*3600, 3*24*3600, 7*24*3600, 60*24*3600]
+            self.feature_windows = [
+                (3600, 0), (7200, 3600), (10800, 7200), (10800, 0),
+                (21600, 10800), (21600, 0), (64800, 43200), (86400, 21600),
+                (86400, 0), (172800, 86400), (259200, 0), (345600, 86400),
+                (604800, 0)
+            ]
 
     def _extract_features(self, series, current_idx, target_idx):
-        """Extract incremental features"""
         current_time = series['abs_time'][current_idx]
         current_play = series['play_count'][current_idx]
         dt = datetime.datetime.fromtimestamp(current_time)
 
         if self.term == 'long':
             time_features = [
-                np.log2(max(current_time - series['create_time'],1))
+                np.log2(max(current_time - series['create_time'], 1))
             ]
         else:
             time_features = [
-                (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400, (dt.weekday() * 24 + dt.hour) / 168,
-                np.log2(max(current_time - series['create_time'],1))
+                (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400,
+                (dt.weekday() * 24 + dt.hour) / 168,
+                np.log2(max(current_time - series['create_time'], 1))
             ]
         
-        # Window growth features (incremental)
         growth_features = []
-        for window in self.feature_windows:
-            prev_time = current_time - window
-            prev_idx = self._get_nearest_value(series, prev_time, current_idx)
-            if prev_idx is not None:
-                time_diff = current_time - series['abs_time'][prev_idx]
-                play_diff = current_play - series['play_count'][prev_idx]
-                scaled_diff = play_diff / (time_diff / window) if time_diff > 0 else 0.0
-            else:
-                scaled_diff = 0.0
-            growth_features.append(np.log2(max(scaled_diff,1)))
+        if self.term == 'long':
+            for window in self.feature_windows:
+                prev_time = current_time - window
+                prev_idx = self._get_nearest_value(series, prev_time, current_idx)
+                if prev_idx is not None:
+                    time_diff = current_time - series['abs_time'][prev_idx]
+                    play_diff = current_play - series['play_count'][prev_idx]
+                    scaled_diff = play_diff / (time_diff / window) if time_diff > 0 else 0.0
+                else:
+                    scaled_diff = 0.0
+                growth_features.append(np.log2(max(scaled_diff, 1)))
+        else:
+            for window_start, window_end in self.feature_windows:
+                prev_time_start = current_time - window_start
+                prev_time_end = current_time - window_end  # window_end is typically 0
+                prev_idx_start = self._get_nearest_value(series, prev_time_start, current_idx)
+                prev_idx_end = self._get_nearest_value(series, prev_time_end, current_idx)
+                if prev_idx_start is not None and prev_idx_end is not None:
+                    time_diff = series['abs_time'][prev_idx_end] - series['abs_time'][prev_idx_start]
+                    play_diff = series['play_count'][prev_idx_end] - series['play_count'][prev_idx_start]
+                    scaled_diff = play_diff / (time_diff / (window_start - window_end)) if time_diff > 0 else 0.0
+                else:
+                    scaled_diff = 0.0
+                growth_features.append(np.log2(max(scaled_diff, 1)))
         
-        time_diff = series['abs_time'][target_idx] - series['abs_time'][current_idx]
-
-        return [np.log2(max(time_diff,1))] + [np.log2(current_play + 1)] + growth_features + time_features
+        time_diff = series['abs_time'][target_idx] - current_time
+        return [np.log2(max(time_diff, 1))] + [np.log2(current_play + 1)] + growth_features + time_features
 
     def _load_and_process_data(self, publish_time_path):
-        # Load publish time data
         publish_df = pd.read_csv(publish_time_path)
         publish_df['published_at'] = pd.to_datetime(publish_df['published_at'])
         publish_dict = dict(zip(publish_df['aid'], publish_df['published_at']))
@@ -75,42 +94,53 @@ class VideoPlayDataset(Dataset):
                         }
                     series_dict[aid]['abs_time'].append(item['added'])
                     series_dict[aid]['play_count'].append(item['view'])
+        # Sort each series by absolute time
+        for aid in series_dict:
+            sorted_indices = sorted(range(len(series_dict[aid]['abs_time'])),
+                                key=lambda k: series_dict[aid]['abs_time'][k])
+            series_dict[aid]['abs_time'] = [series_dict[aid]['abs_time'][i] for i in sorted_indices]
+            series_dict[aid]['play_count'] = [series_dict[aid]['play_count'][i] for i in sorted_indices]
         return series_dict
 
     def __len__(self):
-        return 100000  # Use virtual length for infinite sampling
+        return 100000  # Virtual length for sampling
 
     def _get_nearest_value(self, series, target_time, current_idx):
-        """Get the nearest data point before the specified time"""
-        min_diff = float('inf')
-        for i in range(current_idx + 1, len(series['abs_time'])):
-            diff = abs(series['abs_time'][i] - target_time)
-            if diff < min_diff:
-                min_diff = diff
-            else:
-                return i - 1
-        return len(series['abs_time']) - 1
+        times = series['abs_time']
+        pos = bisect.bisect_right(times, target_time, 0, current_idx + 1)
+        candidates = []
+        if pos > 0:
+            candidates.append(pos - 1)
+        if pos <= current_idx:
+            candidates.append(pos)
+        if not candidates:
+            return None
+        closest_idx = min(candidates, key=lambda i: abs(times[i] - target_time))
+        return closest_idx
 
     def __getitem__(self, _idx):
-        series = random.choice(self.valid_series)
-        current_idx = random.randint(0, len(series['abs_time'])-2)
-        if self.term == 'long':
-            range_length = 50
-        else:
-            range_length = 10
-        target_idx = random.randint(max(0, current_idx-range_length), current_idx)
-        
-        # Extract features
-        features = self._extract_features(series, current_idx, target_idx)
-
-        # Target value: future play count increment
+        while True:
+            series = random.choice(self.valid_series)
+            if len(series['abs_time']) < 2:
+                continue
+            current_idx = random.randint(0, len(series['abs_time']) - 2)
+            current_time = series['abs_time'][current_idx]
+            max_target_time = current_time + self.time_window
+            candidate_indices = []
+            for j in range(current_idx + 1, len(series['abs_time'])):
+                if series['abs_time'][j] > max_target_time:
+                    break
+                candidate_indices.append(j)
+            if not candidate_indices:
+                continue
+            target_idx = random.choice(candidate_indices)
+            break
         current_play = series['play_count'][current_idx]
         target_play = series['play_count'][target_idx]
-        target_delta = max(target_play - current_play, 0)  # Increment
-        
+        target_delta = max(target_play - current_play, 0)
         return {
-            'features': torch.FloatTensor(features),
-            'target': torch.log2(torch.FloatTensor([target_delta]) + 1)  # Output increment
+            'features': torch.FloatTensor(self._extract_features(series, current_idx, target_idx)),
+            'target': torch.log2(torch.FloatTensor([target_delta]) + 1)
         }
 
 def collate_fn(batch):

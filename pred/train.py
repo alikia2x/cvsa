@@ -11,7 +11,7 @@ def train(model, dataloader, device, epochs=100):
     writer = SummaryWriter(f'./pred/runs/play_predictor_{time.strftime("%Y%m%d_%H%M")}')
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3,
-                                                  total_steps=len(dataloader)*epochs)
+                                                  total_steps=len(dataloader)*30)
     criterion = torch.nn.MSELoss()
     
     model.train()
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     input_size = sample['features'].shape[1]
     
     model = CompactPredictor(input_size).to(device)
-    trained_model = train(model, dataloader, device, epochs=30)
+    trained_model = train(model, dataloader, device, epochs=18)
     
     # Save model
     torch.save(trained_model.state_dict(), f"./pred/checkpoints/model_{time.strftime('%Y%m%d_%H%M')}.pt")
