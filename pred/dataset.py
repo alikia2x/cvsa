@@ -1,4 +1,3 @@
-# dataset.py
 import os
 import json
 import random
@@ -9,25 +8,33 @@ from torch.utils.data import Dataset
 import datetime
 
 class VideoPlayDataset(Dataset):
-    def __init__(self, data_dir, publish_time_path, max_future_days=7):
+    def __init__(self, data_dir, publish_time_path, term = 'long'):
         self.data_dir = data_dir
-        self.max_future_seconds = max_future_days * 86400
         self.series_dict = self._load_and_process_data(publish_time_path)
         self.valid_series = [s for s in self.series_dict.values() if len(s['abs_time']) > 1]
-        self.feature_windows = [3600, 3*3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600, 60*24*3600]
+        self.term = term
+        if term == 'long':
+            self.feature_windows = [3600, 6*3600, 24*3600, 3*24*3600, 7*24*3600, 30*24*3600, 100*24*3600]
+        else:
+            self.feature_windows = [3600, 6*3600, 12*3600, 24*3600, 3*24*3600, 7*24*3600, 60*24*3600]
 
     def _extract_features(self, series, current_idx, target_idx):
-        """提取增量特征"""
+        """Extract incremental features"""
         current_time = series['abs_time'][current_idx]
         current_play = series['play_count'][current_idx]
         dt = datetime.datetime.fromtimestamp(current_time)
-        # 时间特征
-        time_features = [
-            (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400, (dt.weekday() * 24 + dt.hour) / 168,
-            np.log2(max(current_time - series['create_time'],1))
-        ]
+
+        if self.term == 'long':
+            time_features = [
+                np.log2(max(current_time - series['create_time'],1))
+            ]
+        else:
+            time_features = [
+                (dt.hour * 3600 + dt.minute * 60 + dt.second) / 86400, (dt.weekday() * 24 + dt.hour) / 168,
+                np.log2(max(current_time - series['create_time'],1))
+            ]
         
-        # 窗口增长特征（增量）
+        # Window growth features (incremental)
         growth_features = []
         for window in self.feature_windows:
             prev_time = current_time - window
@@ -45,7 +52,7 @@ class VideoPlayDataset(Dataset):
         return [np.log2(max(time_diff,1))] + [np.log2(current_play + 1)] + growth_features + time_features
 
     def _load_and_process_data(self, publish_time_path):
-        # 加载发布时间数据
+        # Load publish time data
         publish_df = pd.read_csv(publish_time_path)
         publish_df['published_at'] = pd.to_datetime(publish_df['published_at'])
         publish_dict = dict(zip(publish_df['aid'], publish_df['published_at']))
@@ -71,10 +78,10 @@ class VideoPlayDataset(Dataset):
         return series_dict
 
     def __len__(self):
-        return 100000  # 使用虚拟长度实现无限采样
+        return 100000  # Use virtual length for infinite sampling
 
     def _get_nearest_value(self, series, target_time, current_idx):
-        """获取指定时间前最近的数据点"""
+        """Get the nearest data point before the specified time"""
         min_diff = float('inf')
         for i in range(current_idx + 1, len(series['abs_time'])):
             diff = abs(series['abs_time'][i] - target_time)
@@ -84,22 +91,26 @@ class VideoPlayDataset(Dataset):
                 return i - 1
         return len(series['abs_time']) - 1
 
-    def __getitem__(self, idx):
+    def __getitem__(self, _idx):
         series = random.choice(self.valid_series)
         current_idx = random.randint(0, len(series['abs_time'])-2)
-        target_idx = random.randint(max(0, current_idx-10), current_idx)
+        if self.term == 'long':
+            range_length = 50
+        else:
+            range_length = 10
+        target_idx = random.randint(max(0, current_idx-range_length), current_idx)
         
-        # 提取特征
+        # Extract features
         features = self._extract_features(series, current_idx, target_idx)
 
-        # 目标值：未来播放量增量
+        # Target value: future play count increment
         current_play = series['play_count'][current_idx]
         target_play = series['play_count'][target_idx]
-        target_delta = max(target_play - current_play, 0)  # 增量
+        target_delta = max(target_play - current_play, 0)  # Increment
         
         return {
             'features': torch.FloatTensor(features),
-            'target': torch.log2(torch.FloatTensor([target_delta]) + 1)  # 输出增量
+            'target': torch.log2(torch.FloatTensor([target_delta]) + 1)  # Output increment
         }
 
 def collate_fn(batch):

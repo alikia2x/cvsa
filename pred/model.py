@@ -1,5 +1,4 @@
 import torch.nn as nn
-import torch.nn.functional as F
 
 class CompactPredictor(nn.Module):
     def __init__(self, input_size):
@@ -13,10 +12,10 @@ class CompactPredictor(nn.Module):
             nn.LeakyReLU(0.1),
             nn.Dropout(0.2),
             nn.Linear(128, 64),
-            nn.Tanh(),  # 使用Tanh限制输出范围
+            nn.Tanh(),  # Use Tanh to limit the output range
             nn.Linear(64, 1)
         )
-        # 初始化最后一层为接近零的值
+        # Initialize the last layer to values close to zero
         nn.init.uniform_(self.net[-1].weight, -0.01, 0.01)
         nn.init.constant_(self.net[-1].bias, 0.0)
 

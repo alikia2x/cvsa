@@ -37,14 +37,14 @@ def train(model, dataloader, device, epochs=100):
                 writer.add_scalar('Loss/train', loss.item(), global_step)
                 writer.add_scalar('LR', scheduler.get_last_lr()[0], global_step)
             if batch_idx % 50 == 0:
-                # 监控梯度
+                # Monitor gradients
                 grad_norms = [
                     torch.norm(p.grad).item() 
                     for p in model.parameters() if p.grad is not None
                 ]
                 writer.add_scalar('Grad/Norm', sum(grad_norms)/len(grad_norms), global_step)
                 
-                # 监控参数值
+                # Monitor parameter values
                 param_means = [torch.mean(p.data).item() for p in model.parameters()]
                 writer.add_scalar('Params/Mean', sum(param_means)/len(param_means), global_step)
 
@@ -62,7 +62,7 @@ def train(model, dataloader, device, epochs=100):
                     reg_error = abs(inc - t)
                     if model_error < reg_error:
                         good += 1
-                    #print(f"{t:07.1f} | {o:07.1f} | {d:07.1f} | {inc:07.1f} | {good/samples_count*100:.1f}%")
+                    # print(f"{t:07.1f} | {o:07.1f} | {d:07.1f} | {inc:07.1f} | {good/samples_count*100:.1f}%")
                 writer.add_scalar('Train/WinRate', good/samples_count, global_step)
             
         print(f"Epoch {epoch+1} | Avg Loss: {total_loss/len(dataloader):.4f}")
@@ -73,16 +73,16 @@ def train(model, dataloader, device, epochs=100):
 if __name__ == "__main__":
     device = 'mps'
     
-    # 初始化数据集和模型
-    dataset = VideoPlayDataset('./data/pred', './data/pred/publish_time.csv')
+    # Initialize dataset and model
+    dataset = VideoPlayDataset('./data/pred', './data/pred/publish_time.csv', 'short')
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True, collate_fn=collate_fn)
     
-    # 获取特征维度
+    # Get feature dimension
     sample = next(iter(dataloader))
     input_size = sample['features'].shape[1]
     
     model = CompactPredictor(input_size).to(device)
     trained_model = train(model, dataloader, device, epochs=30)
     
-    # 保存模型
-    torch.save(trained_model.state_dict(), 'play_predictor.pth')
+    # Save model
+    torch.save(trained_model.state_dict(), f"./pred/checkpoints/model_{time.strftime('%Y%m%d_%H%M')}.pt")
