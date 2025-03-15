@@ -7,12 +7,38 @@ import torch
 from dataset import VideoPlayDataset, collate_fn
 from pred.model import CompactPredictor
 
+def asymmetricHuberLoss(delta=1.0, beta=1.3):
+    """
+    创建一个可调用的非对称 Huber 损失函数。
+
+    参数：
+        delta (float): Huber 损失的 delta 参数。
+        beta (float): 控制负误差惩罚的系数。
+
+    返回：
+        callable: 可调用的损失函数。
+    """
+    def loss_function(input, target):
+        error = input - target
+        abs_error = torch.abs(error)
+
+        linear_loss = abs_error - 0.5 * delta
+        quadratic_loss = 0.5 * error**2
+
+        loss = torch.where(abs_error < delta, quadratic_loss, linear_loss)
+        loss = torch.where(error < 0, beta * loss, loss)
+
+        return torch.mean(loss)
+
+    return loss_function
+
 def train(model, dataloader, device, epochs=100):
     writer = SummaryWriter(f'./pred/runs/play_predictor_{time.strftime("%Y%m%d_%H%M")}')
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3,
                                                   total_steps=len(dataloader)*30)
-    criterion = torch.nn.MSELoss()
+    # Huber loss
+    criterion = asymmetricHuberLoss(delta=1.0, beta=2.1)
     
     model.train()
     global_step = 0
@@ -55,7 +81,7 @@ def train(model, dataloader, device, epochs=100):
                     t = float(torch.exp2(targets[r])) - 1
                     o = float(torch.exp2(outputs[r])) - 1
                     d = features[r].cpu().numpy()[0]
-                    speed = np.exp2(features[r].cpu().numpy()[6]) / 6
+                    speed = np.exp2(features[r].cpu().numpy()[8]) / 6
                     time_diff = np.exp2(d) / 3600
                     inc = speed * time_diff
                     model_error = abs(t - o)
