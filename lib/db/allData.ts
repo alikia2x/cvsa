@@ -3,19 +3,19 @@ import { AllDataType, BiliUserType } from "lib/db/schema.d.ts";
 import { modelVersion } from "lib/ml/filter_inference.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
-	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
+	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bilibili_metadata WHERE aid = $1)`, [aid])
 		.then((result) => result.rows[0].exists);
 }
 
 export async function userExistsInBiliUsers(client: Client, uid: number) {
-	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bili_user WHERE uid = $1)`, [
+	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bilibili_user WHERE uid = $1)`, [
 		uid,
 	]);
 }
 
 export async function getUnlabelledVideos(client: Client) {
 	const queryResult = await client.queryObject<{ aid: number }>(
-		`SELECT a.aid FROM all_data a LEFT JOIN labelling_result l ON a.aid = l.aid WHERE l.aid IS NULL`,
+		`SELECT a.aid FROM bilibili_metadata a LEFT JOIN labelling_result l ON a.aid = l.aid WHERE l.aid IS NULL`,
 	);
 	return queryResult.rows.map((row) => row.aid);
 }
@@ -29,14 +29,14 @@ export async function insertVideoLabel(client: Client, aid: number, label: numbe
 
 export async function getVideoInfoFromAllData(client: Client, aid: number) {
 	const queryResult = await client.queryObject<AllDataType>(
-		`SELECT * FROM all_data WHERE aid = $1`,
+		`SELECT * FROM bilibili_metadata WHERE aid = $1`,
 		[aid],
 	);
 	const row = queryResult.rows[0];
 	let authorInfo = "";
 	if (row.uid && await userExistsInBiliUsers(client, row.uid)) {
 		const q = await client.queryObject<BiliUserType>(
-			`SELECT * FROM bili_user WHERE uid = $1`,
+			`SELECT * FROM bilibili_user WHERE uid = $1`,
 			[row.uid],
 		);
 		const userRow = q.rows[0];
@@ -56,8 +56,8 @@ export async function getUnArchivedBiliUsers(client: Client) {
 	const queryResult = await client.queryObject<{ uid: number }>(
 		`
 		SELECT ad.uid
-		FROM all_data ad
-		LEFT JOIN bili_user bu ON ad.uid = bu.uid
+		FROM bilibili_metadata ad
+		LEFT JOIN bilibili_user bu ON ad.uid = bu.uid
 		WHERE bu.uid IS NULL;
 		`,
 		[],

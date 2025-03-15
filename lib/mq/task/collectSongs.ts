@@ -18,9 +18,9 @@ export async function insertIntoSongs(client: Client, aid: number) {
 			INSERT INTO songs (aid, bvid, published_at, duration)
 			VALUES (
 				$1,
-				(SELECT bvid FROM all_data WHERE aid = $1),
-				(SELECT published_at FROM all_data WHERE aid = $1),
-				(SELECT duration FROM all_data WHERE aid = $1)
+				(SELECT bvid FROM bilibili_metadata WHERE aid = $1),
+				(SELECT published_at FROM bilibili_metadata WHERE aid = $1),
+				(SELECT duration FROM bilibili_metadata WHERE aid = $1)
 			)
 			ON CONFLICT DO NOTHING
 		`,
