@@ -28,7 +28,8 @@ export async function getSongsNearMilestone(client: Client) {
 				max_views_per_aid
 			WHERE 
 				(max_views >= 90000 AND max_views < 100000) OR
-				(max_views >= 900000 AND max_views < 1000000)
+				(max_views >= 900000 AND max_views < 1000000) OR
+				(max_views >= 9900000 AND max_views < 10000000)
 		)
 		-- 获取符合条件的完整行数据
 		SELECT 

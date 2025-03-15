@@ -1,6 +1,6 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { AllDataType, BiliUserType } from "lib/db/schema.d.ts";
-import { modelVersion } from "lib/ml/filter_inference.ts";
+import Akari from "lib/ml/akari.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
 	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM all_data WHERE aid = $1)`, [aid])
@@ -23,7 +23,7 @@ export async function getUnlabelledVideos(client: Client) {
 export async function insertVideoLabel(client: Client, aid: number, label: number) {
 	return await client.queryObject(
 		`INSERT INTO labelling_result (aid, label, model_version) VALUES ($1, $2, $3) ON CONFLICT (aid, model_version) DO NOTHING`,
-		[aid, label, modelVersion],
+		[aid, label, Akari.getModelVersion()],
 	);
 }
 

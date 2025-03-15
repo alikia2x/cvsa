@@ -1,11 +1,12 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 
-export async function getUnsnapshotedSongs(client: Client) {
-	const queryResult = await client.queryObject<{ aid: bigint }>(`
-		SELECT DISTINCT s.aid
-		FROM songs s
-		LEFT JOIN video_snapshot v ON s.aid = v.aid
-		WHERE v.aid IS NULL;
-	`);
-	return queryResult.rows.map((row) => Number(row.aid));
+/* 
+    Returns true if the specified `aid` has at least one record with "pending" or "processing" status.
+*/
+export async function videoHasActiveSchedule(client: Client, aid: number) {
+    const res = await client.queryObject<{ status: string }>(
+        `SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing')`,
+        [aid],
+    );
+    return res.rows.length > 0;
 }

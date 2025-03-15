@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
 import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "lib/db/allData.ts";
-import { classifyVideo } from "lib/ml/filter_inference.ts";
+import Akari from "lib/ml/akari.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
@@ -19,7 +19,7 @@ export const classifyVideoWorker = async (job: Job) => {
 	const title = videoInfo.title?.trim() || "untitled";
 	const description = videoInfo.description?.trim() || "N/A";
 	const tags = videoInfo.tags?.trim() || "empty";
-	const label = await classifyVideo(title, description, tags, aid);
+	const label = await Akari.classifyVideo(title, description, tags, aid);
 	if (label == -1) {
 		logger.warn(`Failed to classify video ${aid}`, "ml");
 	}
