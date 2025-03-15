@@ -1,4 +1,4 @@
-import { MINUTE } from "$std/datetime/constants.ts";
+import { MINUTE, SECOND } from "$std/datetime/constants.ts";
 import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "lib/mq/index.ts";
 import logger from "lib/log/logger.ts";
 
@@ -15,8 +15,8 @@ export async function initMQ() {
 		every: 3 * MINUTE,
 		immediately: true,
 	});
-	await SnapshotQueue.upsertJobScheduler("scheduleSnapshotTick", {
-		every: 3 * MINUTE,
+	await SnapshotQueue.upsertJobScheduler("snapshotTick", {
+		every: 1 * SECOND,
 		immediately: true,
 	});
 

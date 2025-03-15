@@ -56,14 +56,14 @@ const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
 		switch (job.name) {
-			case "scheduleSnapshotTick":
-				await snapshotTickWorker(job);
-				break;
 			case "snapshotMilestoneVideo":
 				await takeSnapshotForMilestoneVideoWorker(job);
 				break;
 			case "snapshotVideo":
 				await takeSnapshotForVideoWorker(job);
+				break;
+			case "snapshotTick":
+				await snapshotTickWorker(job);
 				break;
 			default:
 				break;
