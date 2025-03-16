@@ -71,7 +71,7 @@ export async function getSongSnapshotCount(client: Client, aid: number) {
 }
 
 export async function getShortTermEtaPrediction(client: Client, aid: number) {
-	const queryResult = await client.queryObject<{eta: number}>(
+	const queryResult = await client.queryObject<{ eta: number }>(
 		`
 		WITH old_snapshot AS (
 			SELECT created_at, views 
@@ -118,6 +118,23 @@ export async function getShortTermEtaPrediction(client: Client, aid: number) {
 		return null;
 	}
 	return queryResult.rows[0].eta;
+}
+
+export async function getIntervalFromLastSnapshotToNow(client: Client, aid: number) {
+	const queryResult = await client.queryObject<{ interval: number }>(
+		`
+		SELECT EXTRACT(EPOCH FROM (NOW() - created_at)) AS interval
+		FROM video_snapshot
+		WHERE aid = $1
+		ORDER BY created_at DESC
+		LIMIT 1;
+		`,
+		[aid],
+	);
+	if (queryResult.rows.length === 0) {
+		return null;
+	}
+	return queryResult.rows[0].interval;
 }
 
 export async function songEligibleForMilestoneSnapshot(client: Client, aid: number) {

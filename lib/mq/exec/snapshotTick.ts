@@ -1,8 +1,9 @@
 import { Job } from "bullmq";
-import { MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { db } from "lib/db/init.ts";
 import {
+getIntervalFromLastSnapshotToNow,
 	getShortTermEtaPrediction,
 	getSongsNearMilestone,
 	getUnsnapshotedSongs,
@@ -55,19 +56,12 @@ async function processMilestoneSnapshots(client: Client, vidoesNearMilestone: So
 	let i = 0;
 	for (const snapshot of vidoesNearMilestone) {
 		if (await snapshotScheduled(snapshot.aid)) {
-			logger.silly(
-				`Video ${snapshot.aid} is already scheduled for snapshot`,
-				"mq",
-				"fn:processMilestoneSnapshots",
-			);
 			continue;
 		}
-		if (await songEligibleForMilestoneSnapshot(client, snapshot.aid) === false) {
-			logger.silly(
-				`Video ${snapshot.aid} is not eligible for milestone snapshot`,
-				"mq",
-				"fn:processMilestoneSnapshots",
-			);
+		const timeFromLastSnapshot = await getIntervalFromLastSnapshotToNow(client, snapshot.aid);
+		const lastSnapshotLessThan8Hrs = timeFromLastSnapshot && timeFromLastSnapshot * SECOND < 8 * HOUR;
+		const notEligible = await songEligibleForMilestoneSnapshot(client, snapshot.aid);
+		if (notEligible && lastSnapshotLessThan8Hrs) {
 			continue;
 		}
 		const factor = Math.floor(i / 8);
@@ -143,7 +137,7 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			eta = viewsToIncrease / (incrementSpeed + DELTA);
 		}
 		const scheduledNextSnapshotDelay = eta * SECOND / 3;
-		const maxInterval = 20 * MINUTE;
+		const maxInterval = 60 * MINUTE;
 		const minInterval = 1 * SECOND;
 		const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 		await SnapshotQueue.add("snapshotMilestoneVideo", {
