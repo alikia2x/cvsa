@@ -21,7 +21,7 @@ export async function insertVideoInfo(client: Client, aid: number) {
 		.filter((tag) => tag.tag_type in ["old_channel", "topic"])
 		.map((tag) => tag.tag_name).join(",");
 	const title = data.View.title;
-	const published_at = formatTimestampToPsql(data.View.pubdate);
+	const published_at = formatTimestampToPsql(data.View.pubdate * 1000);
 	const duration = data.View.duration;
 	await client.queryObject(
 		`INSERT INTO bilibili_metadata (aid, bvid, description, uid, tags, title, published_at, duration)
