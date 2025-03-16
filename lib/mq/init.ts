@@ -19,6 +19,10 @@ export async function initMQ() {
 		every: 1 * SECOND,
 		immediately: true,
 	});
+	await SnapshotQueue.upsertJobScheduler("collectMilestoneSnapshots", {
+		every: 5 * MINUTE,
+		immediately: true,
+	});
 
 	logger.log("Message queue initialized.");
 }

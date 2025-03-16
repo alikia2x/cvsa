@@ -3,7 +3,7 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { VideoSnapshotType } from "lib/db/schema.d.ts";
 import { parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
 
-export async function getSongsNearMilestone(client: Client) {
+export async function getVideosNearMilestone(client: Client) {
 	const queryResult = await client.queryObject<VideoSnapshotType>(`
     	WITH max_views_per_aid AS (
 			-- 找出每个 aid 的最大 views 值，并确保 aid 存在于 songs 表中

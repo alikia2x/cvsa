@@ -5,7 +5,7 @@ import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
-import { snapshotTickWorker, takeSnapshotForMilestoneVideoWorker, takeSnapshotForVideoWorker } from "lib/mq/exec/snapshotTick.ts";
+import { snapshotTickWorker, collectMilestoneSnapshotsWorker, takeSnapshotForVideoWorker } from "lib/mq/exec/snapshotTick.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -56,14 +56,14 @@ const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
 		switch (job.name) {
-			case "snapshotMilestoneVideo":
-				await takeSnapshotForMilestoneVideoWorker(job);
-				break;
 			case "snapshotVideo":
 				await takeSnapshotForVideoWorker(job);
 				break;
 			case "snapshotTick":
 				await snapshotTickWorker(job);
+				break;
+			case "collectMilestoneSnapshots":
+				await collectMilestoneSnapshotsWorker(job);
 				break;
 			default:
 				break;
