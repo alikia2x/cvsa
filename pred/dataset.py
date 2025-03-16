@@ -37,6 +37,7 @@ class VideoPlayDataset(Dataset):
             ]
         else:
             self.feature_windows = [
+                ( 5 * MINUTE,  0 * MINUTE),
                 ( 15 * MINUTE,  0 * MINUTE),
                 ( 40 * MINUTE,  0 * MINUTE),
                 ( 1 * HOUR,  0 * HOUR),
