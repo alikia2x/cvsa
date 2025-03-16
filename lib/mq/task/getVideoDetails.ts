@@ -4,6 +4,7 @@ import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import logger from "lib/log/logger.ts";
 import { ClassifyVideoQueue } from "lib/mq/index.ts";
 import { userExistsInBiliUsers, videoExistsInAllData } from "lib/db/allData.ts";
+import { HOUR, SECOND } from "$std/datetime/constants.ts";
 
 export async function insertVideoInfo(client: Client, aid: number) {
 	const videoExists = await videoExistsInAllData(client, aid);
@@ -21,7 +22,7 @@ export async function insertVideoInfo(client: Client, aid: number) {
 		.filter((tag) => tag.tag_type in ["old_channel", "topic"])
 		.map((tag) => tag.tag_name).join(",");
 	const title = data.View.title;
-	const published_at = formatTimestampToPsql(data.View.pubdate * 1000);
+	const published_at = formatTimestampToPsql(data.View.pubdate * SECOND + 8 * HOUR);
 	const duration = data.View.duration;
 	await client.queryObject(
 		`INSERT INTO bilibili_metadata (aid, bvid, description, uid, tags, title, published_at, duration)
