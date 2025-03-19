@@ -20,7 +20,7 @@ class VideoPlayDataset(Dataset):
         self.valid_series = [s for s in self.series_dict.values() if len(s['abs_time']) > 1]
         self.term = term
         # Set time window based on term
-        self.time_window = 1000 * 24 * 3600 if term == 'long' else 7 * 24 * 3600
+        self.time_window = 1000 * 24 * 3600 if term == 'long' else 3 * 24 * 3600
         MINUTE = 60
         HOUR = 3600
         DAY = 24 * HOUR
@@ -37,7 +37,7 @@ class VideoPlayDataset(Dataset):
             ]
         else:
             self.feature_windows = [
-                ( 5 * MINUTE,  0 * MINUTE),
+                #( 5 * MINUTE,  0 * MINUTE),
                 ( 15 * MINUTE,  0 * MINUTE),
                 ( 40 * MINUTE,  0 * MINUTE),
                 ( 1 * HOUR,  0 * HOUR),
@@ -46,7 +46,7 @@ class VideoPlayDataset(Dataset):
                 ( 3 * HOUR,  0 * HOUR),
                 #( 6 * HOUR,  3 * HOUR),
                 ( 6 * HOUR,  0 * HOUR),
-                (18 * HOUR, 12 * HOUR),
+                #(18 * HOUR, 12 * HOUR),
                 #( 1 * DAY,   6 * HOUR),
                 ( 1 * DAY,   0 * DAY),
                 #( 2 * DAY,   1 * DAY),

@@ -38,7 +38,7 @@ def train(model, dataloader, device, epochs=100):
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=1e-3,
                                                   total_steps=len(dataloader)*30)
     # Huber loss
-    criterion = asymmetricHuberLoss(delta=1.0, beta=2.1)
+    criterion = asymmetricHuberLoss(delta=1.0, beta=2.2)
     
     model.train()
     global_step = 0
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     device = 'mps'
     
     # Initialize dataset and model
-    dataset = VideoPlayDataset('./data/pred', './data/pred/publish_time.csv', 'short')
+    dataset = VideoPlayDataset('./data/pred', './data/pred/publish_time.csv', 'short', 712)
     dataloader = DataLoader(dataset, batch_size=128, shuffle=True, collate_fn=collate_fn)
     
     # Get feature dimension
