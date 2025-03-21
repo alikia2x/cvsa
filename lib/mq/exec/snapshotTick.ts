@@ -106,6 +106,8 @@ export const snapshotTickWorker = async (_job: Job) => {
 	}
 };
 
+const log = (a: number, b: number = 10) => Math.log(a) / Math.log(b);
+
 export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 	const client = await db.connect();
 	await setSnapshotScheduled(job.data.aid, true, 20 * 60);
@@ -128,6 +130,7 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			return;
 		}
 		let eta = await getShortTermEtaPrediction(client, aid);
+		let factor = 3;
 		if (eta === null) {
 			const DELTA = 0.001;
 			const intervalSeconds = (Date.now() - parseTimestampFromPsql(lastSnapshoted)) / SECOND;
@@ -135,8 +138,9 @@ export const takeSnapshotForMilestoneVideoWorker = async (job: Job) => {
 			const incrementSpeed = viewsIncrement / (intervalSeconds + DELTA);
 			const viewsToIncrease = nextMilestone - stat.views;
 			eta = viewsToIncrease / (incrementSpeed + DELTA);
+			factor = log(2.97 / log(viewsToIncrease + 1), 1.14);
 		}
-		const scheduledNextSnapshotDelay = eta * SECOND / 3;
+		const scheduledNextSnapshotDelay = eta * SECOND / factor;
 		const maxInterval = 60 * MINUTE;
 		const minInterval = 1 * SECOND;
 		const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
