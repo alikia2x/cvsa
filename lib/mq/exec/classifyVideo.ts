@@ -26,7 +26,7 @@ export const classifyVideoWorker = async (job: Job) => {
 	await insertVideoLabel(client, aid, label);
 
 	const exists = await aidExistsInSongs(client, aid);
-	if (!exists) {
+	if (!exists && label !== 0) {
 		await insertIntoSongs(client, aid);
 	}
 
