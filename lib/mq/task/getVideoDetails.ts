@@ -19,7 +19,7 @@ export async function insertVideoInfo(client: Client, aid: number) {
 	const desc = data.View.desc;
 	const uid = data.View.owner.mid;
 	const tags = data.Tags
-		.filter((tag) => tag.tag_type in ["old_channel", "topic"])
+		.filter((tag) => !["old_channel", "topic"].indexOf(tag.tag_type))
 		.map((tag) => tag.tag_name).join(",");
 	const title = data.View.title;
 	const published_at = formatTimestampToPsql(data.View.pubdate * SECOND + 8 * HOUR);
