@@ -14,6 +14,8 @@ export const snapshotTickWorker = async (_job: Job) => {
 	}
 };
 
+const log = (a: number, b: number = 10) => Math.log(a) / Math.log(b);
+
 export const closetMilestone = (views: number) => {
 	if (views < 100000) return 100000;
 	if (views < 1000000) return 1000000;
