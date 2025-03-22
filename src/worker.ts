@@ -5,7 +5,11 @@ import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
-import { snapshotTickWorker, collectMilestoneSnapshotsWorker, takeSnapshotForVideoWorker } from "lib/mq/exec/snapshotTick.ts";
+import {
+	collectMilestoneSnapshotsWorker,
+	snapshotTickWorker,
+	takeSnapshotForVideoWorker,
+} from "lib/mq/exec/snapshotTick.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
@@ -75,4 +79,4 @@ const snapshotWorker = new Worker(
 snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
-})
+});

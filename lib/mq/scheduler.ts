@@ -288,7 +288,11 @@ class NetScheduler {
 				const fileId = randomUUID();
 				await Deno.writeFile(`./logs/files/${fileId}.stdout`, output.stdout);
 				await Deno.writeFile(`./logs/files/${fileId}.stderr`, output.stderr);
-				logger.log(`Returned non-200 status code. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`, "net", "fn:alicloudFcRequest")
+				logger.log(
+					`Returned non-200 status code. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`,
+					"net",
+					"fn:alicloudFcRequest",
+				);
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",
@@ -301,7 +305,11 @@ class NetScheduler {
 				const fileId = randomUUID();
 				rawOutput && await Deno.writeFile(`./logs/files/${fileId}.stdout`, rawOutput);
 				rawErr && await Deno.writeFile(`./logs/files/${fileId}.stderr`, rawErr);
-				logger.log(`Error occurred. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`, "net", "fn:alicloudFcRequest")
+				logger.log(
+					`Error occurred. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`,
+					"net",
+					"fn:alicloudFcRequest",
+				);
 			}
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);

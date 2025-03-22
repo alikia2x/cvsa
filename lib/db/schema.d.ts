@@ -31,3 +31,13 @@ export interface VideoSnapshotType {
 	aid: bigint;
 	replies: number;
 }
+
+export interface SnapshotScheduleType {
+	id: number;
+	aid: number;
+	type?: string;
+	created_at: string;
+	started_at?: string;
+	finished_at?: string;
+	status: string;
+}

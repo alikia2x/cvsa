@@ -1,20 +1,36 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
 import { getVideosNearMilestone } from "lib/db/snapshot.ts";
-import { findClosestSnapshot, getLatestSnapshot, videoHasActiveSchedule } from "lib/db/snapshotSchedule.ts";
+import {
+	findClosestSnapshot,
+	getLatestSnapshot,
+	getSnapshotsInNextSecond,
+	scheduleSnapshot,
+	videoHasActiveSchedule,
+} from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { HOUR, MINUTE } from "$std/datetime/constants.ts";
+import logger from "lib/log/logger.ts";
+import { SnapshotQueue } from "lib/mq/index.ts";
+
+const priorityMap: { [key: string]: number } = {
+	"milestone": 1,
+};
 
 export const snapshotTickWorker = async (_job: Job) => {
 	const client = await db.connect();
 	try {
-		// TODO: implement
+		const schedules = await getSnapshotsInNextSecond(client);
+		for (const schedule of schedules) {
+			let priority = 3;
+			if (schedule.type && priorityMap[schedule.type])
+				priority = priorityMap[schedule.type];
+			await SnapshotQueue.add("snapshotVideo", { aid: schedule.aid, priority });
+		}
 	} finally {
 		client.release();
 	}
 };
-
-const log = (a: number, b: number = 10) => Math.log(a) / Math.log(b);
 
 export const closetMilestone = (views: number) => {
 	if (views < 100000) return 100000;
@@ -24,6 +40,12 @@ export const closetMilestone = (views: number) => {
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 
+/*
+ * Returns the minimum ETA in hours for the next snapshot
+ * @param client - Postgres client
+ * @param aid - aid of the video
+ * @returns ETA in hours
+ */
 const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	// Immediately dispatch a snapshot if there is no snapshot yet
@@ -61,10 +83,12 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			if (await videoHasActiveSchedule(client, video.aid)) continue;
 			const eta = await getAdjustedShortTermETA(client, video.aid);
 			if (eta > 72) continue;
-			// TODO: dispatch snapshot job
+			const now = Date.now();
+			const targetTime = now + eta * HOUR;
+			await scheduleSnapshot(client, video.aid, "milestone", targetTime);
 		}
-	} catch (_e) {
-		//
+	} catch (e) {
+		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
 	} finally {
 		client.release();
 	}

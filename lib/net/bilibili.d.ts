@@ -26,8 +26,8 @@ interface VideoInfoData {
 		mid: number;
 		name: string;
 		face: string;
-	},
-	stat: VideoStats,
+	};
+	stat: VideoStats;
 }
 
 interface VideoDetailsData {

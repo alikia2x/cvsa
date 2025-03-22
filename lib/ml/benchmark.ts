@@ -1,7 +1,6 @@
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import * as ort from "onnxruntime";
 
-
 function softmax(logits: Float32Array): number[] {
 	const maxLogit = Math.max(...logits);
 	const exponents = logits.map((logit) => Math.exp(logit - maxLogit));

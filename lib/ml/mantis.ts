@@ -6,19 +6,16 @@ import { WorkerError } from "lib/mq/schema.ts";
 const modelPath = "./model/model.onnx";
 
 class MantisProto extends AIManager {
-
 	constructor() {
 		super();
-        this.models = {
-            "predictor": modelPath,
-        }
+		this.models = {
+			"predictor": modelPath,
+		};
 	}
 
-    public override async init(): Promise<void> {
-        await super.init();
-    }
-
-    
+	public override async init(): Promise<void> {
+		await super.init();
+	}
 }
 
 const Mantis = new MantisProto();

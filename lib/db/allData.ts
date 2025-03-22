@@ -3,7 +3,10 @@ import { AllDataType, BiliUserType } from "lib/db/schema.d.ts";
 import Akari from "lib/ml/akari.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {
-	return await client.queryObject<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM bilibili_metadata WHERE aid = $1)`, [aid])
+	return await client.queryObject<{ exists: boolean }>(
+		`SELECT EXISTS(SELECT 1 FROM bilibili_metadata WHERE aid = $1)`,
+		[aid],
+	)
 		.then((result) => result.rows[0].exists);
 }
 
