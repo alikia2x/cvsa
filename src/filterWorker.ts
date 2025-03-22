@@ -1,4 +1,4 @@
-import { Job, Worker } from "bullmq";
+import { ConnectionOptions, Job, Worker } from "bullmq";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
 import { classifyVideosWorker, classifyVideoWorker } from "lib/mq/exec/classifyVideo.ts";
@@ -32,7 +32,7 @@ const filterWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 2, removeOnComplete: { count: 1000 } },
+	{ connection: redis as ConnectionOptions, concurrency: 2, removeOnComplete: { count: 1000 } },
 );
 
 filterWorker.on("active", () => {

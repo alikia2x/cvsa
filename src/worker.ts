@@ -1,4 +1,4 @@
-import { Job, Worker } from "bullmq";
+import { ConnectionOptions, Job, Worker } from "bullmq";
 import { collectSongsWorker, getLatestVideosWorker } from "lib/mq/executors.ts";
 import { redis } from "lib/db/redis.ts";
 import logger from "lib/log/logger.ts";
@@ -40,7 +40,7 @@ const latestVideoWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 6, removeOnComplete: { count: 1440 }, removeOnFail: { count: 0 } },
+	{ connection: redis as ConnectionOptions, concurrency: 6, removeOnComplete: { count: 1440 }, removeOnFail: { count: 0 } },
 );
 
 latestVideoWorker.on("active", () => {
@@ -73,7 +73,7 @@ const snapshotWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis, concurrency: 10, removeOnComplete: { count: 2000 } },
+	{ connection: redis as ConnectionOptions, concurrency: 10, removeOnComplete: { count: 2000 } },
 );
 
 snapshotWorker.on("error", (err) => {
