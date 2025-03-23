@@ -14,12 +14,14 @@ import {
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
 	await latestVideoWorker.close(true);
+	await snapshotWorker.close(true);
 	Deno.exit();
 });
 
 Deno.addSignalListener("SIGTERM", async () => {
 	logger.log("SIGTERM Received: Shutting down workers...", "mq");
 	await latestVideoWorker.close(true);
+	await snapshotWorker.close(true);
 	Deno.exit();
 });
 

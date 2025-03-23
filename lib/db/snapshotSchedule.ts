@@ -2,6 +2,7 @@ import { DAY, MINUTE } from "$std/datetime/constants.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import { SnapshotScheduleType } from "./schema.d.ts";
+import logger from "../log/logger.ts";
 
 /*
     Returns true if the specified `aid` has at least one record with "pending" or "processing" status.
@@ -51,6 +52,14 @@ export async function findClosestSnapshot(
 	};
 }
 
+export async function hasAtLeast2Snapshots(client: Client, aid: number) {
+	const res = await client.queryObject<{ count: number }>(
+		`SELECT COUNT(*) FROM video_snapshot WHERE aid = $1`,
+		[aid],
+	);
+	return res.rows[0].count >= 2;
+}
+
 export async function getLatestSnapshot(client: Client, aid: number): Promise<Snapshot | null> {
 	const res = await client.queryObject<{ created_at: string; views: number }>(
 		`SELECT created_at, views FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC LIMIT 1`,
@@ -89,10 +98,11 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
  */
 export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number) {
-	const ajustedTime = await adjustSnapshotTime(client, new Date(targetTime));
+	const adjustedTime = (await adjustSnapshotTime(client, new Date(targetTime)));
+	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return client.queryObject(
 		`INSERT INTO snapshot_schedule (aid, type, started_at) VALUES ($1, $2, $3)`,
-		[aid, type, ajustedTime.toISOString()],
+		[aid, type, adjustedTime.toISOString()],
 	);
 }
 
@@ -124,25 +134,28 @@ export async function adjustSnapshotTime(
         ORDER BY w.window_start
         LIMIT 1;
 	`;
-	for (let i = 0; i < 7; i++) {
-		const now = new Date(new Date().getTime() + 5 * MINUTE);
-		const nowTruncated = truncateTo5MinInterval(now);
-		const currentWindowStart = truncateTo5MinInterval(expectedStartTime);
-		const end = new Date(currentWindowStart.getTime() + 1 * DAY);
+	const now = new Date(new Date().getTime() + 5 * MINUTE);
+	const nowTruncated = truncateTo5MinInterval(now);
+	const currentWindowStart = truncateTo5MinInterval(expectedStartTime);
+	const end = new Date(currentWindowStart.getTime() + 1 * DAY);
 
-		const windowResult = await client.queryObject<{ window_start: Date }>(
-			findWindowQuery,
-			[nowTruncated, end],
-		);
+	const windowResult = await client.queryObject<{ window_start: Date }>(
+		findWindowQuery,
+		[nowTruncated, end],
+	);
 
-		const windowStart = windowResult.rows[0]?.window_start;
-		if (!windowStart) {
-			continue;
-		}
-
-		return windowStart;
+	const windowStart = windowResult.rows[0]?.window_start;
+	if (!windowStart) {
+		return expectedStartTime;
 	}
-	return expectedStartTime;
+
+	// Returns windowStart if it is within the next 5 minutes
+	if (windowStart.getTime() > new Date().getTime() + 5 * MINUTE) {
+		return windowStart
+	}
+	else {
+		return expectedStartTime;
+	}
 }
 
 /**

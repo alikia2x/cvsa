@@ -18,6 +18,11 @@ export async function initMQ() {
 	await SnapshotQueue.upsertJobScheduler("snapshotTick", {
 		every: 1 * SECOND,
 		immediately: true,
+	}, {
+		opts: {
+			removeOnComplete: 1,
+			removeOnFail: 1,
+		},
 	});
 	await SnapshotQueue.upsertJobScheduler("collectMilestoneSnapshots", {
 		every: 5 * MINUTE,
