@@ -91,3 +91,7 @@ snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
 });
+
+snapshotWorker.on("closed", async () => {
+	await lockManager.releaseLock("dispatchRegularSnapshots");
+})
