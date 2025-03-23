@@ -97,6 +97,11 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 			minETAHours = adjustedETA;
 		}
 	}
+
+	if (isNaN(minETAHours)) {
+		minETAHours = Infinity;
+	}
+
 	return minETAHours;
 };
 
