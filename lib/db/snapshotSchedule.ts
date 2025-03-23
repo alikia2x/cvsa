@@ -98,6 +98,7 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
  */
 export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number) {
+	if (await videoHasActiveSchedule(client, aid)) return;
 	const allowedCount = type === "milestone" ? 2000 : 800;
 	const adjustedTime = await adjustSnapshotTime(client, new Date(targetTime), allowedCount);
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");

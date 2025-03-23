@@ -8,7 +8,6 @@ import {
 	hasAtLeast2Snapshots,
 	scheduleSnapshot,
 	setSnapshotStatus,
-	videoHasActiveSchedule,
 	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
@@ -111,7 +110,6 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 		const videos = await getVideosNearMilestone(client);
 		for (const video of videos) {
 			const aid = Number(video.aid);
-			if (await videoHasActiveSchedule(client, aid)) continue;
 			const eta = await getAdjustedShortTermETA(client, aid);
 			if (eta > 72) continue;
 			const now = Date.now();
@@ -135,7 +133,6 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 		const aids = await getVideosWithoutActiveSnapshotSchedule(client);
 		for (const rawAid of aids) {
 			const aid = Number(rawAid);
-			if (await videoHasActiveSchedule(client, aid)) continue;
 			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
