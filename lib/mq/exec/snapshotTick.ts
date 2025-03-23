@@ -30,6 +30,7 @@ const priorityMap: { [key: string]: number } = {
 const snapshotTypeToTaskMap: { [key: string]: string } = {
 	"milestone": "snapshotMilestoneVideo",
 	"normal": "snapshotVideo",
+	"new": "snapshotMilestoneVideo"
 };
 
 export const snapshotTickWorker = async (_job: Job) => {
@@ -164,7 +165,6 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
 			const interval = await getRegularSnapshotInterval(client, aid);
-			logger.debug(`${interval} hours for aid ${aid}`, "mq")
 			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
@@ -203,8 +203,12 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		}
 		await setSnapshotStatus(client, id, "completed");
 		if (type === "normal") {
-			await scheduleSnapshot(client, aid, type, Date.now() + 24 * HOUR);
+			const interval = await getRegularSnapshotInterval(client, aid);
+			await scheduleSnapshot(client, aid, type, Date.now() + interval * HOUR);
 			return `DONE`;
+		}
+		else if (type === "new") {
+			
 		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);
