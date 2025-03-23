@@ -14,6 +14,14 @@ export async function videoHasActiveSchedule(client: Client, aid: number) {
 	return res.rows.length > 0;
 }
 
+export async function videoHasProcessingSchedule(client: Client, aid: number) {
+	const res = await client.queryObject<{ status: string }>(
+		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND status = 'processing'`,
+		[aid],
+	);
+	return res.rows.length > 0;
+}
+
 interface Snapshot {
 	created_at: number;
 	views: number;
@@ -156,9 +164,20 @@ function truncateTo5MinInterval(timestamp: Date): Date {
 }
 
 export async function getSnapshotsInNextSecond(client: Client) {
-	const res = await client.queryObject<SnapshotScheduleType>(
-		`SELECT * FROM cvsa.public.snapshot_schedule WHERE started_at <= NOW() + INTERVAL '1 second'`,
-		[],
-	);
+	const query = `
+		SELECT * 
+		FROM snapshot_schedule 
+		WHERE started_at 
+		    BETWEEN NOW() - INTERVAL '5 seconds'
+			AND NOW() + INTERVAL '1 seconds'
+	`;
+	const res = await client.queryObject<SnapshotScheduleType>(query, []);
 	return res.rows;
+}
+
+export async function setSnapshotStatus(client: Client, id: number, status: string) {
+	return client.queryObject(
+		`UPDATE snapshot_schedule SET status = $2 WHERE id = $1`,
+		[id, status],
+	);
 }

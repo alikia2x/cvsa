@@ -6,15 +6,25 @@ import {
 	getLatestSnapshot,
 	getSnapshotsInNextSecond,
 	scheduleSnapshot,
+	setSnapshotStatus,
 	videoHasActiveSchedule,
+	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { HOUR, MINUTE } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
 import logger from "lib/log/logger.ts";
 import { SnapshotQueue } from "lib/mq/index.ts";
+import { insertVideoSnapshot } from "../task/getVideoStats.ts";
+import { NetSchedulerError } from "../scheduler.ts";
+import { setBiliVideoStatus } from "../../db/allData.ts";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
+};
+
+const snapshotTypeToTaskMap: { [key: string]: string } = {
+	"milestone": "snapshotMilestoneVideo",
+	"normal": "snapshotVideo",
 };
 
 export const snapshotTickWorker = async (_job: Job) => {
@@ -23,10 +33,17 @@ export const snapshotTickWorker = async (_job: Job) => {
 		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
 			let priority = 3;
-			if (schedule.type && priorityMap[schedule.type])
+			if (schedule.type && priorityMap[schedule.type]) {
 				priority = priorityMap[schedule.type];
-			await SnapshotQueue.add("snapshotVideo", { aid: schedule.aid, priority });
+			}
+			await SnapshotQueue.add("snapshotVideo", {
+				aid: schedule.aid,
+				id: schedule.id,
+				type: schedule.type ?? "normal",
+			}, { priority });
 		}
+	} catch (e) {
+		logger.error(e as Error);
 	} finally {
 		client.release();
 	}
@@ -52,7 +69,7 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	if (!latestSnapshot) return 0;
 
 	const currentTimestamp = Date.now();
-	const timeIntervals = [20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR];
+	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR];
 	const DELTA = 0.00001;
 	let minETAHours = Infinity;
 
@@ -94,6 +111,42 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 	}
 };
 
-export const takeSnapshotForVideoWorker = async (_job: Job) => {
-	// TODO: implement
+export const takeSnapshotForVideoWorker = async (job: Job) => {
+	const id = job.data.id;
+	const aid = job.data.aid;
+	const task = snapshotTypeToTaskMap[job.data.type] ?? "snapshotVideo";
+	const client = await db.connect();
+	try {
+		if (await videoHasProcessingSchedule(client, aid)) {
+			return `ALREADY_PROCESSING`;
+		}
+		await setSnapshotStatus(client, id, "processing");
+		const stat = await insertVideoSnapshot(client, aid, task);
+		if (typeof stat === "number") {
+			await setBiliVideoStatus(client, aid, stat);
+			await setSnapshotStatus(client, id, "completed");
+			return `BILI_STATUS_${stat}`;
+		}
+		const eta = await getAdjustedShortTermETA(client, aid);
+		if (eta > 72) return "ETA_TOO_LONG";
+		const now = Date.now();
+		const targetTime = now + eta * HOUR;
+		await setSnapshotStatus(client, id, "completed");
+		await scheduleSnapshot(client, aid, "milestone", targetTime);
+	} catch (e) {
+		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
+			logger.warn(
+				`No available proxy for aid ${job.data.aid}.`,
+				"mq",
+				"fn:takeSnapshotForVideoWorker",
+			);
+			await setSnapshotStatus(client, id, "completed");
+			await scheduleSnapshot(client, aid, "milestone", Date.now() + 5 * SECOND);
+			return;
+		}
+		logger.error(e as Error, "mq", "fn:takeSnapshotForVideoWorker");
+		await setSnapshotStatus(client, id, "failed");
+	} finally {
+		client.release();
+	}
 };

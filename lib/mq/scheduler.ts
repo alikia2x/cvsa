@@ -21,7 +21,7 @@ interface ProxiesMap {
 }
 
 type NetSchedulerErrorCode =
-	| "NO_AVAILABLE_PROXY"
+	| "NO_PROXY_AVAILABLE"
 	| "PROXY_RATE_LIMITED"
 	| "PROXY_NOT_FOUND"
 	| "FETCH_ERROR"
@@ -143,10 +143,10 @@ class NetScheduler {
 	 * @param {string} method - The HTTP method to use for the request. Default is "GET".
 	 * @returns {Promise<any>} - A promise that resolves to the response body.
 	 * @throws {NetSchedulerError} - The error will be thrown in following cases:
-	 * - No available proxy currently: with error code NO_AVAILABLE_PROXY
-	 * - Proxy is under rate limit: with error code PROXY_RATE_LIMITED
-	 * - The native `fetch` function threw an error: with error code FETCH_ERROR
-	 * - The proxy type is not supported: with error code NOT_IMPLEMENTED
+	 * - No proxy is available currently: with error code `NO_PROXY_AVAILABLE`
+	 * - The native `fetch` function threw an error: with error code `FETCH_ERROR`
+	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
+	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
 	async request<R>(url: string, task: string, method: string = "GET"): Promise<R> {
 		// find a available proxy
@@ -156,7 +156,7 @@ class NetScheduler {
 				return await this.proxyRequest<R>(url, proxyName, task, method);
 			}
 		}
-		throw new NetSchedulerError("No available proxy currently.", "NO_AVAILABLE_PROXY");
+		throw new NetSchedulerError("No proxy is available currently.", "NO_PROXY_AVAILABLE");
 	}
 
 	/*
@@ -168,10 +168,11 @@ class NetScheduler {
 	 * @param {boolean} force - If true, the request will be made even if the proxy is rate limited. Default is false.
 	 * @returns {Promise<any>} - A promise that resolves to the response body.
 	 * @throws {NetSchedulerError} - The error will be thrown in following cases:
-	 * - Proxy not found: with error code PROXY_NOT_FOUND
-	 * - Proxy is under rate limit: with error code PROXY_RATE_LIMITED
-	 * - The native `fetch` function threw an error: with error code FETCH_ERROR
-	 * - The proxy type is not supported: with error code NOT_IMPLEMENTED
+	 * - Proxy not found: with error code `PROXY_NOT_FOUND`
+	 * - Proxy is under rate limit: with error code `PROXY_RATE_LIMITED`
+	 * - The native `fetch` function threw an error: with error code `FETCH_ERROR`
+	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
+	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
 	async proxyRequest<R>(
 		url: string,
@@ -255,8 +256,6 @@ class NetScheduler {
 	}
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
-		let rawOutput: null | Uint8Array = null;
-		let rawErr: null | Uint8Array = null;
 		try {
 			const decoder = new TextDecoder();
 			const output = await new Deno.Command("aliyun", {
@@ -280,19 +279,9 @@ class NetScheduler {
 					`CVSA-${region}`,
 				],
 			}).output();
-			rawOutput = output.stdout;
-			rawErr = output.stderr;
 			const out = decoder.decode(output.stdout);
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
-				const fileId = randomUUID();
-				await Deno.writeFile(`./logs/files/${fileId}.stdout`, output.stdout);
-				await Deno.writeFile(`./logs/files/${fileId}.stderr`, output.stderr);
-				logger.log(
-					`Returned non-200 status code. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`,
-					"net",
-					"fn:alicloudFcRequest",
-				);
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",
@@ -301,16 +290,6 @@ class NetScheduler {
 				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
-			if (rawOutput !== null || rawErr !== null) {
-				const fileId = randomUUID();
-				rawOutput && await Deno.writeFile(`./logs/files/${fileId}.stdout`, rawOutput);
-				rawErr && await Deno.writeFile(`./logs/files/${fileId}.stderr`, rawErr);
-				logger.log(
-					`Error occurred. Raw ouput saved to ./logs/files/${fileId}.stdout/stderr`,
-					"net",
-					"fn:alicloudFcRequest",
-				);
-			}
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
 		}
@@ -369,7 +348,8 @@ Execution order for setup:
    - Call after addProxy and addTask. Configures rate limiters specifically for tasks and their associated proxies.
    - Depends on tasks and proxies being defined to apply limiters correctly.
 4. setProviderLimiter(providerName, config):
-   - Call after addProxy and addTask. Sets rate limiters at the provider level, affecting all proxies used by tasks of that provider.
+   - Call after addProxy and addTask.
+   - It sets rate limiters at the provider level, affecting all proxies used by tasks of that provider.
    - Depends on tasks and proxies being defined to identify which proxies to apply provider-level limiters to.
 
 In summary: addProxy -> addTask -> (setTaskLimiter and/or setProviderLimiter).

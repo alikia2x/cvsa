@@ -68,3 +68,10 @@ export async function getUnArchivedBiliUsers(client: Client) {
 	const rows = queryResult.rows;
 	return rows.map((row) => row.uid);
 }
+
+export async function setBiliVideoStatus(client: Client, aid: number, status: number) {
+	return await client.queryObject(
+		`UPDATE bilibili_metadata SET status = $1 WHERE aid = $2`,
+		[status, aid],
+	);
+}

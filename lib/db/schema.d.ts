@@ -32,6 +32,18 @@ export interface VideoSnapshotType {
 	replies: number;
 }
 
+export interface LatestSnapshotType {
+	aid: number;
+	time: number;
+	views: number;
+	danmakus: number;
+	replies: number;
+	likes: number;
+	coins: number;
+	shares: number;
+	favorites: number;
+}
+
 export interface SnapshotScheduleType {
 	id: number;
 	aid: number;
