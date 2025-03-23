@@ -2,7 +2,62 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import { SnapshotScheduleType } from "./schema.d.ts";
 import logger from "lib/log/logger.ts";
-import { MINUTE } from "$std/datetime/constants.ts";
+import { DAY, MINUTE } from "$std/datetime/constants.ts";
+import { redis } from "lib/db/redis.ts";
+import { Redis } from "ioredis";
+
+const WINDOW_SIZE = 2880; // 每天 2880 个 5 分钟窗口
+const REDIS_KEY = "cvsa:snapshot_window_counts"; // Redis Key 名称
+
+// 获取当前时间对应的窗口索引
+function getCurrentWindowIndex(): number {
+	const now = new Date();
+	const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
+	const currentWindow = Math.floor(minutesSinceMidnight / 5);
+	return currentWindow;
+}
+
+// 刷新内存数组
+export async function refreshSnapshotWindowCounts(client: Client, redisClient: Redis) {
+	const now = new Date();
+	const startTime = now.getTime();
+
+	const result = await client.queryObject<{ window_start: Date; count: number }>`
+		SELECT 
+		date_trunc('hour', started_at) + 
+		(EXTRACT(minute FROM started_at)::int / 5 * INTERVAL '5 minutes') AS window_start,
+		COUNT(*) AS count
+		FROM snapshot_schedule
+		WHERE started_at >= NOW() AND status = 'pending' AND started_at <= NOW() + INTERVAL '10 days'
+		GROUP BY 1
+		ORDER BY window_start
+  	`
+
+	await redisClient.del(REDIS_KEY);
+
+	for (const row of result.rows) {
+		const offset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
+		if (offset >= 0 && offset < WINDOW_SIZE) {
+			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
+		}
+	}
+}
+
+export async function initSnapshotWindowCounts(client: Client, redisClient: Redis) {
+	await refreshSnapshotWindowCounts(client, redisClient);
+	setInterval(async () => {
+		await refreshSnapshotWindowCounts(client, redisClient);
+	}, 5 * MINUTE);
+}
+
+async function getWindowCount(redisClient: Redis, offset: number): Promise<number> {
+	const count = await redisClient.hget(REDIS_KEY, offset.toString());
+	return count ? parseInt(count, 10) : 0;
+}
+
+async function updateWindowCount(redisClient: Redis, offset: number, increment: number): Promise<void> {
+	await redisClient.hincrby(REDIS_KEY, offset.toString(), increment);
+}
 
 export async function snapshotScheduleExists(client: Client, id: number) {
 	const res = await client.queryObject<{ id: number }>(
@@ -12,9 +67,6 @@ export async function snapshotScheduleExists(client: Client, id: number) {
 	return res.rows.length > 0;
 }
 
-/*
-    Returns true if the specified `aid` has at least one record with "pending" or "processing" status.
-*/
 export async function videoHasActiveSchedule(client: Client, aid: number) {
 	const res = await client.queryObject<{ status: string }>(
 		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing')`,
@@ -107,8 +159,10 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  */
 export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number) {
 	if (await videoHasActiveSchedule(client, aid)) return;
-	const allowedCount = type === "milestone" ? 2000 : 800;
-	const adjustedTime = await adjustSnapshotTime(client, new Date(targetTime), allowedCount);
+	let adjustedTime = new Date(targetTime);
+	if (type !== "milestone") {
+		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 1000, redis);
+	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return client.queryObject(
 		`INSERT INTO snapshot_schedule (aid, type, started_at) VALUES ($1, $2, $3)`,
@@ -116,74 +170,51 @@ export async function scheduleSnapshot(client: Client, aid: number, type: string
 	);
 }
 
-/**
- * Adjust the trigger time of the snapshot to ensure it does not exceed the frequency limit
- * @param client PostgreSQL client
- * @param expectedStartTime The expected snapshot time
- * @param allowedCounts The number of snapshots allowed in a 5-minute window (default: 2000)
- * @returns The adjusted actual snapshot time within the first available window
- */
 export async function adjustSnapshotTime(
-	client: Client,
 	expectedStartTime: Date,
-	allowedCounts: number = 2000,
+	allowedCounts: number = 1000,
+	redisClient: Redis,
 ): Promise<Date> {
-	// Query to find the closest available window by checking both past and future windows
-	const findWindowQuery = `
-		WITH base AS (
-			SELECT 
-				date_trunc('minute', $1::timestamp) 
-				- (EXTRACT(minute FROM $1::timestamp)::int % 5 * INTERVAL '1 minute') AS base_time
-		),
-		offsets AS (
-			SELECT generate_series(-100, 100) AS "offset"
-		),
-		candidate_windows AS (
-			SELECT
-				(base.base_time + ("offset" * INTERVAL '5 minutes')) AS window_start,
-				ABS("offset") AS distance
-			FROM base
-			CROSS JOIN offsets
-		)
-		SELECT 
-			window_start
-		FROM 
-			candidate_windows cw
-		LEFT JOIN 
-			snapshot_schedule s 
-		ON 
-			s.started_at >= cw.window_start 
-			AND s.started_at < cw.window_start + INTERVAL '5 minutes'
-			AND s.status = 'pending'
-		GROUP BY 
-			cw.window_start, cw.distance
-		HAVING 
-			COUNT(s.*) < $2
-		ORDER BY 
-			cw.distance, cw.window_start
-		LIMIT 1;
-  	`;
+	const currentWindow = getCurrentWindowIndex();
 
-	try {
-		// Execute query to find the first available window
-		const windowResult = await client.queryObject<{ window_start: Date }>(
-			findWindowQuery,
-			[expectedStartTime, allowedCounts],
-		);
+	// 计算目标窗口偏移量
+	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * 60 * 1000));
 
-		// If no available window found, return original time (may exceed limit)
-		if (windowResult.rows.length === 0) {
-			return expectedStartTime;
+	// 在 Redis 中查找可用窗口
+	for (let i = 0; i < WINDOW_SIZE; i++) {
+		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
+		const count = await getWindowCount(redisClient, offset);
+
+		if (count < allowedCounts) {
+			// 找到可用窗口，更新计数
+			await updateWindowCount(redisClient, offset, 1);
+
+			// 计算具体时间
+			const windowStart = new Date(Date.now() + offset * 5 * 60 * 1000);
+			const randomDelay = Math.floor(Math.random() * 5 * 60 * 1000);
+			return new Date(windowStart.getTime() + randomDelay);
 		}
+	}
 
-		// Get the target window start time
-		const windowStart = windowResult.rows[0].window_start;
+	// 如果没有找到可用窗口，返回原始时间
+	return expectedStartTime;
+}
 
-		// Add random delay within the 5-minute window to distribute load
-		const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
-		return new Date(windowStart.getTime() + randomDelay);
-	} catch {
-		return expectedStartTime; // Fallback to original time
+export async function cleanupExpiredWindows(redisClient: Redis): Promise<void> {
+	const now = new Date();
+	const startTime = new Date(now.getTime() - 10 * DAY); // 保留最近 10 天的数据
+
+	// 获取所有窗口索引
+	const allOffsets = await redisClient.hkeys(REDIS_KEY);
+
+	// 删除过期窗口
+	for (const offsetStr of allOffsets) {
+		const offset = parseInt(offsetStr, 10);
+		const windowStart = new Date(startTime.getTime() + offset * 5 * MINUTE);
+
+		if (windowStart < startTime) {
+			await redisClient.hdel(REDIS_KEY, offsetStr);
+		}
 	}
 }
 

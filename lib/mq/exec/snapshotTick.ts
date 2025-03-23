@@ -148,7 +148,7 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
-			    return;
+				return;
 			}
 		}
 	} catch (e) {
