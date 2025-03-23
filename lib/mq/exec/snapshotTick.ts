@@ -12,7 +12,7 @@ import {
 	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { WEEK, HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
 import logger from "lib/log/logger.ts";
 import { SnapshotQueue } from "lib/mq/index.ts";
 import { insertVideoSnapshot } from "lib/mq/task/getVideoStats.ts";
@@ -139,7 +139,7 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, Infinity);
+			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 		}
 	} catch (e) {

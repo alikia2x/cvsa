@@ -34,6 +34,7 @@ export async function getLatestVideoSnapshot(client: Client, aid: number): Promi
 		return {
 			...row,
 			aid: Number(row.aid),
+			time: new Date(row.time).getTime(),
 		}
 	})[0];
 }
