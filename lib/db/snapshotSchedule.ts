@@ -1,8 +1,8 @@
-import {DAY, HOUR, MINUTE} from "$std/datetime/constants.ts";
-import {Client} from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import {formatTimestampToPsql} from "lib/utils/formatTimestampToPostgre.ts";
-import {SnapshotScheduleType} from "./schema.d.ts";
+import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
+import { SnapshotScheduleType } from "./schema.d.ts";
 import logger from "lib/log/logger.ts";
+import { MINUTE } from "$std/datetime/constants.ts";
 
 export async function snapshotScheduleExists(client: Client, id: number) {
 	const res = await client.queryObject<{ id: number }>(
@@ -120,76 +120,71 @@ export async function scheduleSnapshot(client: Client, aid: number, type: string
  * Adjust the trigger time of the snapshot to ensure it does not exceed the frequency limit
  * @param client PostgreSQL client
  * @param expectedStartTime The expected snapshot time
- * @param allowedCounts The number of snapshots allowed in the 5-minutes windows.
- * @returns The adjusted actual snapshot time
+ * @param allowedCounts The number of snapshots allowed in a 5-minute window (default: 2000)
+ * @returns The adjusted actual snapshot time within the first available window
  */
 export async function adjustSnapshotTime(
 	client: Client,
 	expectedStartTime: Date,
-	allowedCounts: number = 2000
+	allowedCounts: number = 2000,
 ): Promise<Date> {
+	// Query to find the closest available window by checking both past and future windows
 	const findWindowQuery = `
-        WITH windows AS (
-            SELECT generate_series(
-			   $1::timestamp,  -- Start time: current time truncated to the nearest 5-minute window
-			   $2::timestamp,  -- End time: 24 hours after the target time window starts
-			   INTERVAL '5 MINUTES'
-		   ) AS window_start
-        )
-        SELECT w.window_start
-        FROM windows w
-        	LEFT JOIN snapshot_schedule s ON s.started_at >= w.window_start
-			AND s.started_at < w.window_start + INTERVAL '5 MINUTES'
+		WITH base AS (
+			SELECT 
+				date_trunc('minute', $1::timestamp) 
+				- (EXTRACT(minute FROM $1::timestamp)::int % 5 * INTERVAL '1 minute') AS base_time
+		),
+		offsets AS (
+			SELECT generate_series(-100, 100) AS "offset"
+		),
+		candidate_windows AS (
+			SELECT
+				(base.base_time + ("offset" * INTERVAL '5 minutes')) AS window_start,
+				ABS("offset") AS distance
+			FROM base
+			CROSS JOIN offsets
+		)
+		SELECT 
+			window_start
+		FROM 
+			candidate_windows cw
+		LEFT JOIN 
+			snapshot_schedule s 
+		ON 
+			s.started_at >= cw.window_start 
+			AND s.started_at < cw.window_start + INTERVAL '5 minutes'
 			AND s.status = 'pending'
-        GROUP BY w.window_start
-        HAVING COUNT(s.*) < ${allowedCounts}
-        ORDER BY w.window_start
-        LIMIT 1;
-	`;
-	const now = new Date();
-	const targetTime = expectedStartTime.getTime();
-	let start = new Date(targetTime - 2 * HOUR);
-	if (start.getTime() <= now.getTime()) {
-		start = now;
-	}
-	const startTruncated = truncateTo5MinInterval(start);
-	const end = new Date(startTruncated.getTime() + 1 * DAY);
+		GROUP BY 
+			cw.window_start, cw.distance
+		HAVING 
+			COUNT(s.*) < $2
+		ORDER BY 
+			cw.distance, cw.window_start
+		LIMIT 1;
+  	`;
 
-	const windowResult = await client.queryObject<{ window_start: Date }>(
-		findWindowQuery,
-		[startTruncated, end],
-	);
+	try {
+		// Execute query to find the first available window
+		const windowResult = await client.queryObject<{ window_start: Date }>(
+			findWindowQuery,
+			[expectedStartTime, allowedCounts],
+		);
 
+		// If no available window found, return original time (may exceed limit)
+		if (windowResult.rows.length === 0) {
+			return expectedStartTime;
+		}
 
-	const windowStart = windowResult.rows[0]?.window_start;
-	if (!windowStart) {
-		return expectedStartTime;
-	}
+		// Get the target window start time
+		const windowStart = windowResult.rows[0].window_start;
 
-	if (windowStart.getTime() > new Date().getTime() + 5 * MINUTE) {
+		// Add random delay within the 5-minute window to distribute load
 		const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
 		return new Date(windowStart.getTime() + randomDelay);
-	} else {
-		return expectedStartTime;
+	} catch {
+		return expectedStartTime; // Fallback to original time
 	}
-}
-
-/**
- * Truncate the timestamp to the nearest 5-minute interval
- * @param timestamp The timestamp
- * @returns The truncated time
- */
-function truncateTo5MinInterval(timestamp: Date): Date {
-	const minutes = timestamp.getMinutes() - (timestamp.getMinutes() % 5);
-	return new Date(
-		timestamp.getFullYear(),
-		timestamp.getMonth(),
-		timestamp.getDate(),
-		timestamp.getHours(),
-		minutes,
-		0,
-		0,
-	);
 }
 
 export async function getSnapshotsInNextSecond(client: Client) {

@@ -6,7 +6,8 @@ import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
 import {
-	collectMilestoneSnapshotsWorker, regularSnapshotsWorker,
+	collectMilestoneSnapshotsWorker,
+	regularSnapshotsWorker,
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
 } from "lib/mq/exec/snapshotTick.ts";

@@ -1,10 +1,11 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
-import {getLatestVideoSnapshot, getVideosNearMilestone} from "lib/db/snapshot.ts";
+import { getLatestVideoSnapshot, getVideosNearMilestone } from "lib/db/snapshot.ts";
 import {
 	findClosestSnapshot,
 	getLatestSnapshot,
-	getSnapshotsInNextSecond, getVideosWithoutActiveSnapshotSchedule,
+	getSnapshotsInNextSecond,
+	getVideosWithoutActiveSnapshotSchedule,
 	hasAtLeast2Snapshots,
 	scheduleSnapshot,
 	setSnapshotStatus,
@@ -12,7 +13,7 @@ import {
 	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { WEEK, HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
 import logger from "lib/log/logger.ts";
 import { SnapshotQueue } from "lib/mq/index.ts";
 import { insertVideoSnapshot } from "lib/mq/task/getVideoStats.ts";
@@ -107,6 +108,7 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 
 export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 	const client = await db.connect();
+	const startedAt = Date.now();
 	try {
 		const videos = await getVideosNearMilestone(client);
 		for (const video of videos) {
@@ -120,6 +122,9 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
 			await scheduleSnapshot(client, aid, "milestone", targetTime);
+			if (now - startedAt > 25 * MINUTE) {
+			    return;
+			}
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
