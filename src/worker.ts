@@ -6,7 +6,7 @@ import { lockManager } from "lib/mq/lockManager.ts";
 import { WorkerError } from "lib/mq/schema.ts";
 import { getVideoInfoWorker } from "lib/mq/exec/getLatestVideos.ts";
 import {
-	collectMilestoneSnapshotsWorker,
+	collectMilestoneSnapshotsWorker, regularSnapshotsWorker,
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
 } from "lib/mq/exec/snapshotTick.ts";
@@ -75,6 +75,9 @@ const snapshotWorker = new Worker(
 				break;
 			case "collectMilestoneSnapshots":
 				await collectMilestoneSnapshotsWorker(job);
+				break;
+			case "dispatchRegularSnapshots":
+				await regularSnapshotsWorker(job);
 				break;
 			default:
 				break;

@@ -1,7 +1,7 @@
-import { DAY, MINUTE } from "$std/datetime/constants.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
-import { SnapshotScheduleType } from "./schema.d.ts";
+import {DAY, HOUR, MINUTE} from "$std/datetime/constants.ts";
+import {Client} from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import {formatTimestampToPsql} from "lib/utils/formatTimestampToPostgre.ts";
+import {SnapshotScheduleType} from "./schema.d.ts";
 import logger from "../log/logger.ts";
 
 /*
@@ -98,7 +98,8 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
  */
 export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number) {
-	const adjustedTime = (await adjustSnapshotTime(client, new Date(targetTime)));
+	const allowedCount = type === "milestone" ? 2000 : 800;
+	const adjustedTime = await adjustSnapshotTime(client, new Date(targetTime), allowedCount);
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return client.queryObject(
 		`INSERT INTO snapshot_schedule (aid, type, started_at) VALUES ($1, $2, $3)`,
@@ -110,18 +111,20 @@ export async function scheduleSnapshot(client: Client, aid: number, type: string
  * Adjust the trigger time of the snapshot to ensure it does not exceed the frequency limit
  * @param client PostgreSQL client
  * @param expectedStartTime The expected snapshot time
+ * @param allowedCounts The number of snapshots allowed in the 5-minutes windows.
  * @returns The adjusted actual snapshot time
  */
 export async function adjustSnapshotTime(
 	client: Client,
 	expectedStartTime: Date,
+	allowedCounts: number = 2000
 ): Promise<Date> {
 	const findWindowQuery = `
         WITH windows AS (
             SELECT generate_series(
-				   $1::timestamp,  -- Start time: current time truncated to the nearest 5-minute window
-				   $2::timestamp,  -- End time: 24 hours after the target time window starts
-				   INTERVAL '5 MINUTES'
+			   $1::timestamp,  -- Start time: current time truncated to the nearest 5-minute window
+			   $2::timestamp,  -- End time: 24 hours after the target time window starts
+			   INTERVAL '5 MINUTES'
 		   ) AS window_start
         )
         SELECT w.window_start
@@ -130,30 +133,34 @@ export async function adjustSnapshotTime(
 			AND s.started_at < w.window_start + INTERVAL '5 MINUTES'
 			AND s.status = 'pending'
         GROUP BY w.window_start
-        HAVING COUNT(s.*) < 2000
+        HAVING COUNT(s.*) < ${allowedCounts}
         ORDER BY w.window_start
         LIMIT 1;
 	`;
-	const now = new Date(new Date().getTime() + 5 * MINUTE);
-	const nowTruncated = truncateTo5MinInterval(now);
-	const currentWindowStart = truncateTo5MinInterval(expectedStartTime);
-	const end = new Date(currentWindowStart.getTime() + 1 * DAY);
+	const now = new Date();
+	const targetTime = expectedStartTime.getTime();
+	let start = new Date(targetTime - 2 * HOUR);
+	if (start.getTime() <= now.getTime()) {
+		start = now;
+	}
+	const startTruncated = truncateTo5MinInterval(start);
+	const end = new Date(startTruncated.getTime() + 1 * DAY);
 
 	const windowResult = await client.queryObject<{ window_start: Date }>(
 		findWindowQuery,
-		[nowTruncated, end],
+		[startTruncated, end],
 	);
+
 
 	const windowStart = windowResult.rows[0]?.window_start;
 	if (!windowStart) {
 		return expectedStartTime;
 	}
 
-	// Returns windowStart if it is within the next 5 minutes
 	if (windowStart.getTime() > new Date().getTime() + 5 * MINUTE) {
-		return windowStart
-	}
-	else {
+		const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
+		return new Date(windowStart.getTime() + randomDelay);
+	} else {
 		return expectedStartTime;
 	}
 }
@@ -189,8 +196,19 @@ export async function getSnapshotsInNextSecond(client: Client) {
 }
 
 export async function setSnapshotStatus(client: Client, id: number, status: string) {
-	return client.queryObject(
+	return await client.queryObject(
 		`UPDATE snapshot_schedule SET status = $2 WHERE id = $1`,
 		[id, status],
 	);
+}
+
+export async function getVideosWithoutActiveSnapshotSchedule(client: Client) {
+	const query: string = `
+		SELECT s.aid
+		FROM songs s
+		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
+		WHERE ss.aid IS NULL
+	`;
+	const res = await client.queryObject<{ aid: number }>(query, []);
+	return res.rows.map((r) => Number(r.aid));
 }
