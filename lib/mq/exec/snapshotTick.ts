@@ -8,6 +8,7 @@ import {
 	hasAtLeast2Snapshots,
 	scheduleSnapshot,
 	setSnapshotStatus,
+	snapshotScheduleExists,
 	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
@@ -153,6 +154,10 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 	const task = snapshotTypeToTaskMap[type] ?? "snapshotVideo";
 	const client = await db.connect();
 	const retryInterval = type === "milestone" ? 5 * SECOND : 2 * MINUTE;
+	const exists = await snapshotScheduleExists(client, id);
+	if (!exists) {
+		return;
+	}
 	try {
 		if (await videoHasProcessingSchedule(client, aid)) {
 			return `ALREADY_PROCESSING`;

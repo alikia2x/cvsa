@@ -2,7 +2,15 @@ import {DAY, HOUR, MINUTE} from "$std/datetime/constants.ts";
 import {Client} from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import {formatTimestampToPsql} from "lib/utils/formatTimestampToPostgre.ts";
 import {SnapshotScheduleType} from "./schema.d.ts";
-import logger from "../log/logger.ts";
+import logger from "lib/log/logger.ts";
+
+export async function snapshotScheduleExists(client: Client, id: number) {
+	const res = await client.queryObject<{ id: number }>(
+		`SELECT id FROM snapshot_schedule WHERE id = $1`,
+		[id],
+	);
+	return res.rows.length > 0;
+}
 
 /*
     Returns true if the specified `aid` has at least one record with "pending" or "processing" status.
