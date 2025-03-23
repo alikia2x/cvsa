@@ -20,3 +20,20 @@ export async function getVideosNearMilestone(client: Client) {
 		};
 	});
 }
+
+export async function getLatestVideoSnapshot(client: Client, aid: number): Promise<null | LatestSnapshotType> {
+	const queryResult = await client.queryObject<LatestSnapshotType>(`
+	    SELECT *
+	    FROM latest_video_snapshot
+	    WHERE aid = $1
+	`, [aid]);
+	if (queryResult.rows.length === 0) {
+		return null;
+	}
+	return queryResult.rows.map((row) => {
+		return {
+			...row,
+			aid: Number(row.aid),
+		}
+	})[0];
+}

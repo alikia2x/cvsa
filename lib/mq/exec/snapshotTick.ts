@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
-import { getVideosNearMilestone } from "lib/db/snapshot.ts";
+import {getLatestVideoSnapshot, getVideosNearMilestone} from "lib/db/snapshot.ts";
 import {
 	findClosestSnapshot,
 	getLatestSnapshot,
@@ -42,7 +42,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 			const aid = Number(schedule.aid);
 			await SnapshotQueue.add("snapshotVideo", {
 				aid: aid,
-				id: schedule.id,
+				id: Number(schedule.id),
 				type: schedule.type ?? "normal",
 			}, { priority });
 		}
@@ -131,8 +131,10 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 		for (const rawAid of aids) {
 			const aid = Number(rawAid);
 			if (await videoHasActiveSchedule(client, aid)) continue;
+			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
 			const now = Date.now();
-			const targetTime = now + 24 * HOUR;
+			const lastSnapshotedAt = latestSnapshot?.time ?? now;
+			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, Infinity);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 		}
 	} catch (e) {
@@ -161,6 +163,10 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 			return `BILI_STATUS_${stat}`;
 		}
 		await setSnapshotStatus(client, id, "completed");
+		if (type === "normal") {
+			await scheduleSnapshot(client, aid, type, Date.now() + 24 * HOUR);
+			return `DONE`;
+		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);
 		if (eta > 72) return "ETA_TOO_LONG";
