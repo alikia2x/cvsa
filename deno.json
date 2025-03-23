@@ -12,7 +12,7 @@
 		"update": "deno run -A -r https://fresh.deno.dev/update .",
 		"worker:main": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write --allow-run ./src/worker.ts",
 		"worker:filter": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/filterWorker.ts",
-		"adder": "deno run --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
+		"adder": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
 		"bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net ./src/bullui.ts",
 		"all": "concurrently 'deno task worker:main' 'deno task adder' 'deno task bullui' 'deno task worker:filter'",
 		"test": "deno test ./test/ --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run"
