@@ -39,7 +39,8 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 
 	for (const row of result.rows) {
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
-		const offset = (currentWindow + targetOffset) % WINDOW_SIZE;
+		const offset = (currentWindow + targetOffset);
+		logger.debug(`window_start: ${row.window_start}, count: ${row.count}, offset: ${offset}`);
 		if (offset >= 0 && offset < WINDOW_SIZE) {
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
