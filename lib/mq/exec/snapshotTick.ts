@@ -108,7 +108,6 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 
 export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 	const client = await db.connect();
-	const startedAt = Date.now();
 	try {
 		const videos = await getVideosNearMilestone(client);
 		for (const video of videos) {
@@ -122,9 +121,6 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
 			await scheduleSnapshot(client, aid, "milestone", targetTime);
-			if (now - startedAt > 25 * MINUTE) {
-			    return;
-			}
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
@@ -135,6 +131,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 
 export const regularSnapshotsWorker = async (_job: Job) => {
 	const client = await db.connect();
+	const startedAt = Date.now();
 	try {
 		const aids = await getVideosWithoutActiveSnapshotSchedule(client);
 		for (const rawAid of aids) {
@@ -144,6 +141,9 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
 			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
+			if (now - startedAt > 25 * MINUTE) {
+			    return;
+			}
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:regularSnapshotsWorker");
