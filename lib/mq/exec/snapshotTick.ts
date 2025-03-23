@@ -21,6 +21,7 @@ import { NetSchedulerError } from "lib/mq/scheduler.ts";
 import { setBiliVideoStatus } from "lib/db/allData.ts";
 import { truncate } from "lib/utils/truncate.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
+import { getSongsPublihsedAt } from "lib/db/songs.ts";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
@@ -208,7 +209,26 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 			return `DONE`;
 		}
 		else if (type === "new") {
-			
+			const publihsedAt = await getSongsPublihsedAt(client, aid);
+			const timeSincePublished = stat.time - publihsedAt!;
+			const viewsPerHour = stat.views / timeSincePublished * HOUR;
+			if (timeSincePublished > 48 * HOUR) {
+				return `DONE`
+			}
+			if (timeSincePublished > 2 * HOUR && viewsPerHour < 10) {
+				return `DONE`
+			}
+			let intervalMins = 240;
+			if (viewsPerHour > 50) {
+			    intervalMins = 120;
+			}
+			if (viewsPerHour > 100) {
+			    intervalMins = 60;
+			}
+			if (viewsPerHour > 1000) {
+			    intervalMins = 15;
+			}
+			await scheduleSnapshot(client, aid, type, Date.now() + intervalMins * MINUTE);
 		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);

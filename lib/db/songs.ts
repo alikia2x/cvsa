@@ -1,4 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { parseTimestampFromPsql } from "lib/utils/formatTimestampToPostgre.ts";
 
 export async function getNotCollectedSongs(client: Client) {
 	const queryResult = await client.queryObject<{ aid: number }>(`
@@ -22,8 +23,23 @@ export async function aidExistsInSongs(client: Client, aid: number) {
 	        FROM songs
 	        WHERE aid = $1
 	    );
-	`,
+		`,
 		[aid],
 	);
 	return queryResult.rows[0].exists;
+}
+
+export async function getSongsPublihsedAt(client: Client, aid: number) {
+	const queryResult = await client.queryObject<{ published_at: string }>(
+		`
+		SELECT published_at
+		FROM songs
+		WHERE aid = $1;
+		`,
+		[aid],
+	);
+	if (queryResult.rows.length === 0) {
+		return null;
+	}
+	return parseTimestampFromPsql(queryResult.rows[0].published_at);
 }
