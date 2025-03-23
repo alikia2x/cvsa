@@ -136,6 +136,7 @@ const getRegularSnapshotInterval = async (client: Client, aid: number) => {
 	const oldSnapshot = await findClosestSnapshot(client, aid, date);
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	if (!oldSnapshot || !latestSnapshot) return 0;
+	if (oldSnapshot.created_at === latestSnapshot.created_at) return 0;
 	const hoursDiff = (latestSnapshot.created_at - oldSnapshot.created_at) / HOUR;
 	if (hoursDiff < 8) return 24;
 	const viewsDiff = latestSnapshot.views - oldSnapshot.views;
