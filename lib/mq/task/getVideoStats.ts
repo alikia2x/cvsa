@@ -1,6 +1,7 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getVideoInfo } from "lib/net/getVideoInfo.ts";
 import { LatestSnapshotType } from "lib/db/schema.d.ts";
+import logger from "lib/log/logger.ts";
 
 /*
  * Fetch video stats from bilibili API and insert into database
@@ -38,6 +39,8 @@ export async function insertVideoSnapshot(
 		query,
 		[aid, views, danmakus, replies, likes, coins, shares, favorites],
 	);
+
+	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 
 	const snapshot: LatestSnapshotType = {
 		aid,

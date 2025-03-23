@@ -185,11 +185,16 @@ function truncateTo5MinInterval(timestamp: Date): Date {
 
 export async function getSnapshotsInNextSecond(client: Client) {
 	const query = `
-		SELECT * 
-		FROM snapshot_schedule 
-		WHERE started_at 
-		    BETWEEN NOW() - INTERVAL '5 seconds'
-			AND NOW() + INTERVAL '1 seconds'
+		SELECT *
+		FROM snapshot_schedule
+		WHERE started_at <= NOW() + INTERVAL '1 seconds' AND status = 'pending'
+		ORDER BY
+			CASE
+				WHEN type = 'milestone' THEN 0
+				ELSE 1
+			END,
+			started_at
+		LIMIT 3;
 	`;
 	const res = await client.queryObject<SnapshotScheduleType>(query, []);
 	return res.rows;
