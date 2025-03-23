@@ -40,7 +40,6 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 	for (const row of result.rows) {
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
 		const offset = (currentWindow + targetOffset);
-		logger.debug(`window_start: ${row.window_start}, count: ${row.count}, offset: ${offset}`);
 		if (offset >= 0 && offset < WINDOW_SIZE) {
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
@@ -188,6 +187,7 @@ export async function adjustSnapshotTime(
 	for (let i = 0; i < WINDOW_SIZE; i++) {
 		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
 		const count = await getWindowCount(redisClient, offset);
+		logger.debug(`offset: ${offset}, count: ${count}, expectedStartTime: ${expectedStartTime}`);
 
 		if (count < allowedCounts) {
 			// 找到可用窗口，更新计数
