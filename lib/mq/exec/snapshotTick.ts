@@ -130,6 +130,23 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 	}
 };
 
+const getRegularSnapshotInterval = async (client: Client, aid: number) => {
+	const now = Date.now();
+    const date = new Date(now - 24 * HOUR);
+	const oldSnapshot = await findClosestSnapshot(client, aid, date);
+	const latestSnapshot = await getLatestSnapshot(client, aid);
+	if (!oldSnapshot || !latestSnapshot) return 0;
+	const hoursDiff = (latestSnapshot.created_at - oldSnapshot.created_at) / HOUR;
+	if (hoursDiff < 8) return 24;
+	const viewsDiff = latestSnapshot.views - oldSnapshot.views;
+	if (viewsDiff === 0) return 72;
+	const speedPerDay = viewsDiff / hoursDiff * 24;
+	if (speedPerDay < 6) return 36;
+	if (speedPerDay < 120) return 24;
+	if (speedPerDay < 320) return 12;
+	return 6;
+}
+
 export const regularSnapshotsWorker = async (_job: Job) => {
 	const client = await db.connect();
 	const startedAt = Date.now();
@@ -145,7 +162,9 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const targetTime = truncate(lastSnapshotedAt + 24 * HOUR, now + 1, now + 100000 * WEEK);
+			const interval = await getRegularSnapshotInterval(client, aid);
+			logger.debug(`${interval} hours for aid ${aid}`, "mq")
+			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
 				return;
