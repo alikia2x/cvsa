@@ -133,7 +133,11 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 export const regularSnapshotsWorker = async (_job: Job) => {
 	const client = await db.connect();
 	const startedAt = Date.now();
-	await lockManager.acquireLock("dispatchRegularSnapshots");
+	if (await lockManager.isLocked("dispatchRegularSnapshots")) {
+		logger.log("dispatchRegularSnapshots is already running", "mq");
+		return;
+	}
+	await lockManager.acquireLock("dispatchRegularSnapshots", 30 * 60);
 	try {
 		const aids = await getVideosWithoutActiveSnapshotSchedule(client);
 		for (const rawAid of aids) {
