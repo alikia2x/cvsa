@@ -2,14 +2,14 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { formatTimestampToPsql } from "lib/utils/formatTimestampToPostgre.ts";
 import { SnapshotScheduleType } from "./schema.d.ts";
 import logger from "lib/log/logger.ts";
-import { DAY, MINUTE } from "$std/datetime/constants.ts";
+import { MINUTE } from "$std/datetime/constants.ts";
 import { redis } from "lib/db/redis.ts";
 import { Redis } from "ioredis";
 
-const WINDOW_SIZE = 2880; // 每天 2880 个 5 分钟窗口
-const REDIS_KEY = "cvsa:snapshot_window_counts"; // Redis Key 名称
+const WINDOW_SIZE = 2880;
+const REDIS_KEY = "cvsa:snapshot_window_counts";
 
-// 获取当前时间对应的窗口索引
+
 function getCurrentWindowIndex(): number {
 	const now = new Date();
 	const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
@@ -17,7 +17,6 @@ function getCurrentWindowIndex(): number {
 	return currentWindow;
 }
 
-// 刷新内存数组
 export async function refreshSnapshotWindowCounts(client: Client, redisClient: Redis) {
 	const now = new Date();
 	const startTime = now.getTime();
@@ -181,22 +180,24 @@ export async function adjustSnapshotTime(
 	const currentWindow = getCurrentWindowIndex();
 
 	// 计算目标窗口偏移量
-	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * 60 * 1000));
+	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE));
 
 	// 在 Redis 中查找可用窗口
 	for (let i = 0; i < WINDOW_SIZE; i++) {
 		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
 		const count = await getWindowCount(redisClient, offset);
-		logger.debug(`offset: ${offset}, count: ${count}, expectedStartTime: ${expectedStartTime}`);
 
 		if (count < allowedCounts) {
 			// 找到可用窗口，更新计数
 			await updateWindowCount(redisClient, offset, 1);
 
 			// 计算具体时间
-			const windowStart = new Date(Date.now() + offset * 5 * 60 * 1000);
-			const randomDelay = Math.floor(Math.random() * 5 * 60 * 1000);
-			return new Date(windowStart.getTime() + randomDelay);
+			const startPoint = new Date();
+			startPoint.setHours(0, 0, 0, 0);
+			const startTime = startPoint.getTime();
+			const windowStart = startTime + offset * 5 * MINUTE;
+			const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
+			return new Date(windowStart + randomDelay);
 		}
 	}
 
@@ -204,23 +205,6 @@ export async function adjustSnapshotTime(
 	return expectedStartTime;
 }
 
-export async function cleanupExpiredWindows(redisClient: Redis): Promise<void> {
-	const now = new Date();
-	const startTime = new Date(now.getTime() - 10 * DAY); // 保留最近 10 天的数据
-
-	// 获取所有窗口索引
-	const allOffsets = await redisClient.hkeys(REDIS_KEY);
-
-	// 删除过期窗口
-	for (const offsetStr of allOffsets) {
-		const offset = parseInt(offsetStr, 10);
-		const windowStart = new Date(startTime.getTime() + offset * 5 * MINUTE);
-
-		if (windowStart < startTime) {
-			await redisClient.hdel(REDIS_KEY, offsetStr);
-		}
-	}
-}
 
 export async function getSnapshotsInNextSecond(client: Client) {
 	const query = `
