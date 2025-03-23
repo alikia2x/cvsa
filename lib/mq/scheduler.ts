@@ -4,7 +4,6 @@ import { SlidingWindow } from "lib/mq/slidingWindow.ts";
 import { redis } from "lib/db/redis.ts";
 import Redis from "ioredis";
 import { SECOND } from "$std/datetime/constants.ts";
-import { randomUUID } from "node:crypto";
 
 interface Proxy {
 	type: string;
