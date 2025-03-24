@@ -159,8 +159,8 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  * @param aid The aid of the video.
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
  */
-export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number) {
-	if (await videoHasActiveSchedule(client, aid)) return;
+export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number, force: boolean = false) {
+	if (await videoHasActiveSchedule(client, aid) && !force) return;
 	let adjustedTime = new Date(targetTime);
 	if (type !== "milestone" && type !== "new") {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 1000, redis);

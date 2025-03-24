@@ -10,7 +10,7 @@ export async function collectSongs(client: Client) {
 		const exists = await aidExistsInSongs(client, aid);
 		if (exists) continue;
 		await insertIntoSongs(client, aid);
-		await scheduleSnapshot(client, aid, "new", Date.now() + 10 * MINUTE);
+		await scheduleSnapshot(client, aid, "new", Date.now() + 10 * MINUTE, true);
 		logger.log(`Video ${aid} was added into the songs table.`, "mq", "fn:collectSongs");
 	}
 }

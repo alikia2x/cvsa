@@ -227,7 +227,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 			if (viewsPerHour > 1000) {
 				intervalMins = 15;
 			}
-			await scheduleSnapshot(client, aid, type, Date.now() + intervalMins * MINUTE);
+			await scheduleSnapshot(client, aid, type, Date.now() + intervalMins * MINUTE, true);
 		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);
