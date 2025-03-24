@@ -44,6 +44,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 				priority = priorityMap[schedule.type];
 			}
 			const aid = Number(schedule.aid);
+			await setSnapshotStatus(client, schedule.id, "processing");
 			await SnapshotQueue.add("snapshotVideo", {
 				aid: aid,
 				id: Number(schedule.id),
