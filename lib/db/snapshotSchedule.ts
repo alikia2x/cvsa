@@ -217,7 +217,7 @@ export async function getSnapshotsInNextSecond(client: Client) {
 				ELSE 1
 			END,
 			started_at
-		LIMIT 3;
+		LIMIT 10;
 	`;
 	const res = await client.queryObject<SnapshotScheduleType>(query, []);
 	return res.rows;
