@@ -179,29 +179,31 @@ export async function adjustSnapshotTime(
 ): Promise<Date> {
 	const currentWindow = getCurrentWindowIndex();
 
-	// 计算目标窗口偏移量
 	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE));
 
-	// 在 Redis 中查找可用窗口
 	for (let i = 0; i < WINDOW_SIZE; i++) {
 		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
 		const count = await getWindowCount(redisClient, offset);
 
 		if (count < allowedCounts) {
-			// 找到可用窗口，更新计数
 			await updateWindowCount(redisClient, offset, 1);
 
-			// 计算具体时间
 			const startPoint = new Date();
 			startPoint.setHours(0, 0, 0, 0);
 			const startTime = startPoint.getTime();
 			const windowStart = startTime + offset * 5 * MINUTE;
 			const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
-			return new Date(windowStart + randomDelay);
+			const delayedDate = new Date(windowStart + randomDelay);
+			const now = new Date();
+
+			if (delayedDate.getTime() < now.getTime()) {
+				return now;
+			}
+
+			return delayedDate;
 		}
 	}
 
-	// 如果没有找到可用窗口，返回原始时间
 	return expectedStartTime;
 }
 
