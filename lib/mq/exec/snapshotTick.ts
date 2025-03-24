@@ -271,6 +271,7 @@ export const scheduleCleanupWorker = async (_job: Job) => {
 			const type = row.type;
 			await setSnapshotStatus(client, id, "timeout");
 			await scheduleSnapshot(client, aid, type, Date.now() + 10 * SECOND);
+			logger.log(`Schedule ${id} has no response received for 5 minutes, rescheduled.`, "mq", "fn:scheduleCleanupWorker")
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:scheduleCleanupWorker");
