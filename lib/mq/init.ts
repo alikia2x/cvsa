@@ -45,7 +45,10 @@ export async function initMQ() {
 			immediately: true,
 		});
 
-		await SnapshotQueue.removeJobScheduler("scheduleSnapshotTick");
+		await SnapshotQueue.upsertJobScheduler("scheduleCleanup", {
+			every: 30 * MINUTE,
+			immediately: true,
+		});
 
 		logger.log("Message queue initialized.");
 	} finally {
