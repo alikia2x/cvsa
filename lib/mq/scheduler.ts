@@ -333,6 +333,9 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 	},
 ];
 
+const bili_test = biliLimiterConfig;
+bili_test[3].max = 500
+
 /*
 Execution order for setup:
 
@@ -364,7 +367,7 @@ for (const region of regions) {
 netScheduler.addTask("getVideoInfo", "bilibili", "all");
 netScheduler.addTask("getLatestVideos", "bilibili", "all");
 netScheduler.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
-netScheduler.addTask("snapshotVideo", "bilibili", [
+netScheduler.addTask("snapshotVideo", "bili_test", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",
 	"alicloud-zhangjiakou",
@@ -375,7 +378,8 @@ netScheduler.addTask("snapshotVideo", "bilibili", [
 netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 netScheduler.setTaskLimiter("getLatestVideos", null);
 netScheduler.setTaskLimiter("snapshotMilestoneVideo", null);
-netScheduler.setTaskLimiter("snapshotVideo", videoInfoRateLimiterConfig);
+netScheduler.setTaskLimiter("snapshotVideo", null);
 netScheduler.setProviderLimiter("bilibili", biliLimiterConfig);
+netScheduler.setProviderLimiter("bili_test", bili_test);
 
 export default netScheduler;
