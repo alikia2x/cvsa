@@ -10,6 +10,7 @@ import {
 	scheduleSnapshot,
 	setSnapshotStatus,
 	snapshotScheduleExists,
+	videoHasProcessingSchedule,
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
@@ -38,6 +39,9 @@ export const snapshotTickWorker = async (_job: Job) => {
 	try {
 		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
+			if (await videoHasProcessingSchedule(client, schedule.aid)) {
+				return `ALREADY_PROCESSING`;
+			}
 			let priority = 3;
 			if (schedule.type && priorityMap[schedule.type]) {
 				priority = priorityMap[schedule.type];
@@ -192,6 +196,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		return;
 	}
 	try {
+		await setSnapshotStatus(client, id, "processing");
 		const stat = await insertVideoSnapshot(client, aid, task);
 		if (typeof stat === "number") {
 			await setBiliVideoStatus(client, aid, stat);
