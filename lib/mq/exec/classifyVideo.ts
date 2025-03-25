@@ -7,6 +7,8 @@ import logger from "lib/log/logger.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { aidExistsInSongs } from "lib/db/songs.ts";
 import { insertIntoSongs } from "lib/mq/task/collectSongs.ts";
+import { scheduleSnapshot } from "lib/db/snapshotSchedule.ts";
+import { MINUTE } from "$std/datetime/constants.ts";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const client = await db.connect();
@@ -27,6 +29,7 @@ export const classifyVideoWorker = async (job: Job) => {
 
 	const exists = await aidExistsInSongs(client, aid);
 	if (!exists && label !== 0) {
+		await scheduleSnapshot(client, aid, "new", Date.now() + 10 * MINUTE, true);
 		await insertIntoSongs(client, aid);
 	}
 
