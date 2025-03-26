@@ -249,13 +249,28 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 
 			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
 		}
+		await bulkSetSnapshotStatus(client, ids, "completed");
 		for (const aid of aidsToFetch) {
 			const interval = await getRegularSnapshotInterval(client, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			await scheduleSnapshot(client, aid, "normal", Date.now() + interval * HOUR);
 		}
 		return `DONE`;
-	} finally {
+	} catch (e) {
+		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
+			logger.warn(
+				`No available proxy for aid ${job.data.aid}.`,
+				"mq",
+				"fn:takeSnapshotForVideoWorker",
+			);
+			await bulkSetSnapshotStatus(client, ids, "completed");
+			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 2 * MINUTE);
+			return;
+		}
+		logger.error(e as Error, "mq", "fn:takeSnapshotForVideoWorker");
+		await bulkSetSnapshotStatus(client, ids, "failed");
+	}
+	finally {
 		client.release();
 	}
 };
