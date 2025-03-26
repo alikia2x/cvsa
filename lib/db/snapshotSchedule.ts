@@ -9,8 +9,6 @@ import { Redis } from "ioredis";
 const WINDOW_SIZE = 2880;
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
-let lastAvailableWindow: { offset: number; count: number } | null = null;
-
 function getCurrentWindowIndex(): number {
 	const now = new Date();
 	const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
@@ -44,8 +42,6 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
 	}
-	
-	lastAvailableWindow = null;
 }
 
 export async function initSnapshotWindowCounts(client: Client, redisClient: Redis) {
@@ -218,11 +214,7 @@ export async function adjustSnapshotTime(
 	const currentWindow = getCurrentWindowIndex();
 	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE)) - 6;
 
-	let initialOffset = currentWindow + Math.max(targetOffset, 0);
-
-	if (lastAvailableWindow && lastAvailableWindow.count < allowedCounts) {
-		initialOffset = Math.max(lastAvailableWindow.offset - 2, 0);
-	}
+	const initialOffset = currentWindow + Math.max(targetOffset, 0);
 
 	let timePerIteration = 0;
 	const t = performance.now();
@@ -231,8 +223,7 @@ export async function adjustSnapshotTime(
 		const count = await getWindowCount(redisClient, offset);
 
 		if (count < allowedCounts) {
-			const newCount = await redisClient.hincrby(REDIS_KEY, offset.toString(), 1);
-			lastAvailableWindow = { offset, count: newCount };
+			await redisClient.hincrby(REDIS_KEY, offset.toString(), 1);
 
 			const startPoint = new Date();
 			startPoint.setHours(0, 0, 0, 0);
