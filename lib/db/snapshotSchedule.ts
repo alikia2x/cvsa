@@ -207,7 +207,7 @@ export async function adjustSnapshotTime(
 	let initialOffset = 0;
 
 	if (lastAvailableWindow && lastAvailableWindow.count < allowedCounts) {
-		initialOffset = lastAvailableWindow.offset;
+		initialOffset = Math.max(lastAvailableWindow.offset - 2, 0);
 	}
 
 	let timePerIteration = 0;

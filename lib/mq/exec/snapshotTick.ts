@@ -160,6 +160,7 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 	const startedAt = Date.now();
 	if (await lockManager.isLocked("dispatchRegularSnapshots")) {
 		logger.log("dispatchRegularSnapshots is already running", "mq");
+		client.release();
 		return;
 	}
 	await lockManager.acquireLock("dispatchRegularSnapshots", 30 * 60);

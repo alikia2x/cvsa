@@ -9,6 +9,24 @@ export type VideoListResponse = BaseResponse<VideoListData>;
 export type VideoDetailsResponse = BaseResponse<VideoDetailsData>;
 export type VideoTagsResponse = BaseResponse<VideoTagsData>;
 export type VideoInfoResponse = BaseResponse<VideoInfoData>;
+export type MediaListInfoResponse = BaseResponse<MediaListInfoData>;
+
+type MediaListInfoData = MediaListInfoItem[];
+
+
+interface MediaListInfoItem {
+    bvid: string;
+	id: number;
+	cnt_info: {
+		coin: number;
+		collect: number;
+		danmaku: number;
+		play: number;
+		reply: number;
+		share: number;
+		thumb_up: number;
+	}
+}
 
 interface VideoInfoData {
 	bvid: string;
