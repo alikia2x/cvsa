@@ -171,6 +171,7 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
 			const interval = await getRegularSnapshotInterval(client, aid);
+			logger.log(`Schedule regular snapshot for aid ${aid} in ${interval} hours.`, "mq")
 			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
 			await scheduleSnapshot(client, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
@@ -207,6 +208,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		await setSnapshotStatus(client, id, "completed");
 		if (type === "normal") {
 			const interval = await getRegularSnapshotInterval(client, aid);
+			logger.log(`Schedule regular snapshot for aid ${aid} in ${interval} hours.`, "mq")
 			await scheduleSnapshot(client, aid, type, Date.now() + interval * HOUR);
 			return `DONE`;
 		} else if (type === "new") {
