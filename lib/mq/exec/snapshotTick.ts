@@ -15,6 +15,7 @@ import {
 	setSnapshotStatus,
 	snapshotScheduleExists,
 	videoHasProcessingSchedule,
+	getBulkSnapshotsInNextSecond
 } from "lib/db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
@@ -39,10 +40,10 @@ const snapshotTypeToTaskMap: { [key: string]: string } = {
 	"new": "snapshotMilestoneVideo",
 };
 
-export const snapshotTickWorker = async (_job: Job) => {
+export const bulkSnapshotTickWorker = async (_job: Job) => {
 	const client = await db.connect();
 	try {
-		const schedules = await getSnapshotsInNextSecond(client);
+		const schedules = await getBulkSnapshotsInNextSecond(client);
 		const count = schedules.length;
 		const groups = Math.ceil(count / 30);
 		for (let i = 0; i < groups; i++) {
@@ -60,6 +61,17 @@ export const snapshotTickWorker = async (_job: Job) => {
 				map: dataMap,
 			}, { priority: 3 });
 		}
+	} catch (e) {
+		logger.error(e as Error);
+	} finally {
+		client.release();
+	}
+};
+
+export const snapshotTickWorker = async (_job: Job) => {
+	const client = await db.connect();
+	try {
+		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
 			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
 				return `ALREADY_PROCESSING`;

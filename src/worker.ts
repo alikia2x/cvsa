@@ -11,7 +11,8 @@ import {
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
 	scheduleCleanupWorker,
-	takeBulkSnapshotForVideosWorker
+	takeBulkSnapshotForVideosWorker,
+	bulkSnapshotTickWorker
 } from "lib/mq/exec/snapshotTick.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
@@ -87,6 +88,9 @@ const snapshotWorker = new Worker(
 				break;
 			case "bulkSnapshotVideo":
 				await takeBulkSnapshotForVideosWorker(job);
+				break;
+			case "bulkSnapshotTick":
+				await bulkSnapshotTickWorker(job);
 				break;
 			default:
 				break;

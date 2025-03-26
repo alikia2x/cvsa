@@ -256,13 +256,25 @@ export async function getSnapshotsInNextSecond(client: Client) {
 	const query = `
 		SELECT *
 		FROM snapshot_schedule
-		WHERE started_at <= NOW() + INTERVAL '1 seconds' AND status = 'pending'
+		WHERE started_at <= NOW() + INTERVAL '1 seconds' AND status = 'pending' AND type != 'normal'
 		ORDER BY
 			CASE
 				WHEN type = 'milestone' THEN 0
 				ELSE 1
 			END,
 			started_at
+		LIMIT 10;
+	`;
+	const res = await client.queryObject<SnapshotScheduleType>(query, []);
+	return res.rows;
+}
+
+export async function getBulkSnapshotsInNextSecond(client: Client) {
+    const query = `
+		SELECT *
+		FROM snapshot_schedule
+		WHERE started_at <= NOW() + INTERVAL '15 seconds' AND status = 'pending' AND type = 'normal'
+		ORDER BY started_at
 		LIMIT 100;
 	`;
 	const res = await client.queryObject<SnapshotScheduleType>(query, []);
