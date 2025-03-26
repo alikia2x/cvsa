@@ -84,6 +84,14 @@ export async function videoHasProcessingSchedule(client: Client, aid: number) {
 	return res.rows.length > 0;
 }
 
+export async function bulkGetVideosWithoutProcessingSchedules(client: Client, aids: number[]) {
+	const res = await client.queryObject<{ aid: number }>(
+		`SELECT aid FROM snapshot_schedule WHERE aid = ANY($1) AND status != 'processing' GROUP BY aid`,
+		[aids],
+	);
+	return res.rows.map((row) => row.aid);
+}
+
 interface Snapshot {
 	created_at: number;
 	views: number;
@@ -194,6 +202,12 @@ export async function scheduleSnapshot(client: Client, aid: number, type: string
 		`INSERT INTO snapshot_schedule (aid, type, started_at) VALUES ($1, $2, $3)`,
 		[aid, type, adjustedTime.toISOString()],
 	);
+}
+
+export async function bulkScheduleSnapshot(client: Client, aids: number[], type: string, targetTime: number, force: boolean = false) {
+	for (const aid of aids) {
+		await scheduleSnapshot(client, aid, type, targetTime, force);
+	}
 }
 
 export async function adjustSnapshotTime(
