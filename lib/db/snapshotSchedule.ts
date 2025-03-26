@@ -236,18 +236,18 @@ export async function adjustSnapshotTime(
 			if (delayedDate.getTime() < now.getTime()) {
 				const elapsed = performance.now() - t;
 				timePerIteration = elapsed / (i+1);
-				logger.log(`${timePerIteration.toFixed(3)}ms * ${i+1}iterations`, "perf", "fn:adjustSnapshotTime");
+				logger.log(`${timePerIteration.toFixed(3)}ms * ${i+1} iterations`, "perf", "fn:adjustSnapshotTime");
 				return now;
 			}
 			const elapsed = performance.now() - t;
 			timePerIteration = elapsed / (i+1);
-			logger.log(`${timePerIteration.toFixed(3)}ms * ${i+1}iterations`, "perf", "fn:adjustSnapshotTime");
+			logger.log(`${timePerIteration.toFixed(3)}ms * ${i+1} iterations`, "perf", "fn:adjustSnapshotTime");
 			return delayedDate;
 		}
 	}
 	const elapsed = performance.now() - t;
 	timePerIteration = elapsed / WINDOW_SIZE;
-	logger.log(`${timePerIteration.toFixed(3)}ms * ${WINDOW_SIZE}iterations`, "perf", "fn:adjustSnapshotTime");
+	logger.log(`${timePerIteration.toFixed(3)}ms * ${WINDOW_SIZE} iterations`, "perf", "fn:adjustSnapshotTime");
 	return expectedStartTime;
 }
 
