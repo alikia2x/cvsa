@@ -75,3 +75,13 @@ export async function setBiliVideoStatus(client: Client, aid: number, status: nu
 		[status, aid],
 	);
 }
+
+export async function getBiliVideoStatus(client: Client, aid: number) {
+	const queryResult = await client.queryObject<{ status: number }>(
+		`SELECT status FROM bilibili_metadata WHERE aid = $1`,
+		[aid],
+	);
+	const rows = queryResult.rows;
+	if (rows.length === 0) return 0;
+	return rows[0].status;
+}

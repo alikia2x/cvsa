@@ -19,7 +19,7 @@ import logger from "lib/log/logger.ts";
 import { SnapshotQueue } from "lib/mq/index.ts";
 import { insertVideoSnapshot } from "lib/mq/task/getVideoStats.ts";
 import { NetSchedulerError } from "lib/mq/scheduler.ts";
-import { setBiliVideoStatus } from "lib/db/allData.ts";
+import { getBiliVideoStatus, setBiliVideoStatus } from "lib/db/allData.ts";
 import { truncate } from "lib/utils/truncate.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { getSongsPublihsedAt } from "lib/db/songs.ts";
@@ -197,13 +197,15 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 	if (!exists) {
 		return;
 	}
+	const status = await getBiliVideoStatus(client, aid);
+	if (status !== 0) return `REFUSE_WORKING_BILI_STATUS_${status}`
 	try {
 		await setSnapshotStatus(client, id, "processing");
 		const stat = await insertVideoSnapshot(client, aid, task);
 		if (typeof stat === "number") {
 			await setBiliVideoStatus(client, aid, stat);
 			await setSnapshotStatus(client, id, "completed");
-			return `BILI_STATUS_${stat}`;
+			return `GET_BILI_STATUS_${stat}`;
 		}
 		await setSnapshotStatus(client, id, "completed");
 		if (type === "normal") {
