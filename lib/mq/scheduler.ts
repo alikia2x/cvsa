@@ -334,7 +334,10 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 ];
 
 const bili_test = biliLimiterConfig;
-bili_test[3].max = 500
+bili_test[0].max = 10;
+bili_test[1].max = 36;
+bili_test[2].max = 150;
+bili_test[3].max = 1000;
 
 /*
 Execution order for setup:

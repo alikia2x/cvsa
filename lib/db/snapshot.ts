@@ -7,6 +7,7 @@ export async function getVideosNearMilestone(client: Client) {
         FROM latest_video_snapshot ls
         INNER JOIN
              songs s ON ls.aid = s.aid
+			 AND s.deleted = false
         WHERE
             s.deleted = false AND
             (views >= 90000 AND views < 100000) OR
