@@ -47,20 +47,21 @@ export const snapshotTickWorker = async (_job: Job) => {
 		const groups = Math.ceil(count / 30);
 		for (let i = 0; i < groups; i++) {
 			const group = schedules.slice(i * 30, (i + 1) * 30);
-			const aids = group.map((schedule) => schedule.aid);
+			const aids = group.map((schedule) => Number(schedule.aid));
 			const filteredAids = await bulkGetVideosWithoutProcessingSchedules(client, aids);
 			if (filteredAids.length === 0) continue;
 			await bulkSetSnapshotStatus(client, filteredAids, "processing");
 			const dataMap: { [key: number]: number } = {};
 			for (const schedule of group) {
-				dataMap[schedule.id] = schedule.aid;
+				const id = Number(schedule.id);
+				dataMap[id] = Number(schedule.aid);
 			}
 			await SnapshotQueue.add("bulkSnapshotVideo", {
 				map: dataMap,
 			}, { priority: 3 });
 		}
 		for (const schedule of schedules) {
-			if (await videoHasProcessingSchedule(client, schedule.aid)) {
+			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
 				return `ALREADY_PROCESSING`;
 			}
 			let priority = 3;
