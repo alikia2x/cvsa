@@ -202,9 +202,9 @@ export async function adjustSnapshotTime(
 	redisClient: Redis,
 ): Promise<Date> {
 	const currentWindow = getCurrentWindowIndex();
-	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE));
+	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE)) - 6;
 
-	let initialOffset = 0;
+	let initialOffset = currentWindow + Math.max(targetOffset, 0);
 
 	if (lastAvailableWindow && lastAvailableWindow.count < allowedCounts) {
 		initialOffset = Math.max(lastAvailableWindow.offset - 2, 0);
@@ -213,7 +213,7 @@ export async function adjustSnapshotTime(
 	let timePerIteration = 0;
 	const t = performance.now();
 	for (let i = initialOffset; i < WINDOW_SIZE; i++) {
-		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
+		const offset = i;
 		const count = await getWindowCount(redisClient, offset);
 
 		if (count < allowedCounts) {
