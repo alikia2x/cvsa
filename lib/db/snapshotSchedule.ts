@@ -114,6 +114,31 @@ export async function findClosestSnapshot(
 	};
 }
 
+export async function findSnapshotBefore(
+	client: Client,
+	aid: number,
+	targetTime: Date,
+): Promise<Snapshot | null> {
+	const query = `
+        SELECT created_at, views
+        FROM video_snapshot
+        WHERE aid = $1
+		AND created_at <= $2::timestamptz
+        ORDER BY created_at DESC
+        LIMIT 1
+	`;
+	const result = await client.queryObject<{ created_at: string; views: number }>(
+		query,
+		[aid, targetTime.toISOString()],
+	);
+	if (result.rows.length === 0) return null;
+	const row = result.rows[0];
+	return {
+		created_at: new Date(row.created_at).getTime(),
+		views: row.views,
+	};
+}
+
 export async function hasAtLeast2Snapshots(client: Client, aid: number) {
 	const res = await client.queryObject<{ count: number }>(
 		`SELECT COUNT(*) FROM video_snapshot WHERE aid = $1`,

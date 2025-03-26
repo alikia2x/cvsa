@@ -3,6 +3,7 @@ import { db } from "lib/db/init.ts";
 import { getLatestVideoSnapshot, getVideosNearMilestone } from "lib/db/snapshot.ts";
 import {
 	findClosestSnapshot,
+	findSnapshotBefore,
 	getLatestSnapshot,
 	getSnapshotsInNextSecond,
 	getVideosWithoutActiveSnapshotSchedule,
@@ -139,7 +140,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 const getRegularSnapshotInterval = async (client: Client, aid: number) => {
 	const now = Date.now();
 	const date = new Date(now - 24 * HOUR);
-	const oldSnapshot = await findClosestSnapshot(client, aid, date);
+	const oldSnapshot = await findSnapshotBefore(client, aid, date);
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	if (!oldSnapshot || !latestSnapshot) return 0;
 	if (oldSnapshot.created_at === latestSnapshot.created_at) return 0;
