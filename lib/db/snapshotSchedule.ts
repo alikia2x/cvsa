@@ -9,6 +9,7 @@ import { Redis } from "ioredis";
 const WINDOW_SIZE = 2880;
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
+let lastAvailableWindow: { offset: number; count: number } | null = null;
 
 function getCurrentWindowIndex(): number {
 	const now = new Date();
@@ -43,6 +44,8 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
 	}
+	
+	lastAvailableWindow = null;
 }
 
 export async function initSnapshotWindowCounts(client: Client, redisClient: Redis) {
@@ -55,10 +58,6 @@ export async function initSnapshotWindowCounts(client: Client, redisClient: Redi
 async function getWindowCount(redisClient: Redis, offset: number): Promise<number> {
 	const count = await redisClient.hget(REDIS_KEY, offset.toString());
 	return count ? parseInt(count, 10) : 0;
-}
-
-async function updateWindowCount(redisClient: Redis, offset: number, increment: number): Promise<void> {
-	await redisClient.hincrby(REDIS_KEY, offset.toString(), increment);
 }
 
 export async function snapshotScheduleExists(client: Client, id: number) {
@@ -203,17 +202,23 @@ export async function adjustSnapshotTime(
 	redisClient: Redis,
 ): Promise<Date> {
 	const currentWindow = getCurrentWindowIndex();
-
 	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE));
+
+	let initialOffset = 0;
+
+	if (lastAvailableWindow && lastAvailableWindow.count < allowedCounts) {
+		initialOffset = lastAvailableWindow.offset;
+	}
 
 	let timePerIteration = 0;
 	const t = performance.now();
-	for (let i = 0; i < WINDOW_SIZE; i++) {
+	for (let i = initialOffset; i < WINDOW_SIZE; i++) {
 		const offset = (currentWindow + targetOffset + i) % WINDOW_SIZE;
 		const count = await getWindowCount(redisClient, offset);
 
 		if (count < allowedCounts) {
-			await updateWindowCount(redisClient, offset, 1);
+			const newCount = await redisClient.hincrby(REDIS_KEY, offset.toString(), 1);
+			lastAvailableWindow = { offset, count: newCount };
 
 			const startPoint = new Date();
 			startPoint.setHours(0, 0, 0, 0);
