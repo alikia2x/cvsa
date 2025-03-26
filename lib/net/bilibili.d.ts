@@ -11,10 +11,11 @@ export type VideoTagsResponse = BaseResponse<VideoTagsData>;
 export type VideoInfoResponse = BaseResponse<VideoInfoData>;
 export type MediaListInfoResponse = BaseResponse<MediaListInfoData>;
 
-type MediaListInfoData = MediaListInfoItem[];
+export type MediaListInfoData = MediaListInfoItem[];
 
 
-interface MediaListInfoItem {
+export interface MediaListInfoItem {
+	attr: number;
     bvid: string;
 	id: number;
 	cnt_info: {

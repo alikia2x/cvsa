@@ -271,6 +271,13 @@ export async function setSnapshotStatus(client: Client, id: number, status: stri
 	);
 }
 
+export async function bulkSetSnapshotStatus(client: Client, ids: number[], status: string) {
+	return await client.queryObject(
+		`UPDATE snapshot_schedule SET status = $2 WHERE id = ANY($1)`,
+		[ids, status],
+	);
+}
+
 export async function getVideosWithoutActiveSnapshotSchedule(client: Client) {
 	const query: string = `
 		SELECT s.aid

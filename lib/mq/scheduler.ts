@@ -339,6 +339,12 @@ bili_test[1].max = 36;
 bili_test[2].max = 150;
 bili_test[3].max = 1000;
 
+const bili_strict = biliLimiterConfig;
+bili_strict[0].max = 4;
+bili_strict[1].max = 8;
+bili_strict[2].max = 30;
+bili_strict[3].max = 100;
+
 /*
 Execution order for setup:
 
@@ -378,11 +384,21 @@ netScheduler.addTask("snapshotVideo", "bili_test", [
 	"alicloud-shenzhen",
 	"alicloud-hohhot",
 ]);
+netScheduler.addTask("bulkSnapshot", "bili_strict", [
+	"alicloud-qingdao",
+	"alicloud-shanghai",
+	"alicloud-zhangjiakou",
+	"alicloud-chengdu",
+	"alicloud-shenzhen",
+	"alicloud-hohhot",
+]);
 netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 netScheduler.setTaskLimiter("getLatestVideos", null);
 netScheduler.setTaskLimiter("snapshotMilestoneVideo", null);
 netScheduler.setTaskLimiter("snapshotVideo", null);
+netScheduler.setTaskLimiter("bulkSnapshot", null);
 netScheduler.setProviderLimiter("bilibili", biliLimiterConfig);
 netScheduler.setProviderLimiter("bili_test", bili_test);
+netScheduler.setProviderLimiter("bili_strict", bili_strict);
 
 export default netScheduler;

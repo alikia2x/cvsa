@@ -2,6 +2,7 @@ import { Job } from "bullmq";
 import { db } from "lib/db/init.ts";
 import { getLatestVideoSnapshot, getVideosNearMilestone } from "lib/db/snapshot.ts";
 import {
+	bulkSetSnapshotStatus,
 	findClosestSnapshot,
 	findSnapshotBefore,
 	getLatestSnapshot,
@@ -23,6 +24,7 @@ import { getBiliVideoStatus, setBiliVideoStatus } from "lib/db/allData.ts";
 import { truncate } from "lib/utils/truncate.ts";
 import { lockManager } from "lib/mq/lockManager.ts";
 import { getSongsPublihsedAt } from "lib/db/songs.ts";
+import { bulkGetVideoStats } from "lib/net/bulkGetVideoStats.ts";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
@@ -186,6 +188,31 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 		client.release();
 	}
 };
+
+export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
+	const dataMap: {[key: number]: number} = job.data.map;
+	const ids = Object.keys(dataMap).map((id) => Number(id));
+	const aidsToFetch: number[] = [];
+	const client = await db.connect();
+	try {
+		for (const id of ids) {
+			const aid = Number(dataMap[id]);
+			const exists = await snapshotScheduleExists(client, id);
+			if (!exists) {
+				continue
+			}
+			aidsToFetch.push(aid);
+		}
+		const data = await bulkGetVideoStats(aidsToFetch);
+		if (typeof data === "number") {
+			await bulkSetSnapshotStatus(client, ids, "failed");
+			return `GET_BILI_STATUS_${data}`;
+		}
+	}
+	finally {
+		client.release();
+	}
+}
 
 export const takeSnapshotForVideoWorker = async (job: Job) => {
 	const id = job.data.id;
