@@ -195,10 +195,14 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 	const retryInterval = type === "milestone" ? 5 * SECOND : 2 * MINUTE;
 	const exists = await snapshotScheduleExists(client, id);
 	if (!exists) {
+		client.release();
 		return;
 	}
 	const status = await getBiliVideoStatus(client, aid);
-	if (status !== 0) return `REFUSE_WORKING_BILI_STATUS_${status}`
+	if (status !== 0) {
+		client.release();
+		return `REFUSE_WORKING_BILI_STATUS_${status}`;
+	}
 	try {
 		await setSnapshotStatus(client, id, "processing");
 		const stat = await insertVideoSnapshot(client, aid, task);
