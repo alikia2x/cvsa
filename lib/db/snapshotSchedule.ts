@@ -275,7 +275,7 @@ export async function getBulkSnapshotsInNextSecond(client: Client) {
 		FROM snapshot_schedule
 		WHERE started_at <= NOW() + INTERVAL '15 seconds' AND status = 'pending' AND type = 'normal'
 		ORDER BY started_at
-		LIMIT 100;
+		LIMIT 1000;
 	`;
 	const res = await client.queryObject<SnapshotScheduleType>(query, []);
 	return res.rows;
