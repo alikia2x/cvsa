@@ -88,7 +88,7 @@ const snapshotWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 10, removeOnComplete: { count: 2000 } },
+	{ connection: redis as ConnectionOptions, concurrency: 50, removeOnComplete: { count: 2000 } },
 );
 
 snapshotWorker.on("error", (err) => {
