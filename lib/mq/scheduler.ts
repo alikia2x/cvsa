@@ -333,13 +333,13 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 	},
 ];
 
-const bili_test = biliLimiterConfig;
+const bili_test = [...biliLimiterConfig];
 bili_test[0].max = 10;
 bili_test[1].max = 36;
 bili_test[2].max = 150;
 bili_test[3].max = 1000;
 
-const bili_strict = biliLimiterConfig;
+const bili_strict = [...biliLimiterConfig];
 bili_strict[0].max = 4;
 bili_strict[1].max = 8;
 bili_strict[2].max = 30;
