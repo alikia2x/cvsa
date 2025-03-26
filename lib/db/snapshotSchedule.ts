@@ -6,7 +6,6 @@ import { MINUTE } from "$std/datetime/constants.ts";
 import { redis } from "lib/db/redis.ts";
 import { Redis } from "ioredis";
 
-const WINDOW_SIZE = 2880;
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
 function getCurrentWindowIndex(): number {
@@ -38,7 +37,7 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 	for (const row of result.rows) {
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
 		const offset = (currentWindow + targetOffset);
-		if (offset >= 0 && offset < WINDOW_SIZE) {
+		if (offset >= 0) {
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
 	}
@@ -217,8 +216,9 @@ export async function adjustSnapshotTime(
 	const initialOffset = currentWindow + Math.max(targetOffset, 0);
 
 	let timePerIteration = 0;
+	const MAX_ITERATIONS = 2880;
 	const t = performance.now();
-	for (let i = initialOffset; i < WINDOW_SIZE; i++) {
+	for (let i = initialOffset; i < MAX_ITERATIONS; i++) {
 		const offset = i;
 		const count = await getWindowCount(redisClient, offset);
 
@@ -246,8 +246,8 @@ export async function adjustSnapshotTime(
 		}
 	}
 	const elapsed = performance.now() - t;
-	timePerIteration = elapsed / WINDOW_SIZE;
-	logger.log(`${timePerIteration.toFixed(3)}ms * ${WINDOW_SIZE} iterations`, "perf", "fn:adjustSnapshotTime");
+	timePerIteration = elapsed / MAX_ITERATIONS;
+	logger.log(`${timePerIteration.toFixed(3)}ms * ${MAX_ITERATIONS} iterations`, "perf", "fn:adjustSnapshotTime");
 	return expectedStartTime;
 }
 
