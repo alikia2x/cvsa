@@ -259,15 +259,15 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
 			logger.warn(
-				`No available proxy for aid ${job.data.aid}.`,
+				`No available proxy for bulk request now.`,
 				"mq",
-				"fn:takeSnapshotForVideoWorker",
+				"fn:takeBulkSnapshotForVideosWorker",
 			);
 			await bulkSetSnapshotStatus(client, ids, "completed");
 			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 2 * MINUTE);
 			return;
 		}
-		logger.error(e as Error, "mq", "fn:takeSnapshotForVideoWorker");
+		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
 		await bulkSetSnapshotStatus(client, ids, "failed");
 	}
 	finally {
