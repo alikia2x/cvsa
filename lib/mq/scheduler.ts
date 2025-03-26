@@ -340,9 +340,9 @@ bili_test[2].max = 150;
 bili_test[3].max = 1000;
 
 const bili_strict = [...biliLimiterConfig];
-bili_strict[0].max = 4;
-bili_strict[1].max = 8;
-bili_strict[2].max = 30;
+bili_strict[0].max = 1;
+bili_strict[1].max = 4;
+bili_strict[2].max = 12;
 bili_strict[3].max = 100;
 
 /*
