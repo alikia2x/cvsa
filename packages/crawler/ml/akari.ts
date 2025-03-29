@@ -5,8 +5,8 @@ import { WorkerError } from "mq/schema.ts";
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
-const onnxClassifierPath = "./model/akari/3.17.onnx";
-const onnxEmbeddingPath = "./model/embedding/model.onnx";
+const onnxClassifierPath = "../../model/akari/3.17.onnx";
+const onnxEmbeddingPath = "../../model/embedding/model.onnx";
 
 class AkariProto extends AIManager {
 	private tokenizer: PreTrainedTokenizer | null = null;

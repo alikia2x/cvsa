@@ -4,4 +4,4 @@
 // SO HERE'S A PLACHOLDER EXPORT FOR DENO:
 export const DENO = "FUCK YOU DENO";
 // Oh, maybe export the version is a good idea
-export const VERSION = "1.0.12";
+export const VERSION = "1.0.13";
