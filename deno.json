@@ -14,6 +14,7 @@
     },
     "imports": {
         "@astrojs/node": "npm:@astrojs/node@^9.1.3",
-        "@astrojs/svelte": "npm:@astrojs/svelte@^7.0.8"
+        "@astrojs/svelte": "npm:@astrojs/svelte@^7.0.8",
+		"@core/db/": "./packages/core/db/"
     }
 }

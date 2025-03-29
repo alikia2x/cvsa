@@ -7,14 +7,19 @@
     import DarkModeImage from "./DarkModeImage.svelte";
     import CloseIcon from "./CloseIcon.svelte";
 
+    let searchBox: SearchBox | null = null;
     let showSearchBox = false;
+
+    $: if (showSearchBox && searchBox) {
+        searchBox.changeFocusState(true);
+    }
 </script>
 
 <div class="md:hidden fixed top-0 left-0 w-full h-16 bg-white/80 dark:bg-zinc-800/70 backdrop-blur-lg z-100">
     {#if !showSearchBox}
-        <div class="inline-block ml-4 mt-4 text-white">
+        <button class="inline-block ml-4 mt-4 text-white">
             <MenuIcon />
-        </div>
+        </button>
         <div class="ml-8 inline-flex h-full items-center">
             <a href="/">
                 <DarkModeImage
@@ -27,7 +32,7 @@
         </div>
     {/if}
     {#if showSearchBox}
-        <SearchBox autoFocus={true} />
+        <SearchBox bind:this={searchBox} />
     {/if}
     <button
         class="inline-flex absolute right-0 h-full items-center mr-4"

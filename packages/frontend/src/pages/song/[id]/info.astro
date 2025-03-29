@@ -1,0 +1,88 @@
+---
+import Layout from "@layouts/Layout.astro";
+import pg from 'pg'
+import { postgresConfig } from "@core/db/pgConfig.ts";
+
+// 路由参数
+const { id } = Astro.params;
+const { Client } = pg
+const client = new Client(postgresConfig);
+await client.connect();
+
+// 数据库查询函数
+async function getVideoMetadata(aid: number) {
+    const res = await client.query('SELECT * FROM bilibili_metadata WHERE aid = $1', [aid]);
+    if (res.rows.length <= 0) {
+        return null
+    }
+    const row = res.rows[0];
+    if (row) {
+        return row;
+    }
+    return {};
+}
+
+async function getVideoSnapshots(aid: number) {
+    // TODO: 实现video_snapshot表查询，按created_at排序，限制100条
+    const res = await client.query('SELECT * FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC LIMIT 100', [aid]);
+    if (res.rows.length <= 0) {
+        return null
+    }
+    return res.rows;
+}
+
+async function getAidFromBV(bv: string) {
+    const res = await client.query('SELECT aid FROM bilibili_metadata WHERE bvid = $1', [bv]);
+    if (res.rows.length <= 0) {
+        return null
+    }
+    const row = res.rows[0];
+    if (row && row.aid) {
+        return Number(row.aid);
+    }
+    return null;
+}
+
+async function getVideoAid(id: string) {
+    if (id.startsWith("av")) {
+        return parseInt(id.slice(2));
+    } else if (id.startsWith("BV")) {
+        return getAidFromBV(id);
+    }
+    return parseInt(id);
+}
+
+// 获取数据
+if (!id) {
+    Astro.response.status = 404;
+    client.end();
+    return new Response(null, { status: 404 });
+}
+const aid = await getVideoAid(id);
+if (!aid || isNaN(aid)) {
+    Astro.response.status = 404;
+    client.end();
+    return new Response(null, { status: 404 });
+}
+const videoInfo = await getVideoMetadata(aid);
+const snapshots = await getVideoSnapshots(aid);
+client.end();
+---
+
+<Layout>
+    <div class="max-w-4xl mx-auto rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-4">视频信息: {aid}</h1>
+
+        <!-- 视频基本信息 -->
+        <div class="mb-6 p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-2">基本信息</h2>
+            <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded text-wrap">{JSON.stringify(videoInfo, null, 2)}</pre>
+        </div>
+
+        <!-- 视频快照数据 -->
+        <div class="p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-2">快照历史数据 (最新100条)</h2>
+            <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded">{JSON.stringify(snapshots, null, 2)}</pre>
+        </div>
+    </div>
+</Layout>
