@@ -1,19 +1,22 @@
 ---
 import Layout from "@layouts/Layout.astro";
-import pg from 'pg'
+import TitleBar from "@components/TitleBar.astro";
+import pg from "pg";
 import { postgresConfig } from "@core/db/pgConfig.ts";
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
 // 路由参数
 const { id } = Astro.params;
-const { Client } = pg
+const { Client } = pg;
 const client = new Client(postgresConfig);
 await client.connect();
 
 // 数据库查询函数
 async function getVideoMetadata(aid: number) {
-    const res = await client.query('SELECT * FROM bilibili_metadata WHERE aid = $1', [aid]);
+    const res = await client.query("SELECT * FROM bilibili_metadata WHERE aid = $1", [aid]);
     if (res.rows.length <= 0) {
-        return null
+        return null;
     }
     const row = res.rows[0];
     if (row) {
@@ -23,18 +26,19 @@ async function getVideoMetadata(aid: number) {
 }
 
 async function getVideoSnapshots(aid: number) {
-    // TODO: 实现video_snapshot表查询，按created_at排序，限制100条
-    const res = await client.query('SELECT * FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC LIMIT 100', [aid]);
+    const res = await client.query("SELECT * FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC", [
+        aid,
+    ]);
     if (res.rows.length <= 0) {
-        return null
+        return null;
     }
     return res.rows;
 }
 
 async function getAidFromBV(bv: string) {
-    const res = await client.query('SELECT aid FROM bilibili_metadata WHERE bvid = $1', [bv]);
+    const res = await client.query("SELECT aid FROM bilibili_metadata WHERE bvid = $1", [bv]);
     if (res.rows.length <= 0) {
-        return null
+        return null;
     }
     const row = res.rows[0];
     if (row && row.aid) {
@@ -67,22 +71,73 @@ if (!aid || isNaN(aid)) {
 const videoInfo = await getVideoMetadata(aid);
 const snapshots = await getVideoSnapshots(aid);
 client.end();
+
+interface Snapshot {
+    created_at: Date;
+    views: number;
+    danmakus: number;
+    replies: number;
+    coins: number;
+    likes: number;
+    favorites: number;
+    shares: number;
+    id: number;
+}
 ---
 
 <Layout>
-    <div class="max-w-4xl mx-auto rounded-lg shadow p-6">
-        <h1 class="text-2xl font-bold mb-4">视频信息: {aid}</h1>
+    <TitleBar />
+    <main class="flex flex-col items-center min-h-screen gap-8 mt-36 relative z-0">
+        <div class="max-w-4xl mx-auto rounded-lg p-6">
+            <h1 class="text-2xl font-bold mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline">av{aid}</a></h1>
 
-        <!-- 视频基本信息 -->
-        <div class="mb-6 p-4 rounded-lg">
-            <h2 class="text-xl font-semibold mb-2">基本信息</h2>
-            <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded text-wrap">{JSON.stringify(videoInfo, null, 2)}</pre>
-        </div>
+            <div class="mb-6 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2">基本信息</h2>
+                <pre
+                    class="bg-gray-50 dark:bg-zinc-700 p-2 rounded text-wrap">{JSON.stringify(videoInfo, null, 2)}</pre>
+            </div>
 
-        <!-- 视频快照数据 -->
-        <div class="p-4 rounded-lg">
-            <h2 class="text-xl font-semibold mb-2">快照历史数据 (最新100条)</h2>
-            <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded">{JSON.stringify(snapshots, null, 2)}</pre>
+            <!-- <div class="p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-2">播放量历史数据</h2>
+                <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded  max-h-[40rem] overflow-scroll">{JSON.stringify(snapshots, null, 2)}</pre>
+            </div> -->
+            <div class="p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">播放量历史数据</h2>
+                {snapshots && snapshots.length > 0 ? (
+                    <div class="overflow-x-auto">
+                        <table class="table-auto w-full">
+                            <thead>
+                                <tr>
+                                    <th class="border px-4 py-2">创建时间</th>
+                                    <th class="border px-4 py-2">观看</th>
+                                    <th class="border px-4 py-2">硬币</th>
+                                    <th class="border px-4 py-2">点赞</th>
+                                    <th class="border px-4 py-2">收藏</th>
+                                    <th class="border px-4 py-2">分享</th>
+                                    <th class="border px-4 py-2">弹幕</th>
+                                    <th class="border px-4 py-2">评论</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {snapshots.map((snapshot: Snapshot) => (
+                                    <tr key={snapshot.id}>
+                                        <td class="border px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
+                                        <td class="border px-4 py-2">{snapshot.views}</td>
+                                        <td class="border px-4 py-2">{snapshot.coins}</td>
+                                        <td class="border px-4 py-2">{snapshot.likes}</td>
+                                        <td class="border px-4 py-2">{snapshot.favorites}</td>
+                                        <td class="border px-4 py-2">{snapshot.shares}</td>
+                                        <td class="border px-4 py-2">{snapshot.danmakus}</td>
+                                        <td class="border px-4 py-2">{snapshot.replies}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p>暂无历史数据。</p>
+                )}
+            </div>
         </div>
-    </div>
+    </main>
 </Layout>
