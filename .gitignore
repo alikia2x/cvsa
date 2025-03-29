@@ -80,6 +80,7 @@ __pycache__
 ml/filter/runs
 ml/pred/runs
 ml/pred/checkpoints
+ml/pred/observed
 ml/data/
 ml/filter/checkpoints
 scripts

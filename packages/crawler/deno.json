@@ -45,5 +45,6 @@
 		"indentWidth": 4,
 		"semiColons": true,
 		"proseWrap": "always"
-	}
+	},
+    "exports": "./main.ts"
 }
