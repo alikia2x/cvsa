@@ -1,20 +1,19 @@
 {
-	"lock": false,
-	"workspace": [
-		"./packages/crawler",
-		"./packages/frontend",
-		"./packages/backend",
-		"./packages/core"
-	],
-	"nodeModulesDir": "auto",
-	"tasks": {
-		"crawler": "deno task --filter 'crawler' all"
-	},
-	"fmt": {
-		"useTabs": true,
-		"lineWidth": 120,
-		"indentWidth": 4,
-		"semiColons": true,
-		"proseWrap": "always"
-	}
+    "lock": false,
+    "workspace": ["./packages/crawler", "./packages/frontend", "./packages/backend", "./packages/core"],
+    "nodeModulesDir": "auto",
+    "tasks": {
+        "crawler": "deno task --filter 'crawler' all"
+    },
+    "fmt": {
+        "useTabs": true,
+        "lineWidth": 120,
+        "indentWidth": 4,
+        "semiColons": true,
+        "proseWrap": "always"
+    },
+    "imports": {
+        "@astrojs/node": "npm:@astrojs/node@^9.1.3",
+        "@astrojs/svelte": "npm:@astrojs/svelte@^7.0.8"
+    }
 }
