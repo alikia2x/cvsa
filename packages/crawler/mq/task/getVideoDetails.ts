@@ -24,10 +24,11 @@ export async function insertVideoInfo(client: Client, aid: number) {
 	const title = data.View.title;
 	const published_at = formatTimestampToPsql(data.View.pubdate * SECOND + 8 * HOUR);
 	const duration = data.View.duration;
+	const cover = data.View.pic;
 	await client.queryObject(
-		`INSERT INTO bilibili_metadata (aid, bvid, description, uid, tags, title, published_at, duration)
+		`INSERT INTO bilibili_metadata (aid, bvid, description, uid, tags, title, published_at, duration, cover_url)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		[aid, bvid, desc, uid, tags, title, published_at, duration],
+		[aid, bvid, desc, uid, tags, title, published_at, duration, cover],
 	);
 	const userExists = await userExistsInBiliUsers(client, aid);
 	if (!userExists) {
