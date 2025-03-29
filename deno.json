@@ -1,60 +1,8 @@
 {
-	"lock": false,
+    "lock": false,
+    "workspace": ["./packages/crawler", "./packages/frontend", "./packages/backend", "./packages/core"],
+    "nodeModulesDir": "auto",
 	"tasks": {
-		"crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/insertAidsToDB.ts",
-		"crawl-bili-aids": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/fetchAids.ts",
-		"check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
-		"cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
-		"manifest": "deno task cli manifest $(pwd)",
-		"start": "deno run -A --watch=static/,routes/ dev.ts",
-		"build": "deno run -A dev.ts build",
-		"preview": "deno run -A main.ts",
-		"update": "deno run -A -r https://fresh.deno.dev/update .",
-		"worker:main": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write --allow-run ./src/worker.ts",
-		"worker:filter": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/filterWorker.ts",
-		"adder": "deno run --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
-		"bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net ./src/bullui.ts",
-		"all": "concurrently 'deno task worker:main' 'deno task adder' 'deno task bullui' 'deno task worker:filter'",
-		"test": "deno test ./test/ --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run"
-	},
-	"lint": {
-		"rules": {
-			"tags": ["fresh", "recommended"]
-		}
-	},
-	"exclude": ["**/_fresh/*"],
-	"imports": {
-		"@std/assert": "jsr:@std/assert@1",
-		"$fresh/": "https://deno.land/x/fresh@1.7.3/",
-		"preact": "https://esm.sh/preact@10.22.0",
-		"preact/": "https://esm.sh/preact@10.22.0/",
-		"@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
-		"@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
-		"tailwindcss": "npm:tailwindcss@3.4.1",
-		"tailwindcss/": "npm:/tailwindcss@3.4.1/",
-		"tailwindcss/plugin": "npm:/tailwindcss@3.4.1/plugin.js",
-		"$std/": "https://deno.land/std@0.216.0/",
-		"@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
-		"bullmq": "npm:bullmq",
-		"lib/": "./lib/",
-		"ioredis": "npm:ioredis",
-		"@bull-board/api": "npm:@bull-board/api",
-		"@bull-board/express": "npm:@bull-board/express",
-		"express": "npm:express",
-		"src/": "./src/",
-		"onnxruntime": "npm:onnxruntime-node@1.19.2",
-		"chalk": "npm:chalk"
-	},
-	"compilerOptions": {
-		"jsx": "react-jsx",
-		"jsxImportSource": "preact"
-	},
-	"nodeModulesDir": "auto",
-	"fmt": {
-		"useTabs": true,
-		"lineWidth": 120,
-		"indentWidth": 4,
-		"semiColons": true,
-		"proseWrap": "always"
+		"crawler": "deno task --filter 'crawler' all"
 	}
 }

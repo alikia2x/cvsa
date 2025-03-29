@@ -1,0 +1,50 @@
+{
+    "name": "@cvsa/crawler",
+	"tasks": {
+		"crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/insertAidsToDB.ts",
+		"crawl-bili-aids": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/fetchAids.ts",
+		"check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+		"manifest": "deno task cli manifest $(pwd)",
+		"start": "deno run -A --watch=static/,routes/ dev.ts",
+		"build": "deno run -A dev.ts build",
+		"preview": "deno run -A main.ts",
+		"worker:main": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write --allow-run ./src/worker.ts",
+		"worker:filter": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net --allow-write ./src/filterWorker.ts",
+		"adder": "deno run --env-file=.env --allow-env --allow-read --allow-ffi --allow-net ./src/jobAdder.ts",
+		"bullui": "deno run --allow-read --allow-env --allow-ffi --allow-net ./src/bullui.ts",
+		"all": "concurrently 'deno task worker:main' 'deno task adder' 'deno task bullui' 'deno task worker:filter'",
+		"test": "deno test ./test/ --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run"
+	},
+	"lint": {
+		"rules": {
+			"tags": ["recommended"]
+		}
+	},
+	"imports": {
+		"@std/assert": "jsr:@std/assert@1",
+		"$std/": "https://deno.land/std@0.216.0/",
+		"@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
+		"bullmq": "npm:bullmq",
+		"mq/": "./mq/",
+        "db/": "./db/",
+        "log/": "./log/",
+        "net/": "./net/",
+        "ml/": "./ml/",
+        "utils/": "./utils/",
+		"ioredis": "npm:ioredis",
+		"@bull-board/api": "npm:@bull-board/api",
+		"@bull-board/express": "npm:@bull-board/express",
+		"express": "npm:express",
+		"src/": "./src/",
+		"onnxruntime": "npm:onnxruntime-node@1.19.2",
+		"chalk": "npm:chalk"
+	},
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 120,
+		"indentWidth": 4,
+		"semiColons": true,
+		"proseWrap": "always"
+	},
+    "exports": "./main.ts"
+}
