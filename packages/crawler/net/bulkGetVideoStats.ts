@@ -13,7 +13,7 @@ import logger from "log/logger.ts";
  */
 export async function bulkGetVideoStats(aids: number[]): Promise<MediaListInfoData | number> {
 	const baseURL = `https://api.bilibili.com/medialist/gateway/base/resource/infos?resources=`;
-    let url = baseURL;
+	let url = baseURL;
 	for (const aid of aids) {
 		url += `${aid}:2,`;
 	}

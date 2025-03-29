@@ -28,7 +28,7 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 		WHERE started_at >= NOW() AND status = 'pending' AND started_at <= NOW() + INTERVAL '10 days'
 		GROUP BY 1
 		ORDER BY window_start
-  	`
+  	`;
 
 	await redisClient.del(REDIS_KEY);
 
@@ -36,7 +36,7 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 
 	for (const row of result.rows) {
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
-		const offset = (currentWindow + targetOffset);
+		const offset = currentWindow + targetOffset;
 		if (offset >= 0) {
 			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
 		}
@@ -186,7 +186,13 @@ export async function getSnapshotScheduleCountWithinRange(client: Client, start:
  * @param aid The aid of the video.
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
  */
-export async function scheduleSnapshot(client: Client, aid: number, type: string, targetTime: number, force: boolean = false) {
+export async function scheduleSnapshot(
+	client: Client,
+	aid: number,
+	type: string,
+	targetTime: number,
+	force: boolean = false,
+) {
 	if (await videoHasActiveSchedule(client, aid) && !force) return;
 	let adjustedTime = new Date(targetTime);
 	if (type !== "milestone" && type !== "new") {
@@ -199,7 +205,13 @@ export async function scheduleSnapshot(client: Client, aid: number, type: string
 	);
 }
 
-export async function bulkScheduleSnapshot(client: Client, aids: number[], type: string, targetTime: number, force: boolean = false) {
+export async function bulkScheduleSnapshot(
+	client: Client,
+	aids: number[],
+	type: string,
+	targetTime: number,
+	force: boolean = false,
+) {
 	for (const aid of aids) {
 		await scheduleSnapshot(client, aid, type, targetTime, force);
 	}
@@ -237,12 +249,12 @@ export async function adjustSnapshotTime(
 
 			if (delayedDate.getTime() < now.getTime()) {
 				const elapsed = performance.now() - t;
-				timePerIteration = elapsed / (i+1);
+				timePerIteration = elapsed / (i + 1);
 				logger.log(`${timePerIteration.toFixed(3)}ms * ${iters} iterations`, "perf", "fn:adjustSnapshotTime");
 				return now;
 			}
 			const elapsed = performance.now() - t;
-			timePerIteration = elapsed / (i+1);
+			timePerIteration = elapsed / (i + 1);
 			logger.log(`${timePerIteration.toFixed(3)}ms * ${iters} iterations`, "perf", "fn:adjustSnapshotTime");
 			return delayedDate;
 		}
@@ -252,7 +264,6 @@ export async function adjustSnapshotTime(
 	logger.log(`${timePerIteration.toFixed(3)}ms * ${MAX_ITERATIONS} iterations`, "perf", "fn:adjustSnapshotTime");
 	return expectedStartTime;
 }
-
 
 export async function getSnapshotsInNextSecond(client: Client) {
 	const query = `
@@ -272,7 +283,7 @@ export async function getSnapshotsInNextSecond(client: Client) {
 }
 
 export async function getBulkSnapshotsInNextSecond(client: Client) {
-    const query = `
+	const query = `
 		SELECT *
 		FROM snapshot_schedule
 		WHERE started_at <= NOW() + INTERVAL '15 seconds' AND status = 'pending' AND type = 'normal'

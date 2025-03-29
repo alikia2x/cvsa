@@ -1,4 +1,7 @@
-export async function getBiliBiliVideoInfo(bvidORaid?: string | number, region: string = "hangzhou") {
+export async function getBiliBiliVideoInfo(
+	bvidORaid?: string | number,
+	region: string = "hangzhou",
+) {
 	const bvid = typeof bvidORaid === "string" ? bvidORaid : undefined;
 	const aid = typeof bvidORaid === "number" ? bvidORaid : undefined;
 
@@ -18,7 +21,10 @@ export async function getBiliBiliVideoInfo(bvidORaid?: string | number, region: 
 	}
 }
 
-async function proxyRequestWithRegion(url: string, region: string): Promise<any | null> {
+async function proxyRequestWithRegion(
+	url: string,
+	region: string,
+): Promise<any | null> {
 	const td = new TextDecoder();
 	// aliyun configure set  --access-key-id $ALIYUN_AK --access-key-secret $ALIYUN_SK --region cn-shenzhen --profile CVSA-shenzhen --mode AK
 	const p = await new Deno.Command("aliyun", {
@@ -40,7 +46,9 @@ async function proxyRequestWithRegion(url: string, region: string): Promise<any 
 		const out = td.decode(p.stdout);
 		const rawData = JSON.parse(out);
 		if (rawData.statusCode !== 200) {
-			console.error(`Error proxying request ${url} to ${region} , statusCode: ${rawData.statusCode}`);
+			console.error(
+				`Error proxying request ${url} to ${region} , statusCode: ${rawData.statusCode}`,
+			);
 			return null;
 		} else {
 			return JSON.parse(rawData.body);

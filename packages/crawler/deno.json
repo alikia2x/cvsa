@@ -1,5 +1,5 @@
 {
-    "name": "@cvsa/crawler",
+	"name": "@cvsa/crawler",
 	"tasks": {
 		"crawl-raw-bili": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/insertAidsToDB.ts",
 		"crawl-bili-aids": "deno --allow-env --allow-ffi --allow-read --allow-net --allow-write --allow-run src/db/raw/fetchAids.ts",
@@ -26,11 +26,11 @@
 		"@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
 		"bullmq": "npm:bullmq",
 		"mq/": "./mq/",
-        "db/": "./db/",
-        "log/": "./log/",
-        "net/": "./net/",
-        "ml/": "./ml/",
-        "utils/": "./utils/",
+		"db/": "./db/",
+		"log/": "./log/",
+		"net/": "./net/",
+		"ml/": "./ml/",
+		"utils/": "./utils/",
 		"ioredis": "npm:ioredis",
 		"@bull-board/api": "npm:@bull-board/api",
 		"@bull-board/express": "npm:@bull-board/express",
@@ -39,12 +39,5 @@
 		"onnxruntime": "npm:onnxruntime-node@1.19.2",
 		"chalk": "npm:chalk"
 	},
-	"fmt": {
-		"useTabs": true,
-		"lineWidth": 120,
-		"indentWidth": 4,
-		"semiColons": true,
-		"proseWrap": "always"
-	},
-    "exports": "./main.ts"
+	"exports": "./main.ts"
 }

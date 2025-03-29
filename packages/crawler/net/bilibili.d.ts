@@ -13,10 +13,9 @@ export type MediaListInfoResponse = BaseResponse<MediaListInfoData>;
 
 export type MediaListInfoData = MediaListInfoItem[];
 
-
 export interface MediaListInfoItem {
 	attr: number;
-    bvid: string;
+	bvid: string;
 	id: number;
 	cnt_info: {
 		coin: number;
@@ -26,7 +25,7 @@ export interface MediaListInfoItem {
 		reply: number;
 		share: number;
 		thumb_up: number;
-	}
+	};
 }
 
 interface VideoInfoData {

@@ -7,6 +7,7 @@ import {
 	bulkSetSnapshotStatus,
 	findClosestSnapshot,
 	findSnapshotBefore,
+	getBulkSnapshotsInNextSecond,
 	getLatestSnapshot,
 	getSnapshotsInNextSecond,
 	getVideosWithoutActiveSnapshotSchedule,
@@ -15,7 +16,6 @@ import {
 	setSnapshotStatus,
 	snapshotScheduleExists,
 	videoHasProcessingSchedule,
-	getBulkSnapshotsInNextSecond
 } from "db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
@@ -282,8 +282,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
 		await bulkSetSnapshotStatus(client, ids, "failed");
-	}
-	finally {
+	} finally {
 		client.release();
 	}
 };
