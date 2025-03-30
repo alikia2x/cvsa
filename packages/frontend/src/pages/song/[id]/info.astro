@@ -2,9 +2,22 @@
 import Layout from "@layouts/Layout.astro";
 import TitleBar from "@components/TitleBar.astro";
 import pg from "pg";
-import { postgresConfig } from "@core/db/pgConfig.ts";
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+
+const databaseHost = process.env.DB_HOST
+const databaseName = process.env.DB_NAME
+const databaseUser = process.env.DB_USER
+const databasePassword = process.env.DB_PASSWORD
+const databasePort = process.env.DB_PORT
+
+const postgresConfig = {
+	hostname: databaseHost,
+	port: parseInt(databasePort!),
+	database: databaseName,
+	user: databaseUser,
+	password: databasePassword,
+};
 
 // 路由参数
 const { id } = Astro.params;

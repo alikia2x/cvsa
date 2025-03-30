@@ -1,0 +1,7 @@
+{
+	"name": "@cvsa/frontend",
+	"tasks": {
+		"preview": "bun run astro preview"
+	},
+	"exports": "./main.ts"
+}
