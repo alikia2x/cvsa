@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .content {
-    @apply text-gray-800 dark:text-zinc-100;
+	@apply text-gray-800 dark:text-zinc-100;
 
 	h1,
 	h2,

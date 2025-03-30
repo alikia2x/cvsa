@@ -27,4 +27,4 @@ export const postgresConfigCred = {
 	database: databaseNameCred,
 	user: databaseUser,
 	password: databasePassword,
-}
+};
