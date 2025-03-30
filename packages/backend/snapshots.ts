@@ -15,9 +15,9 @@ const SnapshotQueryParamsSchema = object({
 const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
-	(value) => {
-		if (typeof value === "number") {
-			return Number.isInteger(value) && value > 0;
+	async (value) => {
+		if (value && await number().isValid(value)) {
+			return Number.isInteger(value) && (value as number) > 0;
 		}
 
 		if (typeof value === "string") {
