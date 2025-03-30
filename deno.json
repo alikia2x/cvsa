@@ -3,7 +3,8 @@
 	"workspace": ["./packages/crawler", "./packages/frontend", "./packages/backend", "./packages/core"],
 	"nodeModulesDir": "auto",
 	"tasks": {
-		"crawler": "deno task --filter 'crawler' all"
+		"crawler": "deno task --filter 'crawler' all",
+		"backend": "deno task --filter 'backend' start"
 	},
 	"fmt": {
 		"useTabs": true,
