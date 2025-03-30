@@ -109,7 +109,7 @@ const log = (value: number, base: number = 10) => Math.log(value) / Math.log(bas
  * @param aid - aid of the video
  * @returns ETA in hours
  */
-const getAdjustedShortTermETA = async (client: Client, aid: number) => {
+export const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	// Immediately dispatch a snapshot if there is no snapshot yet
 	if (!latestSnapshot) return 0;
@@ -117,7 +117,7 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	if (!snapshotsEnough) return 0;
 
 	const currentTimestamp = new Date().getTime();
-	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR];
+	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
 	const DELTA = 0.00001;
 	let minETAHours = Infinity;
 
