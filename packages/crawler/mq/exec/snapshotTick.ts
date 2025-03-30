@@ -371,8 +371,8 @@ export const scheduleCleanupWorker = async (_job: Job) => {
 		const query = `
 			SELECT id, aid, type 
 			FROM snapshot_schedule
-			WHERE status IN ('pending', 'processing') 
-				AND started_at < NOW() - INTERVAL '5 minutes'
+			WHERE status IN ('pending', 'processing')
+				AND started_at < NOW() - INTERVAL '30 minutes'
 		`;
 		const { rows } = await client.queryObject<{ id: bigint; aid: bigint; type: string }>(query);
 		if (rows.length === 0) return;
