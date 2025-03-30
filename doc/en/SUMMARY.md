@@ -1,11 +1,11 @@
 # Table of contents
 
-* [Welcome](README.md)
+- [Welcome](README.md)
 
 ## About
 
-* [About CVSA Project](about/this-project.md)
-* [Scope of Inclusion](about/scope-of-inclusion.md)
+- [About CVSA Project](about/this-project.md)
+- [Scope of Inclusion](about/scope-of-inclusion.md)
 
 ## Architecure
 
@@ -17,5 +17,5 @@
 
 ## API Doc
 
-* [Catalog](api-doc/catalog.md)
-* [Songs](api-doc/songs.md)
+- [Catalog](api-doc/catalog.md)
+- [Songs](api-doc/songs.md)

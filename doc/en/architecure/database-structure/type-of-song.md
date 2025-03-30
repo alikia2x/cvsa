@@ -1,6 +1,7 @@
 # Type of Song
 
-The **Unrelated type** refers specifically to videos that are not in our [Scope of Inclusion](../../about/scope-of-inclusion.md).
+The **Unrelated type** refers specifically to videos that are not in our
+[Scope of Inclusion](../../about/scope-of-inclusion.md).
 
 ### Table: `songs`
 

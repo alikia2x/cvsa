@@ -14,14 +14,20 @@ const db = new Database(DATABASE_PATH, { int64: true });
 // 设置日志
 async function setupLogging() {
 	await ensureDir(LOG_DIR);
-	const logStream = await Deno.open(LOG_FILE, { write: true, create: true, append: true });
+	const logStream = await Deno.open(LOG_FILE, {
+		write: true,
+		create: true,
+		append: true,
+	});
 
 	const redirectConsole =
 		// deno-lint-ignore no-explicit-any
 		(originalConsole: (...args: any[]) => void) =>
 		// deno-lint-ignore no-explicit-any
 		(...args: any[]) => {
-			const message = args.map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : arg)).join(" ");
+			const message = args.map((
+				arg,
+			) => (typeof arg === "object" ? JSON.stringify(arg) : arg)).join(" ");
 			originalConsole(message);
 			logStream.write(new TextEncoder().encode(message + "\n"));
 		};
@@ -38,14 +44,17 @@ interface Metadata {
 
 // 获取最后一次更新的时间
 function getLastUpdate(): Date {
-	const result = db.prepare("SELECT value FROM metadata WHERE key = 'fetchAid-lastUpdate'").get() as Metadata;
+	const result = db.prepare(
+		"SELECT value FROM metadata WHERE key = 'fetchAid-lastUpdate'",
+	).get() as Metadata;
 	return result ? new Date(result.value as string) : new Date(0);
 }
 
 // 更新最后更新时间
 function updateLastUpdate() {
 	const now = new Date().toISOString();
-	db.prepare("UPDATE metadata SET value = ? WHERE key = 'fetchAid-lastUpdate'").run(now);
+	db.prepare("UPDATE metadata SET value = ? WHERE key = 'fetchAid-lastUpdate'")
+		.run(now);
 }
 
 // 辅助函数：获取数据
@@ -66,7 +75,9 @@ async function fetchData(pn: number, retries = MAX_RETRIES): Promise<any> {
 
 // 插入 aid 到数据库
 function insertAid(aid: number) {
-	db.prepare("INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (?, 'pending')").run(aid);
+	db.prepare(
+		"INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (?, 'pending')",
+	).run(aid);
 }
 
 // 主函数

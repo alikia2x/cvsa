@@ -6,7 +6,8 @@
 
 #### VOCALOID·UATU 分区
 
-原则上，中V档案馆中收录的歌曲必须包含在哔哩哔哩 VOCALOID·UTAU 分区（分区ID为30）下的视频中。在某些特殊情况下，此规则可能不是强制的。
+原则上，中V档案馆中收录的歌曲必须包含在哔哩哔哩 VOCALOID·UTAU
+分区（分区ID为30）下的视频中。在某些特殊情况下，此规则可能不是强制的。
 
 #### 至少一行中文
 
@@ -16,4 +17,6 @@
 
 歌曲的至少一行必须由歌声合成器生成（包括和声部分），才能被收录到中V档案馆中。
 
-我们将歌声合成器定义为通过算法建模声音特征并根据输入的歌词、音高等参数生成音频的软件或系统，包括基于波形拼接的（如 VOCALOID、UTAU）和基于 AI 的（如 Synthesizer V、ACE Studio）方法，**但不包括仅改变现有歌声音色的AI声音转换器**（例如 [so-vits svc](https://github.com/svc-develop-team/so-vits-svc)）。
+我们将歌声合成器定义为通过算法建模声音特征并根据输入的歌词、音高等参数生成音频的软件或系统，包括基于波形拼接的（如
+VOCALOID、UTAU）和基于 AI 的（如 Synthesizer V、ACE Studio）方法，**但不包括仅改变现有歌声音色的AI声音转换器**（例如
+[so-vits svc](https://github.com/svc-develop-team/so-vits-svc)）。

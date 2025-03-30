@@ -1,6 +1,7 @@
 # Scope of Inclusion
 
-CVSA contains many aspects of Chinese Vocal Synthesis, including songs, albums, artists (publisher, manipulators, arranger, etc), singers and voice engines / voicebanks.&#x20;
+CVSA contains many aspects of Chinese Vocal Synthesis, including songs, albums, artists (publisher, manipulators,
+arranger, etc), singers and voice engines / voicebanks.&#x20;
 
 For a **song**, it must meet the following conditions to be included in CVSA:
 
@@ -26,6 +27,11 @@ We define a **Chinese virtual singer** as follows:
 
 ### Using Vocal Synthesizer
 
-To be included in CVSA, at least one line of the song must be produced by a Vocal Synthesizer (including harmony vocals).
+To be included in CVSA, at least one line of the song must be produced by a Vocal Synthesizer (including harmony
+vocals).
 
-We define a vocal synthesizer as a software or system that generates synthesized singing voices by algorithmically modeling vocal characteristics and producing audio from input parameters such as lyrics, pitch, and dynamics, encompassing both waveform-concatenation-based (e.g., VOCALOID, UTAU) and AI-based (e.g., Synthesizer V, ACE Studio) approaches, **but excluding voice conversion tools that solely alter the timbre of pre-existing recordings** (e.g., [so-vits svc](https://github.com/svc-develop-team/so-vits-svc)).
+We define a vocal synthesizer as a software or system that generates synthesized singing voices by algorithmically
+modeling vocal characteristics and producing audio from input parameters such as lyrics, pitch, and dynamics,
+encompassing both waveform-concatenation-based (e.g., VOCALOID, UTAU) and AI-based (e.g., Synthesizer V, ACE Studio)
+approaches, **but excluding voice conversion tools that solely alter the timbre of pre-existing recordings** (e.g.,
+[so-vits svc](https://github.com/svc-develop-team/so-vits-svc)).

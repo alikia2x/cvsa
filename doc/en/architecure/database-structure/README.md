@@ -2,7 +2,8 @@
 
 CVSA uses [PostgreSQL](https://www.postgresql.org/) as our database.
 
-All public data of CVSA (excluding users' personal data) is stored in a database named `cvsa_main`, which contains the following tables:
+All public data of CVSA (excluding users' personal data) is stored in a database named `cvsa_main`, which contains the
+following tables:
 
 * songs: stores the main information of songs
 * bili\_user: stores snapshots of Bilibili user information

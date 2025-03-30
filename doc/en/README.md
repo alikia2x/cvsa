@@ -17,7 +17,8 @@ layout:
 
 Welcome to the CVSA Documentation!
 
-This doc contains various information about the CVSA project, including technical architecture, tutorials for visitors, etc.
+This doc contains various information about the CVSA project, including technical architecture, tutorials for visitors,
+etc.
 
 ### Jump right in
 

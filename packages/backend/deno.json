@@ -1,0 +1,17 @@
+{
+	"name": "@cvsa/backend",
+	"imports": {
+		"hono": "jsr:@hono/hono@^4.7.5",
+		"zod": "npm:zod",
+		"yup": "npm:yup"
+	},
+	"tasks": {
+		"dev": "deno serve --env-file=.env --allow-env --allow-net --watch main.ts",
+		"start": "deno serve --env-file=.env --allow-env --allow-net --host 127.0.0.1 main.ts"
+	},
+	"compilerOptions": {
+		"jsx": "precompile",
+		"jsxImportSource": "hono/jsx"
+	},
+	"exports": "./main.ts"
+}

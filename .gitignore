@@ -51,7 +51,6 @@ internal/
 !tests/cases/projects/projectOption/**/node_modules
 !tests/cases/projects/NodeModulesSearch/**/*
 !tests/baselines/reference/project/nodeModules*/**/*
-.idea
 yarn.lock
 yarn-error.log
 .parallelperf.*
@@ -76,14 +75,13 @@ node_modules/
 
 
 # project specific
-data/main.db
-.env
 logs/
 __pycache__
-filter/runs
-data/filter/eval*
-data/filter/train*
-filter/checkpoints
-data/filter/model_predicted*
+ml/filter/runs
+ml/pred/runs
+ml/pred/checkpoints
+ml/pred/observed
+ml/data/
+ml/filter/checkpoints
 scripts
 model/
