@@ -1,0 +1,200 @@
+---
+import Layout from "@layouts/Layout.astro";
+import TitleBar from "@components/TitleBar.astro";
+import pg from "pg";
+import { format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
+
+const databaseHost = process.env.DB_HOST
+const databaseName = process.env.DB_NAME
+const databaseUser = process.env.DB_USER
+const databasePassword = process.env.DB_PASSWORD
+const databasePort = process.env.DB_PORT
+
+const postgresConfig = {
+	hostname: databaseHost,
+	port: parseInt(databasePort!),
+	database: databaseName,
+	user: databaseUser,
+	password: databasePassword,
+};
+
+// 路由参数
+const { id } = Astro.params;
+const { Client } = pg;
+const client = new Client(postgresConfig);
+await client.connect();
+
+// 数据库查询函数
+async function getVideoMetadata(aid: number) {
+    const res = await client.query("SELECT * FROM bilibili_metadata WHERE aid = $1", [aid]);
+    if (res.rows.length <= 0) {
+        return null;
+    }
+    const row = res.rows[0];
+    if (row) {
+        return row;
+    }
+    return {};
+}
+
+async function getVideoSnapshots(aid: number) {
+    const res = await client.query("SELECT * FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC", [
+        aid,
+    ]);
+    if (res.rows.length <= 0) {
+        return null;
+    }
+    return res.rows;
+}
+
+async function getAidFromBV(bv: string) {
+    const res = await client.query("SELECT aid FROM bilibili_metadata WHERE bvid = $1", [bv]);
+    if (res.rows.length <= 0) {
+        return null;
+    }
+    const row = res.rows[0];
+    if (row && row.aid) {
+        return Number(row.aid);
+    }
+    return null;
+}
+
+async function getVideoAid(id: string) {
+    if (id.startsWith("av")) {
+        return parseInt(id.slice(2));
+    } else if (id.startsWith("BV")) {
+        return getAidFromBV(id);
+    }
+    return parseInt(id);
+}
+
+// 获取数据
+if (!id) {
+    Astro.response.status = 404;
+    client.end();
+    return new Response(null, { status: 404 });
+}
+const aid = await getVideoAid(id);
+if (!aid || isNaN(aid)) {
+    Astro.response.status = 404;
+    client.end();
+    return new Response(null, { status: 404 });
+}
+const videoInfo = await getVideoMetadata(aid);
+const snapshots = await getVideoSnapshots(aid);
+client.end();
+
+interface Snapshot {
+    created_at: Date;
+    views: number;
+    danmakus: number;
+    replies: number;
+    coins: number;
+    likes: number;
+    favorites: number;
+    shares: number;
+    id: number;
+}
+---
+
+<Layout>
+    <TitleBar />
+    <main class="flex flex-col items-center min-h-screen gap-8 mt-36 relative z-0">
+        <div class="max-w-4xl mx-auto rounded-lg p-6">
+            <h1 class="text-2xl font-bold mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline">av{aid}</a></h1>
+
+            <div class="mb-6 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-8">基本信息</h2>
+                <div class="overflow-x-auto">
+                    <table class="table-auto w-full">
+                        <tbody>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">ID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.id}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">AID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.aid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">BVID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.bvid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">标题</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.title}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">描述</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.description}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">UID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.uid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">标签</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.tags}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">发布时间</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">时长 (秒)</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.duration}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">创建时间</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">封面</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">播放量历史数据</h2>
+                {snapshots && snapshots.length > 0 ? (
+                    <div class="overflow-x-auto">
+                        <table class="table-auto w-full">
+                            <thead>
+                                <tr>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">创建时间</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">观看</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">硬币</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">点赞</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">收藏</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">分享</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">弹幕</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">评论</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {snapshots.map((snapshot: Snapshot) => (
+                                    <tr>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.views}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.coins}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.likes}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.favorites}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.shares}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.danmakus}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.replies}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p>暂无历史数据。</p>
+                )}
+            </div>
+        </div>
+    </main>
+</Layout>

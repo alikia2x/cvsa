@@ -7,6 +7,7 @@ import {
 	bulkSetSnapshotStatus,
 	findClosestSnapshot,
 	findSnapshotBefore,
+	getBulkSnapshotsInNextSecond,
 	getLatestSnapshot,
 	getSnapshotsInNextSecond,
 	getVideosWithoutActiveSnapshotSchedule,
@@ -15,7 +16,6 @@ import {
 	setSnapshotStatus,
 	snapshotScheduleExists,
 	videoHasProcessingSchedule,
-	getBulkSnapshotsInNextSecond
 } from "db/snapshotSchedule.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
@@ -109,7 +109,7 @@ const log = (value: number, base: number = 10) => Math.log(value) / Math.log(bas
  * @param aid - aid of the video
  * @returns ETA in hours
  */
-const getAdjustedShortTermETA = async (client: Client, aid: number) => {
+export const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	// Immediately dispatch a snapshot if there is no snapshot yet
 	if (!latestSnapshot) return 0;
@@ -117,7 +117,7 @@ const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	if (!snapshotsEnough) return 0;
 
 	const currentTimestamp = new Date().getTime();
-	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR];
+	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
 	const DELTA = 0.00001;
 	let minETAHours = Infinity;
 
@@ -282,8 +282,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
 		await bulkSetSnapshotStatus(client, ids, "failed");
-	}
-	finally {
+	} finally {
 		client.release();
 	}
 };
@@ -372,8 +371,8 @@ export const scheduleCleanupWorker = async (_job: Job) => {
 		const query = `
 			SELECT id, aid, type 
 			FROM snapshot_schedule
-			WHERE status IN ('pending', 'processing') 
-				AND started_at < NOW() - INTERVAL '5 minutes'
+			WHERE status IN ('pending', 'processing')
+				AND started_at < NOW() - INTERVAL '30 minutes'
 		`;
 		const { rows } = await client.queryObject<{ id: bigint; aid: bigint; type: string }>(query);
 		if (rows.length === 0) return;

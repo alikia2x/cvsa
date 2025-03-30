@@ -5,7 +5,16 @@ import { ensureDir } from "https://deno.land/std@0.113.0/fs/mod.ts";
 
 const aidPath = "./data/2025010104_c30_aids.txt";
 const db = new Database("./data/main.db", { int64: true });
-const regions = ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"];
+const regions = [
+	"shanghai",
+	"hangzhou",
+	"qingdao",
+	"beijing",
+	"zhangjiakou",
+	"chengdu",
+	"shenzhen",
+	"hohhot",
+];
 const logDir = "./logs/bili-info-crawl";
 const logFile = path.join(logDir, `run-${Date.now() / 1000}.log`);
 const shouldReadTextFile = false;
@@ -26,14 +35,20 @@ const requestQueue: number[] = [];
 
 async function setupLogging() {
 	await ensureDir(logDir);
-	const logStream = await Deno.open(logFile, { write: true, create: true, append: true });
+	const logStream = await Deno.open(logFile, {
+		write: true,
+		create: true,
+		append: true,
+	});
 
 	const redirectConsole =
 		// deno-lint-ignore no-explicit-any
 		(originalConsole: (...args: any[]) => void) =>
 		// deno-lint-ignore no-explicit-any
 		(...args: any[]) => {
-			const message = args.map((arg) => (typeof arg === "object" ? JSON.stringify(arg) : arg)).join(" ");
+			const message = args.map((
+				arg,
+			) => (typeof arg === "object" ? JSON.stringify(arg) : arg)).join(" ");
 			originalConsole(message);
 			logStream.write(new TextEncoder().encode(message + "\n"));
 		};
@@ -78,7 +93,9 @@ async function readFromText() {
 	const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
 
 	// 插入这些新条目
-	const insertStmt = db.prepare("INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (?, 'pending')");
+	const insertStmt = db.prepare(
+		"INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (?, 'pending')",
+	);
 	newAids.forEach((aid) => insertStmt.run(aid));
 }
 
@@ -88,7 +105,9 @@ async function insertAidsToDB() {
 	}
 
 	const aidsInDB = db
-		.prepare("SELECT aid FROM bili_info_crawl WHERE status = 'pending' OR status = 'failed'")
+		.prepare(
+			"SELECT aid FROM bili_info_crawl WHERE status = 'pending' OR status = 'failed'",
+		)
 		.all()
 		.map((row) => row.aid) as number[];
 
@@ -98,13 +117,21 @@ async function insertAidsToDB() {
 
 	const processAid = async (aid: number) => {
 		try {
-			const res = await getBiliBiliVideoInfo(aid, regions[processedAids % regions.length]);
+			const res = await getBiliBiliVideoInfo(
+				aid,
+				regions[processedAids % regions.length],
+			);
 			if (res === null) {
 				updateAidStatus(aid, "failed");
 			} else {
 				const rawData = JSON.parse(res);
 				if (rawData.code === 0) {
-					updateAidStatus(aid, "success", rawData.data.View.bvid, JSON.stringify(rawData.data));
+					updateAidStatus(
+						aid,
+						"success",
+						rawData.data.View.bvid,
+						JSON.stringify(rawData.data),
+					);
 				} else {
 					updateAidStatus(aid, "error", undefined, res);
 				}
@@ -136,7 +163,12 @@ async function insertAidsToDB() {
 	console.log("Starting to process aids...");
 }
 
-function updateAidStatus(aid: number, status: string, bvid?: string, data?: string) {
+function updateAidStatus(
+	aid: number,
+	status: string,
+	bvid?: string,
+	data?: string,
+) {
 	const stmt = db.prepare(`
         UPDATE bili_info_crawl
         SET status = ?,
@@ -145,11 +177,22 @@ function updateAidStatus(aid: number, status: string, bvid?: string, data?: stri
         timestamp = ?
         WHERE aid = ?
     `);
-	const params = [status, ...(bvid ? [bvid] : []), ...(data ? [data] : []), Date.now() / 1000, aid];
+	const params = [
+		status,
+		...(bvid ? [bvid] : []),
+		...(data ? [data] : []),
+		Date.now() / 1000,
+		aid,
+	];
 	stmt.run(...params);
 }
 
-function logProgress(aid: number, processedAids: number, totalAids: number, startTime: number) {
+function logProgress(
+	aid: number,
+	processedAids: number,
+	totalAids: number,
+	startTime: number,
+) {
 	const elapsedTime = Date.now() - startTime;
 	const elapsedSeconds = Math.floor(elapsedTime / 1000);
 	const elapsedMinutes = Math.floor(elapsedSeconds / 60);

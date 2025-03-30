@@ -1,5 +1,4 @@
 ---
-icon: globe-pointer
 layout:
   title:
     visible: true
@@ -15,4 +14,14 @@ layout:
 
 # 概览
 
-自动化是 CVSA 技术设计的最大亮点，为了实现自动化，我们使用BullMQ驱动的消息队列来并发处理数据采集生命周期中的各项任务。
+整个CVSA项目分为三个组件：**crawler**, **frontend** 和 **backend。**
+
+### **crawler**
+
+位于项目目录`packages/crawler` 下，它负责以下工作：
+
+* 抓取新的视频并收录作品
+* 持续监控视频的播放量等统计信息
+
+整个 crawler 由 BullMQ 消息队列驱动，使用 Redis 和 PostgreSQL 管理状态。
+

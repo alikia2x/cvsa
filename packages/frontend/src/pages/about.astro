@@ -1,0 +1,15 @@
+---
+import TitleBar from "@components/TitleBar.astro";
+import Layout from '@layouts/Layout.astro';
+import {Content as AboutContent}  from '../content/about.md';
+import "../styles/content.css";
+---
+
+<Layout>
+    <TitleBar/>
+    <main class="flex flex-col items-center min-h-screen gap-8 mt-36 relative z-0">
+        <div class="lg:w-1/2 content">
+            <AboutContent/>
+        </div>
+    </main>
+</Layout>

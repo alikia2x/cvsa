@@ -6,13 +6,13 @@ import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
 import { getVideoInfoWorker } from "mq/exec/getLatestVideos.ts";
 import {
+	bulkSnapshotTickWorker,
 	collectMilestoneSnapshotsWorker,
 	regularSnapshotsWorker,
-	snapshotTickWorker,
-	takeSnapshotForVideoWorker,
 	scheduleCleanupWorker,
+	snapshotTickWorker,
 	takeBulkSnapshotForVideosWorker,
-	bulkSnapshotTickWorker
+	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
 
 Deno.addSignalListener("SIGINT", async () => {

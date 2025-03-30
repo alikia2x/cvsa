@@ -9,12 +9,11 @@
 
 ## Architecure
 
-- [Overview](architecure/overview.md)
-- [Database Structure](architecure/database-structure/README.md)
-  - [Type of Song](architecure/database-structure/type-of-song.md)
-- [Message Queue](architecure/message-queue/README.md)
-  - [VideoTagsQueue](architecure/message-queue/videotagsqueue.md)
-- [Artificial Intelligence](architecure/artificial-intelligence.md)
+* [Overview](architecure/overview.md)
+* [Database Structure](architecure/database-structure/README.md)
+  * [Type of Song](architecure/database-structure/type-of-song.md)
+* [Message Queue](architecure/message-queue.md)
+* [Artificial Intelligence](architecure/artificial-intelligence.md)
 
 ## API Doc
 
