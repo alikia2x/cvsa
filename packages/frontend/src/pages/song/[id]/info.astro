@@ -92,15 +92,63 @@ interface Snapshot {
             <h1 class="text-2xl font-bold mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline">av{aid}</a></h1>
 
             <div class="mb-6 p-4 rounded-lg">
-                <h2 class="text-xl font-semibold mb-2">基本信息</h2>
-                <pre
-                    class="bg-gray-50 dark:bg-zinc-700 p-2 rounded text-wrap">{JSON.stringify(videoInfo, null, 2)}</pre>
+                <h2 class="text-xl font-semibold mb-8">基本信息</h2>
+                <div class="overflow-x-auto">
+                    <table class="table-auto w-full">
+                        <tbody>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">ID</td>
+                                <td class="border px-4 py-2">{videoInfo?.id}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">AID</td>
+                                <td class="border px-4 py-2">{videoInfo?.aid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">BVID</td>
+                                <td class="border px-4 py-2">{videoInfo?.bvid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">标题</td>
+                                <td class="border px-4 py-2">{videoInfo?.title}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">描述</td>
+                                <td class="border px-4 py-2">{videoInfo?.description}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">UID</td>
+                                <td class="border px-4 py-2">{videoInfo?.uid}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">标签</td>
+                                <td class="border px-4 py-2">{videoInfo?.tags}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">发布时间</td>
+                                <td class="border px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">时长 (秒)</td>
+                                <td class="border px-4 py-2">{videoInfo?.duration}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">创建时间</td>
+                                <td class="border px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">状态</td>
+                                <td class="border px-4 py-2">{videoInfo?.status}</td>
+                            </tr>
+                            <tr>
+                                <td class="border px-4 py-2 font-bold">封面 URL</td>
+                                <td class="border px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- <div class="p-4 rounded-lg">
-                <h2 class="text-xl font-semibold mb-2">播放量历史数据</h2>
-                <pre class="bg-gray-50 dark:bg-zinc-700 p-2 rounded  max-h-[40rem] overflow-scroll">{JSON.stringify(snapshots, null, 2)}</pre>
-            </div> -->
             <div class="p-4 rounded-lg">
                 <h2 class="text-xl font-semibold mb-4">播放量历史数据</h2>
                 {snapshots && snapshots.length > 0 ? (
