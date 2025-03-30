@@ -43,10 +43,13 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 
 	try {
 		const idParam = await idSchema.validate(c.req.param("id"));
-		let videoId: number | string = idParam as string | number;
-		if (typeof videoId === "string" && videoId.startsWith("av")) {
-			videoId = videoId.slice(2);
+		let videoId: string | number = idParam as string;
+		if (videoId.startsWith("av")) {
+			videoId = parseInt(videoId.slice(2));
 		}
+        else if (await number().validate(videoId)) {
+			videoId = parseInt(videoId);
+        }
 		const queryParams = await SnapshotQueryParamsSchema.validate(c.req.query());
 		const { ps, pn, offset, reverse = false } = queryParams;
 
