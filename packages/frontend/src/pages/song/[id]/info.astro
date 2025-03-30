@@ -97,48 +97,48 @@ interface Snapshot {
                     <table class="table-auto w-full">
                         <tbody>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">ID</td>
-                                <td class="border px-4 py-2">{videoInfo?.id}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">ID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.id}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">AID</td>
-                                <td class="border px-4 py-2">{videoInfo?.aid}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">AID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.aid}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">BVID</td>
-                                <td class="border px-4 py-2">{videoInfo?.bvid}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">BVID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.bvid}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">标题</td>
-                                <td class="border px-4 py-2">{videoInfo?.title}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">标题</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.title}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">描述</td>
-                                <td class="border px-4 py-2">{videoInfo?.description}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">描述</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.description}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">UID</td>
-                                <td class="border px-4 py-2">{videoInfo?.uid}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">UID</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.uid}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">标签</td>
-                                <td class="border px-4 py-2">{videoInfo?.tags}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">标签</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.tags}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">发布时间</td>
-                                <td class="border px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">发布时间</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">时长 (秒)</td>
-                                <td class="border px-4 py-2">{videoInfo?.duration}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">时长 (秒)</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.duration}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">创建时间</td>
-                                <td class="border px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">创建时间</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">封面</td>
-                                <td class="border px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2 font-bold">封面</td>
+                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -152,27 +152,27 @@ interface Snapshot {
                         <table class="table-auto w-full">
                             <thead>
                                 <tr>
-                                    <th class="border px-4 py-2">创建时间</th>
-                                    <th class="border px-4 py-2">观看</th>
-                                    <th class="border px-4 py-2">硬币</th>
-                                    <th class="border px-4 py-2">点赞</th>
-                                    <th class="border px-4 py-2">收藏</th>
-                                    <th class="border px-4 py-2">分享</th>
-                                    <th class="border px-4 py-2">弹幕</th>
-                                    <th class="border px-4 py-2">评论</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">创建时间</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">观看</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">硬币</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">点赞</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">收藏</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">分享</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">弹幕</th>
+                                    <th class="border dark:border-zinc-500 px-4 py-2">评论</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {snapshots.map((snapshot: Snapshot) => (
                                     <tr>
-                                        <td class="border px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
-                                        <td class="border px-4 py-2">{snapshot.views}</td>
-                                        <td class="border px-4 py-2">{snapshot.coins}</td>
-                                        <td class="border px-4 py-2">{snapshot.likes}</td>
-                                        <td class="border px-4 py-2">{snapshot.favorites}</td>
-                                        <td class="border px-4 py-2">{snapshot.shares}</td>
-                                        <td class="border px-4 py-2">{snapshot.danmakus}</td>
-                                        <td class="border px-4 py-2">{snapshot.replies}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.views}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.coins}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.likes}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.favorites}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.shares}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.danmakus}</td>
+                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.replies}</td>
                                     </tr>
                                 ))}
                             </tbody>
