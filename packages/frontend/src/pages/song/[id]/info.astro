@@ -137,11 +137,7 @@ interface Snapshot {
                                 <td class="border px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
                             </tr>
                             <tr>
-                                <td class="border px-4 py-2 font-bold">状态</td>
-                                <td class="border px-4 py-2">{videoInfo?.status}</td>
-                            </tr>
-                            <tr>
-                                <td class="border px-4 py-2 font-bold">封面 URL</td>
+                                <td class="border px-4 py-2 font-bold">封面</td>
                                 <td class="border px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
                             </tr>
                         </tbody>

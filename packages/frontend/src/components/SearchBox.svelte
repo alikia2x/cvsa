@@ -16,9 +16,7 @@
             const input = event.target as HTMLInputElement;
             const value: string = input.value.trim();
             if (!value) return;
-            if (value.startsWith("av")) {
-                window.location.href = `/song/${value}/info`;
-            }
+            window.location.href = `/song/${value}/info`;
         }
     }
 </script>
