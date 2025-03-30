@@ -164,7 +164,7 @@ interface Snapshot {
                             </thead>
                             <tbody>
                                 {snapshots.map((snapshot: Snapshot) => (
-                                    <tr key={snapshot.id}>
+                                    <tr>
                                         <td class="border px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
                                         <td class="border px-4 py-2">{snapshot.views}</td>
                                         <td class="border px-4 py-2">{snapshot.coins}</td>
