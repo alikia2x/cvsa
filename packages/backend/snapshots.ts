@@ -47,7 +47,7 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 		if (videoId.startsWith("av")) {
 			videoId = parseInt(videoId.slice(2));
 		}
-        else if (await number().validate(videoId)) {
+        else if (await number().isValid(videoId)) {
 			videoId = parseInt(videoId);
         }
 		const queryParams = await SnapshotQueryParamsSchema.validate(c.req.query());
