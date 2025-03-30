@@ -6,9 +6,9 @@ import type { VideoSnapshotType } from "@core/db/schema.d.ts";
 import { boolean, mixed, number, object, ValidationError } from "yup";
 
 const SnapshotQueryParamsSchema = object({
-	ps: number().optional().positive(),
-	pn: number().optional().positive(),
-	offset: number().optional().positive(),
+	ps: number().integer().optional().positive(),
+	pn: number().integer().optional().positive(),
+	offset: number().integer().optional().positive(),
 	reverse: boolean().optional(),
 });
 
@@ -16,8 +16,9 @@ const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
 	async (value) => {
-		if (value && await number().isValid(value)) {
-			return Number.isInteger(value) && (value as number) > 0;
+		if (value && await number().integer().isValid(value)) {
+            const v = parseInt(value as string);
+			return Number.isInteger(v) && v > 0;
 		}
 
 		if (typeof value === "string") {
