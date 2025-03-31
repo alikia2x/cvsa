@@ -1,6 +1,7 @@
 {
 	"name": "@cvsa/backend",
 	"imports": {
+		"@rabbit-company/argon2id": "jsr:@rabbit-company/argon2id@^2.1.0",
 		"hono": "jsr:@hono/hono@^4.7.5",
 		"zod": "npm:zod",
 		"yup": "npm:yup"
