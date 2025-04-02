@@ -79,12 +79,12 @@
     let currentDifficulty: bigint | null = null;
     let worker: Worker | null = null;
     let currentTestIndex = 0;
-    const difficulties = [BigInt(100000), BigInt(1000000)];
+    const difficulties = [BigInt(100), BigInt(1000)];
     const testCombinations: { N: bigint; difficulty: bigint }[] = [];
 
     // 创建需要测试的 N 和难度的组合
-    N_ARRAY.forEach(n => {
-        difficulties.forEach(difficulty => {
+    N_ARRAY.forEach((n) => {
+        difficulties.forEach((difficulty) => {
             testCombinations.push({ N: n, difficulty });
         });
     });
@@ -139,35 +139,55 @@
     }
 </script>
 
-<div class="md:bg-zinc-50 md:dark:bg-zinc-800 p-6 rounded-md md:border dark:border-zinc-700 mb-6 mt-8 md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto">
-    <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">VDF Benchmark</h2>
+<div
+    class="md:bg-zinc-50 md:dark:bg-zinc-800 p-6 rounded-md md:border dark:border-zinc-700 mb-6 mt-8 md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto"
+>
+    <h2 class="text-xl font-bold mb-4 text-zinc-800 dark:text-zinc-200">VDF Benchmark</h2>
 
     {#if !isBenchmarking}
-        <button class="bg-blue-500 hover:bg-blue-600 duration-100 text-white font-bold py-2 px-4 rounded" on:click={startBenchmark}>
+        <button
+            class="bg-blue-500 hover:bg-blue-600 duration-100 text-white font-bold py-2 px-4 rounded"
+            on:click={startBenchmark}
+        >
             Start Benchmark
         </button>
     {/if}
 
     {#if isBenchmarking}
-        <p class="mb-8 text-gray-700 dark:text-gray-300">Benchmarking in progress... ({currentTestIndex + 1}/{testCombinations.length})</p>
+        <p class="mb-8 text-zinc-700 dark:text-zinc-300">
+            Benchmarking in progress... ({currentTestIndex + 1}/{testCombinations.length})
+        </p>
         {#if currentN !== null && currentDifficulty !== null}
-            <p class="mb-2 text-gray-700 dark:text-gray-300">N Bits: {currentN.toString(2).length}</p>
-            <p class="mb-2 text-gray-700 dark:text-gray-300">Difficulty: {currentDifficulty}</p>
+            <p class="mb-2 text-zinc-700 dark:text-zinc-300">N Bits: {currentN.toString(2).length}</p>
+            <p class="mb-2 text-zinc-700 dark:text-zinc-300">Difficulty: {currentDifficulty}</p>
             <div class="w-full bg-zinc-300 dark:bg-neutral-700 rounded-full h-1 relative overflow-hidden">
-                <div class="bg-black dark:bg-white h-full rounded-full relative" style="width: {currentProgress}%">
-                </div>
+                <div
+                    class="bg-black dark:bg-white h-full rounded-full relative"
+                    style="width: {currentProgress}%"
+                ></div>
             </div>
         {/if}
     {/if}
 
     {#if benchmarkResults.length > 0 && !isBenchmarking}
-        <h3 class="text-lg font-bold mt-4 mb-2 text-gray-800 dark:text-gray-200">Benchmark Results</h3>
-        <ul>
-            {#each benchmarkResults as result}
-                <li class="text-gray-700 dark:text-gray-300">
-                    N Bits: {result.N.toString(2).length}, Difficulty: {result.difficulty}, Time: {result.time.toFixed(2)} ms
-                </li>
-            {/each}
-        </ul>
+        <h3 class="text-lg font-bold mt-4 mb-2 text-zinc-800 dark:text-zinc-200">Benchmark Results</h3>
+        <table class="w-full text-sm text-left rtl:text-right text-zinc-500 dark:text-zinc-400">
+            <thead class="text-xs text-zinc-700 uppercase dark:text-zinc-400 border-b border-zinc-400 dark:border-zinc-500">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Time (ms)</th>
+                    <th scope="col" class="px-6 py-3">N (bits)</th>
+                    <th scope="col" class="px-6 py-3">T (log10)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {#each benchmarkResults as result}
+                    <tr class="border-b dark:border-zinc-700 border-zinc-200">
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{result.time.toFixed(2)}</td>
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{result.N.toString(2).length}</td>
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{Math.log10(Number(result.difficulty))}</td>
+                    </tr>
+                {/each}
+            </tbody>
+        </table>
     {/if}
 </div>
