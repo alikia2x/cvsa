@@ -137,6 +137,18 @@
         // 开始第一个测试
         worker.postMessage({ g, N, difficulty });
     }
+
+    function getAccumulatedTime() {
+        return benchmarkResults.reduce((acc, result) => acc + result.time, 0);
+    }
+
+    function getAccumulatedDifficulty() {
+        return benchmarkResults.reduce((acc, result) => acc + Number(result.difficulty), 0);
+    }
+
+    function getSpeed() {
+        return (getAccumulatedDifficulty() / getAccumulatedTime()) * 1000;
+    }
 </script>
 
 <div
@@ -171,6 +183,12 @@
 
     {#if benchmarkResults.length > 0 && !isBenchmarking}
         <h3 class="text-lg font-bold mt-4 mb-2 text-zinc-800 dark:text-zinc-200">Benchmark Results</h3>
+        <p class="mb-4 text-zinc-700 dark:text-zinc-300 text-sm">
+            <b>Summary:</b>
+            {getAccumulatedDifficulty()}
+            calculations done in {getAccumulatedTime().toFixed(1)}ms,
+            speed: {getSpeed().toFixed(2)} op/s
+        </p>
         <table class="w-full text-sm text-left rtl:text-right text-zinc-500 dark:text-zinc-400">
             <thead
                 class="text-xs text-zinc-700 uppercase dark:text-zinc-400 border-b border-zinc-400 dark:border-zinc-500"
