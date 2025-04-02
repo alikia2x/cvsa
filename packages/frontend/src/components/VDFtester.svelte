@@ -116,8 +116,6 @@
             } else if (type === "result") {
                 benchmarkResults = [...benchmarkResults, { N: resultN, difficulty: resultDifficulty, time }];
                 currentProgress = 0;
-                currentN = null;
-                currentDifficulty = null;
                 currentTestIndex++;
 
                 if (currentTestIndex < testCombinations.length) {
@@ -130,6 +128,8 @@
                     isBenchmarking = false;
                     worker?.terminate();
                     worker = null;
+                    currentN = null;
+                    currentDifficulty = null;
                 }
             }
         };
@@ -172,7 +172,9 @@
     {#if benchmarkResults.length > 0 && !isBenchmarking}
         <h3 class="text-lg font-bold mt-4 mb-2 text-zinc-800 dark:text-zinc-200">Benchmark Results</h3>
         <table class="w-full text-sm text-left rtl:text-right text-zinc-500 dark:text-zinc-400">
-            <thead class="text-xs text-zinc-700 uppercase dark:text-zinc-400 border-b border-zinc-400 dark:border-zinc-500">
+            <thead
+                class="text-xs text-zinc-700 uppercase dark:text-zinc-400 border-b border-zinc-400 dark:border-zinc-500"
+            >
                 <tr>
                     <th scope="col" class="px-6 py-3">Time (ms)</th>
                     <th scope="col" class="px-6 py-3">N (bits)</th>
@@ -182,9 +184,15 @@
             <tbody>
                 {#each benchmarkResults as result}
                     <tr class="border-b dark:border-zinc-700 border-zinc-200">
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{result.time.toFixed(2)}</td>
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{result.N.toString(2).length}</td>
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white">{Math.log10(Number(result.difficulty))}</td>
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
+                            >{result.time.toFixed(2)}</td
+                        >
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
+                            >{result.N.toString(2).length}</td
+                        >
+                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
+                            >{Math.log10(Number(result.difficulty))}</td
+                        >
                     </tr>
                 {/each}
             </tbody>
