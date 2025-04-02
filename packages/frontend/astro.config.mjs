@@ -19,14 +19,6 @@ export default defineConfig({
 				allow: [".", "../../"],
 			},
 		},
-		plugins: [tsconfigPaths()],
-		build: {
-			rollupOptions: {
-				output: {
-					assetFileNames: "assets/[name].[ext]", // Ensure .wasm files are copied
-				},
-			},
-		},
-		assetsInclude: ["**/*.wasm"],
+		plugins: [tsconfigPaths()]
 	},
 });
