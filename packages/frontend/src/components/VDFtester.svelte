@@ -79,7 +79,7 @@
     let currentDifficulty: bigint | null = null;
     let worker: Worker | null = null;
     let currentTestIndex = 0;
-    const difficulties = [BigInt(100), BigInt(1000)];
+    const difficulties = [BigInt(100000), BigInt(1000000)];
     const testCombinations: { N: bigint; difficulty: bigint }[] = [];
 
     // 创建需要测试的 N 和难度的组合
