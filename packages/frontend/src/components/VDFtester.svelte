@@ -46,10 +46,12 @@
     }
     function computeVDFWithProgress(g, N, T, postProgress) {
         let result = g;
+        let latestTime = performance.now();
         for (let i = 0n; i < T; i++) {
             result = (result * result) % N;
-            if (i % (T / 10000n) === 0n && T > 0n) {
+            if (performance.now() - latestTime > 16) {
                 postProgress(Number(i * 100n) / Number(T));
+                latestTime = performance.now();
             }
         }
         postProgress(100);
@@ -108,7 +110,6 @@
             const resultDifficulty = BigInt(resultDifficultyStr);
 
             if (type === "progress") {
-                console.log(`N: ${resultN}, Difficulty: ${resultDifficulty}, Progress: ${progress}`);
                 currentProgress = progress;
                 currentN = resultN;
                 currentDifficulty = resultDifficulty;
@@ -138,7 +139,7 @@
     }
 </script>
 
-<div class="bg-zinc-50 dark:bg-zinc-800 p-6 rounded-md border dark:border-zinc-700 mb-6 mt-8 md:w-2/3 lg:w-1/2 xl:w-[37%] mx-8 md:mx-auto">
+<div class="md:bg-zinc-50 md:dark:bg-zinc-800 p-6 rounded-md md:border dark:border-zinc-700 mb-6 mt-8 md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto">
     <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200">VDF Benchmark</h2>
 
     {#if !isBenchmarking}
