@@ -20,5 +20,13 @@ export default defineConfig({
 			},
 		},
 		plugins: [tsconfigPaths()],
+		build: {
+			rollupOptions: {
+				output: {
+					assetFileNames: "assets/[name].[ext]", // Ensure .wasm files are copied
+				},
+			},
+		},
+		assetsInclude: ["**/*.wasm"],
 	},
 });
