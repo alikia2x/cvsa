@@ -6,18 +6,19 @@ import type { VideoSnapshotType } from "@core/db/schema.d.ts";
 import { boolean, mixed, number, object, ValidationError } from "yup";
 
 const SnapshotQueryParamsSchema = object({
-	ps: number().optional().positive(),
-	pn: number().optional().positive(),
-	offset: number().optional().positive(),
+	ps: number().integer().optional().positive(),
+	pn: number().integer().optional().positive(),
+	offset: number().integer().optional().positive(),
 	reverse: boolean().optional(),
 });
 
 const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
-	(value) => {
-		if (typeof value === "number") {
-			return Number.isInteger(value) && value > 0;
+	async (value) => {
+		if (value && await number().integer().isValid(value)) {
+            const v = parseInt(value as string);
+			return Number.isInteger(v) && v > 0;
 		}
 
 		if (typeof value === "string") {
@@ -42,10 +43,13 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 
 	try {
 		const idParam = await idSchema.validate(c.req.param("id"));
-		let videoId: number | string = idParam as string | number;
-		if (typeof videoId === "string" && videoId.startsWith("av")) {
-			videoId = videoId.slice(2);
+		let videoId: string | number = idParam as string;
+		if (videoId.startsWith("av")) {
+			videoId = parseInt(videoId.slice(2));
 		}
+        else if (await number().isValid(videoId)) {
+			videoId = parseInt(videoId);
+        }
 		const queryParams = await SnapshotQueryParamsSchema.validate(c.req.query());
 		const { ps, pn, offset, reverse = false } = queryParams;
 
