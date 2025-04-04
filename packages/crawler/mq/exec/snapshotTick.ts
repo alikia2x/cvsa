@@ -161,7 +161,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime);
+			await scheduleSnapshot(client, aid, "milestone", targetTime, true);
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");

@@ -42,6 +42,18 @@ export async function insertVideoInfo(client: Client, aid: number) {
 			[data.Card.follower, uid],
 		);
 	}
+
+	const stat = data.View.stat;
+
+	const query: string = `
+				INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+			`;
+	await client.queryObject(
+		query,
+		[aid, stat.view, stat.danmaku, stat.reply, stat.like, stat.coin, stat.share, stat.favorite],
+	);
+	
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
 	await ClassifyVideoQueue.add("classifyVideo", { aid });
 }
