@@ -2,6 +2,11 @@
 
 「中V档案馆」是一个旨在收录与展示「中文歌声合成作品」及有关信息的网站。
 
+## 新闻 - 测试版本上线
+
+目前，中V档案馆上线了用于测试的前端网页和API接口，它们分别位于[projectcvsa.com](https://projectcvsa.com)和[api.projectcvsa.com](https://api.projectcvsa.com)。
+API调用方法请参见[接口文档](https://docs.projectcvsa.com/api-doc/)。
+
 ## 创建背景与关联工作
 
 纵观整个互联网，对于「中文歌声合成」或「中文虚拟歌手」（常简称为中V或VC）相关信息进行较为系统、全面地整理收集的主要有以下几个网站：
@@ -31,7 +36,7 @@
 
 ## 技术架构
 
-参见[CVSA文档](https://cvsa.gitbook.io/)。
+参见[CVSA文档](https://docs.projectcvsa.com/)。
 
 ## 开放许可
 

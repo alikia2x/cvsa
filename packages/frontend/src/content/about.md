@@ -31,7 +31,8 @@
 
 ## 技术架构
 
-参见[CVSA文档](https://cvsa.gitbook.io/)。
+参见[CVSA文档](https://docs.projectcvsa.com/)。
+
 
 ## 开放许可
 
