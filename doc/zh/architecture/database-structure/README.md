@@ -2,6 +2,8 @@
 
 CVSA 使用 [PostgreSQL](https://www.postgresql.org/) 作为数据库。
 
+CVSA 设计了两个
+
 CVSA 的所有公开数据（不包括用户的个人数据）都存储在名为 `cvsa_main` 的数据库中，该数据库包含以下表：
 
 * songs：存储歌曲的主要信息
