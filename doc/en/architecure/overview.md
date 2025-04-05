@@ -14,18 +14,29 @@ layout:
 
 # Overview
 
-The whole CVSA system can be sperate into three different parts:
+The CVSA is a [monorepo](https://en.wikipedia.org/wiki/Monorepo) codebase, mainly using TypeScript as the development language. With [Deno workspace](https://docs.deno.com/runtime/fundamentals/workspaces/), the major part of the codebase is under `packages/`.&#x20;
 
-- Frontend
-- API
-- Crawler
+**Project structure:**
 
-The frontend is driven by [Astro](https://astro.build/) and is used to display the final CVSA page. The API is driven by
-[Hono](https://hono.dev) and is used to query the database and provide REST/GraphQL APIs that can be called by out
-website, applications, or third parties. The crawler is our automatic data collector, used to automatically collect new
-songs from bilibili, track their statistics, etc.
+```
+cvsa
+├── deno.json
+├── packages
+│   ├── backend
+│   ├── core
+│   ├── crawler
+│   └── frontend
+└── README.md
+```
+
+**Package Breakdown:**
+
+* **`backend`**: This package houses the server-side logic, built with the [Hono](https://hono.dev/) web framework. It's responsible for interacting with the database and exposing data through REST and GraphQL APIs for consumption by the frontend, internal applications, and third-party developers.
+* **`frontend`**: The user-facing web interface of CVSA is developed using [Astro](https://astro.build/). This package handles the presentation layer, displaying information fetched from the database.
+* **`crawler`**: This automated data collection system is a key component of CVSA. It's designed to automatically discover and gather new song data from bilibili, as well as track relevant statistics over time.
+* **`core`**: This package contains reusable and generic code that is utilized across multiple workspaces within the CVSA monorepo.
 
 ### Crawler
 
-Automation is the biggest highlight of CVSA's technical design. To achieve this, we use a message queue powered by
-[BullMQ](https://bullmq.io/) to concurrently process various tasks in the data collection life cycle.
+Automation is the biggest highlight of CVSA's technical design. The data collection process within the `crawler` is orchestrated using a message queue powered by [BullMQ](https://bullmq.io/). This enables concurrent processing of various tasks involved in the data collection lifecycle. State management and data persistence are handled by a combination of Redis for caching and real-time data, and PostgreSQL as the primary database.
+

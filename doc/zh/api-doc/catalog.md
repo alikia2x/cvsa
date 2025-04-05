@@ -1,3 +1,4 @@
 # 目录
 
-- [歌曲](songs.md)
+* [视频快照](video-snapshot.md)
+

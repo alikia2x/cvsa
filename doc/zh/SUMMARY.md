@@ -1,11 +1,11 @@
 # Table of contents
 
-- [欢迎](README.md)
+* [欢迎](README.md)
 
 ## 关于 <a href="#about" id="about"></a>
 
-- [关于本项目](about/this-project.md)
-- [收录范围](about/scope-of-inclusion.md)
+* [关于本项目](about/this-project.md)
+* [收录范围](about/scope-of-inclusion.md)
 
 ## 技术架构 <a href="#architecture" id="architecture"></a>
 
@@ -18,5 +18,5 @@
 
 ## API 文档 <a href="#api-doc" id="api-doc"></a>
 
-- [目录](api-doc/catalog.md)
-- [歌曲](api-doc/songs.md)
+* [目录](api-doc/catalog.md)
+* [视频快照](api-doc/video-snapshot.md)
