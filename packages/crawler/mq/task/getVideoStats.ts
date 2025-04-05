@@ -1,6 +1,6 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getVideoInfo } from "net/getVideoInfo.ts";
-import { LatestSnapshotType } from "db/schema.d.ts";
+import { LatestSnapshotType } from "@core/db/schema.d.ts";
 import logger from "log/logger.ts";
 
 /*
