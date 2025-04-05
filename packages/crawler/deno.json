@@ -37,7 +37,8 @@
 		"express": "npm:express",
 		"src/": "./src/",
 		"onnxruntime": "npm:onnxruntime-node@1.19.2",
-		"chalk": "npm:chalk"
+		"chalk": "npm:chalk",
+		"@core/db/schema": "../core/db/schema.d.ts"
 	},
 	"exports": "./main.ts"
 }

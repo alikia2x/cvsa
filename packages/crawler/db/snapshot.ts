@@ -1,5 +1,6 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { LatestSnapshotType } from "@core/db/schema.d.ts";
+import { LatestSnapshotType } from "@core/db/schema";
+import { SnapshotNumber } from "mq/task/getVideoStats.ts";
 
 export async function getVideosNearMilestone(client: Client) {
 	const queryResult = await client.queryObject<LatestSnapshotType>(`
@@ -18,7 +19,7 @@ export async function getVideosNearMilestone(client: Client) {
 	});
 }
 
-export async function getLatestVideoSnapshot(client: Client, aid: number): Promise<null | LatestSnapshotType> {
+export async function getLatestVideoSnapshot(client: Client, aid: number): Promise<null | SnapshotNumber> {
 	const queryResult = await client.queryObject<LatestSnapshotType>(
 		`
 	    SELECT *

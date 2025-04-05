@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { AllDataType, BiliUserType } from "@core/db/schema.d.ts";
+import { AllDataType, BiliUserType } from "@core/db/schema";
 import Akari from "ml/akari.ts";
 
 export async function videoExistsInAllData(client: Client, aid: number) {

@@ -53,7 +53,7 @@ export async function insertVideoInfo(client: Client, aid: number) {
 		query,
 		[aid, stat.view, stat.danmaku, stat.reply, stat.like, stat.coin, stat.share, stat.favorite],
 	);
-	
+
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
 	await ClassifyVideoQueue.add("classifyVideo", { aid });
 }

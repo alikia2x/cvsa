@@ -1,0 +1,4 @@
+{
+	"name": "@cvsa/core",
+	"exports": "./main.ts"
+}

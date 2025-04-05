@@ -216,7 +216,7 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:regularSnapshotsWorker");
 	} finally {
-		lockManager.releaseLock("dispatchRegularSnapshots");
+		await lockManager.releaseLock("dispatchRegularSnapshots");
 		client.release();
 	}
 };

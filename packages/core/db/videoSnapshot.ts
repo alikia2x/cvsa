@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { VideoSnapshotType } from "@core/db/schema.d.ts";
+import { VideoSnapshotType } from "./schema.d.ts";
 
 export async function getVideoSnapshots(client: Client, aid: number, limit: number, pageOrOffset: number, reverse: boolean, mode: 'page' | 'offset' = 'page') {
     const offset = mode === 'page' ? (pageOrOffset - 1) * limit : pageOrOffset;

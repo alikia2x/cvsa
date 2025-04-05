@@ -18,7 +18,7 @@ Deno.addSignalListener("SIGTERM", async () => {
 	Deno.exit();
 });
 
-Akari.init();
+await Akari.init();
 
 const filterWorker = new Worker(
 	"classifyVideo",

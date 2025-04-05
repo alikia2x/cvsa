@@ -1,7 +1,18 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getVideoInfo } from "net/getVideoInfo.ts";
-import { LatestSnapshotType } from "@core/db/schema.d.ts";
 import logger from "log/logger.ts";
+
+export interface SnapshotNumber {
+	time: number;
+	views: number;
+	coins: number;
+	likes: number;
+	favorites: number;
+	shares: number;
+	danmakus: number;
+	aid: number;
+	replies: number;
+}
 
 /*
  * Fetch video stats from bilibili API and insert into database
@@ -17,7 +28,7 @@ export async function insertVideoSnapshot(
 	client: Client,
 	aid: number,
 	task: string,
-): Promise<number | LatestSnapshotType> {
+): Promise<number | SnapshotNumber> {
 	const data = await getVideoInfo(aid, task);
 	if (typeof data == "number") {
 		return data;
@@ -42,7 +53,7 @@ export async function insertVideoSnapshot(
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 
-	const snapshot: LatestSnapshotType = {
+	return {
 		aid,
 		views,
 		danmakus,
@@ -53,6 +64,4 @@ export async function insertVideoSnapshot(
 		favorites,
 		time,
 	};
-
-	return snapshot;
 }

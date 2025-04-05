@@ -217,8 +217,7 @@ class NetScheduler {
 			const providerLimiterId = "provider-" + proxyName + "-" + provider;
 			if (!this.proxyLimiters[proxyLimiterId]) {
 				const providerLimiter = this.providerLimiters[providerLimiterId];
-				const providerAvailable = await providerLimiter.getAvailability();
-				return providerAvailable;
+				return await providerLimiter.getAvailability();
 			}
 			const proxyLimiter = this.proxyLimiters[proxyLimiterId];
 			const providerLimiter = this.providerLimiters[providerLimiterId];

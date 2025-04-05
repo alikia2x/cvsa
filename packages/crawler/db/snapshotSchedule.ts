@@ -1,6 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { formatTimestampToPsql } from "utils/formatTimestampToPostgre.ts";
-import { SnapshotScheduleType } from "@core/db/schema.d.ts";
+import { SnapshotScheduleType } from "@core/db/schema";
 import logger from "log/logger.ts";
 import { MINUTE } from "$std/datetime/constants.ts";
 import { redis } from "db/redis.ts";
@@ -11,8 +10,7 @@ const REDIS_KEY = "cvsa:snapshot_window_counts";
 function getCurrentWindowIndex(): number {
 	const now = new Date();
 	const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
-	const currentWindow = Math.floor(minutesSinceMidnight / 5);
-	return currentWindow;
+	return Math.floor(minutesSinceMidnight / 5);
 }
 
 export async function refreshSnapshotWindowCounts(client: Client, redisClient: Redis) {
@@ -163,24 +161,6 @@ export async function getLatestSnapshot(client: Client, aid: number): Promise<Sn
 }
 
 /*
- * Returns the number of snapshot schedules within the specified range.
- * @param client The database client.
- * @param start The start time of the range. (Timestamp in milliseconds)
- * @param end The end time of the range. (Timestamp in milliseconds)
- */
-export async function getSnapshotScheduleCountWithinRange(client: Client, start: number, end: number) {
-	const startTimeString = formatTimestampToPsql(start);
-	const endTimeString = formatTimestampToPsql(end);
-	const query = `
-		SELECT COUNT(*) FROM snapshot_schedule
-		WHERE started_at BETWEEN $1 AND $2
-		AND status = 'pending'
-	`;
-	const res = await client.queryObject<{ count: number }>(query, [startTimeString, endTimeString]);
-	return res.rows[0].count;
-}
-
-/*
  * Creates a new snapshot schedule record.
  * @param client The database client.
  * @param aid The aid of the video.
@@ -227,7 +207,7 @@ export async function adjustSnapshotTime(
 
 	const initialOffset = currentWindow + Math.max(targetOffset, 0);
 
-	let timePerIteration = 0;
+	let timePerIteration: number;
 	const MAX_ITERATIONS = 2880;
 	let iters = 0;
 	const t = performance.now();
