@@ -22,7 +22,7 @@ We define a vocal synthesizer as a software or system that generates synthesized
 
 
 
-In addition, the songs must be featured in a video that is categorized under the VOCALOID·UTAU (ID 30) category in [Bilibili](https://en.wikipedia.org/wiki/Bilibili) in order to be observed by our [automation program](../architecure/overview.md#crawler). We welcome editors to manually add songs that have not been uploaded to bilibili / categorized under this category.
+In addition, the songs must be featured in a video that is categorized under the VOCALOID·UTAU (ID 30) category in [Bilibili](https://en.wikipedia.org/wiki/Bilibili) in order to be observed by our [automation program](../architecture/overview.md#crawler). We welcome editors to manually add songs that have not been uploaded to bilibili / categorized under this category.
 
 #### NEWS
 
