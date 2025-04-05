@@ -1,0 +1,107 @@
+openapi: 3.1.0
+info:
+  title: CVSA API
+  version: v1
+
+servers:
+  - url: https://api.projectcvsa.com
+
+paths:
+  /video/{id}/snapshots:
+    get:
+      summary: Get list of video snapshots
+      description: Get a list of video snapshots by the ID. The ID can be "av" + number, or "BV" + a 12-digit alphanumeric string, or an integer as the av number in bilibili.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: "The ID of the video (e.g. av78977256, BV1KJ411C7CW, 78977256)"
+        - in: query
+          name: ps
+          schema:
+            type: integer
+            minimum: 1
+            default: 1000
+          description: The number of snapshots returned per page (pageSize), the default is 1000.
+        - in: query
+          name: pn
+          schema:
+            type: integer
+            minimum: 1
+          description: The page number, used for pagination. Only one of offset and pn can be specified.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 1
+          description: The offset for offset-based queries. Only one of offset and pn can be specified.
+        - in: query
+          name: reverse
+          schema:
+            type: boolean
+          description: Reverse snapshots from old to new if set to true. Default is false.
+      responses:
+        "200":
+          description: Successfuly retrieved snapshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: Snapshot ID (Not the same as the video ID)
+                    aid:
+                      type: integer
+                      description: The av number of the video
+                    views:
+                      type: integer
+                      description: The number of views the video has
+                    coins:
+                      type: integer
+                      description: The number of coins the video has
+                    likes:
+                      type: integer
+                      description: The number of likes the video has
+                    favorites:
+                      type: integer
+                      description: The number of favorites the video has
+                    shares:
+                      type: integer
+                      description: The number of shares the video has
+                    danmakus:
+                      type: integer
+                      description: The number of danmakus the video has
+                    replies:
+                      type: integer
+                      description: The number of replies the video has
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+                  errors:
+                    type: object
+                    description: Detailed error information
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+                  error:
+                    type: object
+                    description: Detailed error information
