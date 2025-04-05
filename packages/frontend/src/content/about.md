@@ -33,7 +33,6 @@
 
 参见[CVSA文档](https://docs.projectcvsa.com/)。
 
-
 ## 开放许可
 
 受本文以[CC BY-NC-SA 4.0协议](https://creativecommons.org/licenses/by-nc-sa/4.0/)提供。

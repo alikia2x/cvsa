@@ -19,6 +19,6 @@ export default defineConfig({
 				allow: [".", "../../"],
 			},
 		},
-		plugins: [tsconfigPaths()]
+		plugins: [tsconfigPaths()],
 	},
 });

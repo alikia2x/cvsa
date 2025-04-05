@@ -1,6 +1,6 @@
 # Message Queue
 
-We rely on message queues to manage the various tasks that [the cralwer ](overview.md#crawler)needs to perform.
+We rely on message queues to manage the various tasks that [the cralwer](overview.md#crawler)needs to perform.
 
 ### Code Path
 

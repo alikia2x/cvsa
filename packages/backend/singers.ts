@@ -70,7 +70,7 @@ export interface Singer {
 	name: string;
 	color?: string;
 	birthday?: string;
-    message?: string;
+	message?: string;
 }
 
 export const specialSingers = [

@@ -1,25 +1,25 @@
 {
-  "name": "frontend",
-  "type": "module",
-  "version": "0.0.1",
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
-  },
-  "dependencies": {
-    "@astrojs/tailwind": "^6.0.2",
-    "argon2id": "^1.0.1",
-    "astro": "^5.5.5",
-    "autoprefixer": "^10.4.21",
-    "pg": "^8.11.11",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^3.0.24",
-    "vite-tsconfig-paths": "^5.1.4"
-  },
-  "devDependencies": {
-    "@rollup/plugin-wasm": "^6.2.2",
-    "@types/pg": "^8.11.11"
-  }
+	"name": "frontend",
+	"type": "module",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro"
+	},
+	"dependencies": {
+		"@astrojs/tailwind": "^6.0.2",
+		"argon2id": "^1.0.1",
+		"astro": "^5.5.5",
+		"autoprefixer": "^10.4.21",
+		"pg": "^8.11.11",
+		"postcss": "^8.5.3",
+		"tailwindcss": "^3.0.24",
+		"vite-tsconfig-paths": "^5.1.4"
+	},
+	"devDependencies": {
+		"@rollup/plugin-wasm": "^6.2.2",
+		"@types/pg": "^8.11.11"
+	}
 }

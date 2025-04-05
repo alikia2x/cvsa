@@ -1,4 +1,4 @@
-import netScheduler from "mq/scheduler.ts";
+import networkDelegate from "./delegate.ts";
 import { MediaListInfoData, MediaListInfoResponse } from "net/bilibili.d.ts";
 import logger from "log/logger.ts";
 
@@ -16,7 +16,7 @@ export async function bulkGetVideoStats(aids: number[]): Promise<MediaListInfoDa
 	for (const aid of aids) {
 		url += `${aid}:2,`;
 	}
-	const data = await netScheduler.request<MediaListInfoResponse>(url, "bulkSnapshot");
+	const data = await networkDelegate.request<MediaListInfoResponse>(url, "bulkSnapshot");
 	const errMessage = `Error fetching metadata for aid list: ${aids.join(",")}:`;
 	if (data.code !== 0) {
 		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");

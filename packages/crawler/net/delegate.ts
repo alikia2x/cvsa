@@ -19,7 +19,7 @@ interface ProxiesMap {
 	[name: string]: Proxy;
 }
 
-type NetSchedulerErrorCode =
+type NetworkDelegateErrorCode =
 	| "NO_PROXY_AVAILABLE"
 	| "PROXY_RATE_LIMITED"
 	| "PROXY_NOT_FOUND"
@@ -28,9 +28,9 @@ type NetSchedulerErrorCode =
 	| "ALICLOUD_PROXY_ERR";
 
 export class NetSchedulerError extends Error {
-	public code: NetSchedulerErrorCode;
+	public code: NetworkDelegateErrorCode;
 	public rawError: unknown | undefined;
-	constructor(message: string, errorCode: NetSchedulerErrorCode, rawError?: unknown) {
+	constructor(message: string, errorCode: NetworkDelegateErrorCode, rawError?: unknown) {
 		super(message);
 		this.name = "NetSchedulerError";
 		this.code = errorCode;
@@ -59,7 +59,7 @@ function shuffleArray<T>(array: T[]): T[] {
 	return newArray;
 }
 
-class NetScheduler {
+class NetworkDelegate {
 	private proxies: ProxiesMap = {};
 	private providerLimiters: LimiterMap = {};
 	private proxyLimiters: OptionalLimiterMap = {};
@@ -67,15 +67,6 @@ class NetScheduler {
 
 	addProxy(proxyName: string, type: string, data: string): void {
 		this.proxies[proxyName] = { type, data };
-	}
-
-	removeProxy(proxyName: string): void {
-		if (!this.proxies[proxyName]) {
-			throw new Error(`Proxy ${proxyName} not found`);
-		}
-		delete this.proxies[proxyName];
-		// Clean up associated limiters
-		this.cleanupProxyLimiters(proxyName);
 	}
 
 	private cleanupProxyLimiters(proxyName: string): void {
@@ -294,7 +285,7 @@ class NetScheduler {
 	}
 }
 
-const netScheduler = new NetScheduler();
+const networkDelegate = new NetworkDelegate();
 const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
 	{
 		window: new SlidingWindow(redis, 0.3),
@@ -368,14 +359,14 @@ but both should come after addProxy and addTask to ensure proper setup and depen
 */
 
 const regions = ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"];
-netScheduler.addProxy("native", "native", "");
+networkDelegate.addProxy("native", "native", "");
 for (const region of regions) {
-	netScheduler.addProxy(`alicloud-${region}`, "alicloud-fc", region);
+	networkDelegate.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
-netScheduler.addTask("getVideoInfo", "bilibili", "all");
-netScheduler.addTask("getLatestVideos", "bilibili", "all");
-netScheduler.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
-netScheduler.addTask("snapshotVideo", "bili_test", [
+networkDelegate.addTask("getVideoInfo", "bilibili", "all");
+networkDelegate.addTask("getLatestVideos", "bilibili", "all");
+networkDelegate.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
+networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",
 	"alicloud-zhangjiakou",
@@ -383,7 +374,7 @@ netScheduler.addTask("snapshotVideo", "bili_test", [
 	"alicloud-shenzhen",
 	"alicloud-hohhot",
 ]);
-netScheduler.addTask("bulkSnapshot", "bili_strict", [
+networkDelegate.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",
 	"alicloud-zhangjiakou",
@@ -391,13 +382,13 @@ netScheduler.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-shenzhen",
 	"alicloud-hohhot",
 ]);
-netScheduler.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
-netScheduler.setTaskLimiter("getLatestVideos", null);
-netScheduler.setTaskLimiter("snapshotMilestoneVideo", null);
-netScheduler.setTaskLimiter("snapshotVideo", null);
-netScheduler.setTaskLimiter("bulkSnapshot", null);
-netScheduler.setProviderLimiter("bilibili", biliLimiterConfig);
-netScheduler.setProviderLimiter("bili_test", bili_test);
-netScheduler.setProviderLimiter("bili_strict", bili_strict);
+networkDelegate.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
+networkDelegate.setTaskLimiter("getLatestVideos", null);
+networkDelegate.setTaskLimiter("snapshotMilestoneVideo", null);
+networkDelegate.setTaskLimiter("snapshotVideo", null);
+networkDelegate.setTaskLimiter("bulkSnapshot", null);
+networkDelegate.setProviderLimiter("bilibili", biliLimiterConfig);
+networkDelegate.setProviderLimiter("bili_test", bili_test);
+networkDelegate.setProviderLimiter("bili_strict", bili_strict);
 
-export default netScheduler;
+export default networkDelegate;

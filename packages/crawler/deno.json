@@ -38,7 +38,8 @@
 		"src/": "./src/",
 		"onnxruntime": "npm:onnxruntime-node@1.19.2",
 		"chalk": "npm:chalk",
-		"@core/db/schema": "../core/db/schema.d.ts"
+		"@core/db/schema": "../core/db/schema.d.ts",
+		"@core/db/pgConfig": "../core/db/pgConfig.ts"
 	},
 	"exports": "./main.ts"
 }

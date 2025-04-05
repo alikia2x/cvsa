@@ -6,13 +6,13 @@ import { registerHandler } from "./register.ts";
 
 export const app = new Hono();
 
-app.use('/video/*', dbMiddleware);
-app.use('/user', dbCredMiddleware);
+app.use("/video/*", dbMiddleware);
+app.use("/user", dbCredMiddleware);
 
 app.get("/", ...rootHandler);
 
-app.get('/video/:id/snapshots', ...getSnapshotsHanlder);
-app.post('/user', ...registerHandler);
+app.get("/video/:id/snapshots", ...getSnapshotsHanlder);
+app.post("/user", ...registerHandler);
 
 const fetch = app.fetch;
 

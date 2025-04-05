@@ -9,18 +9,18 @@ export const db = pool;
 export const dbCred = poolCred;
 
 export const dbMiddleware = createMiddleware(async (c, next) => {
-    const connection = await pool.connect();
+	const connection = await pool.connect();
 	c.set("db", connection);
 	await next();
 	connection.release();
 });
 
 export const dbCredMiddleware = createMiddleware(async (c, next) => {
-    const connection = await poolCred.connect();
+	const connection = await poolCred.connect();
 	c.set("dbCred", connection);
 	await next();
 	connection.release();
-})
+});
 
 declare module "hono" {
 	interface ContextVariableMap {
