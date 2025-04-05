@@ -31,12 +31,7 @@ cvsa
 
 **Package Breakdown:**
 
-* **`backend`**: This package houses the server-side logic, built with the [Hono](https://hono.dev/) web framework. It's responsible for interacting with the database and exposing data through REST and GraphQL APIs for consumption by the frontend, internal applications, and third-party developers.
-* **`frontend`**: The user-facing web interface of CVSA is developed using [Astro](https://astro.build/). This package handles the presentation layer, displaying information fetched from the database.
-* **`crawler`**: This automated data collection system is a key component of CVSA. It's designed to automatically discover and gather new song data from bilibili, as well as track relevant statistics over time.
-* **`core`**: This package contains reusable and generic code that is utilized across multiple workspaces within the CVSA monorepo.
-
-### Crawler
-
-Automation is the biggest highlight of CVSA's technical design. The data collection process within the `crawler` is orchestrated using a message queue powered by [BullMQ](https://bullmq.io/). This enables concurrent processing of various tasks involved in the data collection lifecycle. State management and data persistence are handled by a combination of Redis for caching and real-time data, and PostgreSQL as the primary database.
-
+- **`backend`**: This package houses the server-side logic, built with the [Hono](https://hono.dev/) web framework. It's responsible for interacting with the database and exposing data through REST and GraphQL APIs for consumption by the frontend, internal applications, and third-party developers.
+- **`frontend`**: The user-facing web interface of CVSA is developed using [Astro](https://astro.build/). This package handles the presentation layer, displaying information fetched from the database.
+- **`crawler`**: This automated data collection system is a key component of CVSA. It's designed to automatically discover and gather new song data from bilibili, as well as track relevant statistics over time.
+- **`core`**: This package contains reusable and generic code that is utilized across multiple workspaces within the CVSA monorepo.
