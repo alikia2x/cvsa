@@ -154,6 +154,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 		for (const video of videos) {
 			const aid = Number(video.aid);
 			const eta = await getAdjustedShortTermETA(client, aid);
+			logger.log(`ETA for ${aid}: ${eta}`)
 			if (eta > 72) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
@@ -162,6 +163,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
 			await scheduleSnapshot(client, aid, "milestone", targetTime, true);
+			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
