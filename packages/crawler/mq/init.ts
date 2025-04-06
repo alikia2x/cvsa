@@ -30,8 +30,8 @@ export async function initMQ() {
 			immediately: true,
 		}, {
 			opts: {
-				removeOnComplete: 1,
-				removeOnFail: 1,
+				removeOnComplete: 300,
+				removeOnFail: 600,
 			},
 		});
 
@@ -40,8 +40,8 @@ export async function initMQ() {
 			immediately: true,
 		}, {
 			opts: {
-				removeOnComplete: 1,
-				removeOnFail: 1,
+				removeOnComplete: 60,
+				removeOnFail: 600,
 			},
 		});
 

@@ -61,6 +61,7 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 				map: dataMap,
 			}, { priority: 3 });
 		}
+		return `OK`
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
@@ -87,6 +88,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 				id: Number(schedule.id),
 				type: schedule.type ?? "normal",
 			}, { priority });
+			return `OK`;
 		}
 	} catch (e) {
 		logger.error(e as Error);
@@ -161,7 +163,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime, true);
+			await scheduleSnapshot(client, aid, "milestone", targetTime);
 			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
 		}
 	} catch (e) {
