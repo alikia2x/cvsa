@@ -34,14 +34,11 @@ const latestVideoWorker = new Worker(
 	async (job: Job) => {
 		switch (job.name) {
 			case "getLatestVideos":
-				await getLatestVideosWorker(job);
-				break;
+				return await getLatestVideosWorker(job);
 			case "getVideoInfo":
-				await getVideoInfoWorker(job);
-				break;
+				return await getVideoInfoWorker(job);
 			case "collectSongs":
-				await collectSongsWorker(job);
-				break;
+				return await collectSongsWorker(job);
 			default:
 				break;
 		}
@@ -72,26 +69,19 @@ const snapshotWorker = new Worker(
 	async (job: Job) => {
 		switch (job.name) {
 			case "snapshotVideo":
-				await takeSnapshotForVideoWorker(job);
-				break;
+				return await takeSnapshotForVideoWorker(job);
 			case "snapshotTick":
-				await snapshotTickWorker(job);
-				break;
+				return await snapshotTickWorker(job);
 			case "collectMilestoneSnapshots":
-				await collectMilestoneSnapshotsWorker(job);
-				break;
+				return await collectMilestoneSnapshotsWorker(job);
 			case "dispatchRegularSnapshots":
-				await regularSnapshotsWorker(job);
-				break;
+				return await regularSnapshotsWorker(job);
 			case "scheduleCleanup":
-				await scheduleCleanupWorker(job);
-				break;
+				return await scheduleCleanupWorker(job);
 			case "bulkSnapshotVideo":
-				await takeBulkSnapshotForVideosWorker(job);
-				break;
+				return await takeBulkSnapshotForVideosWorker(job);
 			case "bulkSnapshotTick":
-				await bulkSnapshotTickWorker(job);
-				break;
+				return await bulkSnapshotTickWorker(job);
 			default:
 				break;
 		}
