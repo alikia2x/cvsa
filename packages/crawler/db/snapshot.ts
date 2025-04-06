@@ -3,7 +3,7 @@ import { LatestSnapshotType } from "db/schema.d.ts";
 
 export async function getVideosNearMilestone(client: Client) {
 	const queryResult = await client.queryObject<LatestSnapshotType>(`
-        SELECT ls
+        SELECT ls.*
         FROM latest_video_snapshot ls
         WHERE
             (views >= 90000 AND views < 100000) OR

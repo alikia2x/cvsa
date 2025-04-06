@@ -153,9 +153,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 		const videos = await getVideosNearMilestone(client);
 		for (const video of videos) {
 			const aid = Number(video.aid);
-			console.debug(aid, video.aid);
 			const eta = await getAdjustedShortTermETA(client, aid);
-			logger.log(`ETA for ${aid}: ${eta}`)
 			if (eta > 72) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
