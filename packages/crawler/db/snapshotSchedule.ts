@@ -69,6 +69,14 @@ export async function videoHasActiveSchedule(client: Client, aid: number) {
 	return res.rows.length > 0;
 }
 
+export async function videoHasActiveScheduleWithType(client: Client, aid: number, type: string) {
+	const res = await client.queryObject<{ status: string }>(
+		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing') AND type = $2`,
+		[aid, type],
+	);
+	return res.rows.length > 0;
+}
+
 export async function videoHasProcessingSchedule(client: Client, aid: number) {
 	const res = await client.queryObject<{ status: string }>(
 		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND status = 'processing'`,
@@ -173,7 +181,7 @@ export async function scheduleSnapshot(
 	targetTime: number,
 	force: boolean = false,
 ) {
-	if (await videoHasActiveSchedule(client, aid) && !force) return;
+	if (await videoHasActiveScheduleWithType(client, aid, type) && !force) return;
 	let adjustedTime = new Date(targetTime);
 	if (type !== "milestone" && type !== "new") {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 1000, redis);

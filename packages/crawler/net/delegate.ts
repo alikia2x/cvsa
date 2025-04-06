@@ -69,14 +69,6 @@ class NetworkDelegate {
 		this.proxies[proxyName] = { type, data };
 	}
 
-	private cleanupProxyLimiters(proxyName: string): void {
-		for (const limiterId in this.proxyLimiters) {
-			if (limiterId.startsWith(`proxy-${proxyName}`)) {
-				delete this.proxyLimiters[limiterId];
-			}
-		}
-	}
-
 	addTask(taskName: string, provider: string, proxies: string[] | "all"): void {
 		this.tasks[taskName] = { provider, proxies };
 	}
@@ -271,6 +263,7 @@ class NetworkDelegate {
 			const out = decoder.decode(output.stdout);
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
+				// noinspection ExceptionCaughtLocallyJS
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",

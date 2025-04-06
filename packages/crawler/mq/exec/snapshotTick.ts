@@ -61,6 +61,7 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 				map: dataMap,
 			}, { priority: 3 });
 		}
+		return `OK`
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
@@ -74,7 +75,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
 			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
-				return `ALREADY_PROCESSING`;
+				continue;
 			}
 			let priority = 3;
 			if (schedule.type && priorityMap[schedule.type]) {
@@ -88,6 +89,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 				type: schedule.type ?? "normal",
 			}, { priority });
 		}
+		return `OK`;
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
@@ -115,7 +117,8 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime, true);
+			await scheduleSnapshot(client, aid, "milestone", targetTime);
+			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
@@ -300,6 +303,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		const now = Date.now();
 		const targetTime = now + eta * HOUR;
 		await scheduleSnapshot(client, aid, type, targetTime);
+		await setSnapshotStatus(client, id, "completed");
 		return `DONE`;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
