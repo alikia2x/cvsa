@@ -75,7 +75,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
 			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
-				return `ALREADY_PROCESSING`;
+				continue;
 			}
 			let priority = 3;
 			if (schedule.type && priorityMap[schedule.type]) {
@@ -88,8 +88,8 @@ export const snapshotTickWorker = async (_job: Job) => {
 				id: Number(schedule.id),
 				type: schedule.type ?? "normal",
 			}, { priority });
-			return `OK`;
 		}
+		return `OK`;
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
