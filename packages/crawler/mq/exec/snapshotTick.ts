@@ -349,6 +349,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		const now = Date.now();
 		const targetTime = now + eta * HOUR;
 		await scheduleSnapshot(client, aid, type, targetTime);
+		await setSnapshotStatus(client, id, "completed");
 		return `DONE`;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
