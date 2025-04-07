@@ -5,7 +5,8 @@
 		"hono": "jsr:@hono/hono@^4.7.5",
 		"zod": "npm:zod",
 		"yup": "npm:yup",
-		"@crawler/net/videoInfo": "../crawler/net/getVideoInfo.ts"
+		"@crawler/net/videoInfo": "../crawler/net/getVideoInfo.ts",
+		"ioredis": "npm:ioredis"
 	},
 	"tasks": {
 		"dev": "deno serve --env-file=.env --allow-env --allow-net --allow-read --allow-write --allow-run --watch main.ts",
