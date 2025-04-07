@@ -1,4 +1,4 @@
-import { SlidingWindow } from "mq/slidingWindow.ts";
+import { SlidingWindow } from "./slidingWindow.ts";
 
 export interface RateLimiterConfig {
 	window: SlidingWindow;

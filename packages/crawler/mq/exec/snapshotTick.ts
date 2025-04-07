@@ -21,7 +21,7 @@ import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
 import logger from "log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
 import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
-import { NetSchedulerError } from "net/delegate.ts";
+import { NetSchedulerError } from "@core/net/delegate.ts";
 import { getBiliVideoStatus, setBiliVideoStatus } from "db/allData.ts";
 import { truncate } from "utils/truncate.ts";
 import { lockManager } from "mq/lockManager.ts";

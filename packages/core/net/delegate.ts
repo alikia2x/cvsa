@@ -1,5 +1,5 @@
 import logger from "log/logger.ts";
-import { RateLimiter, RateLimiterConfig } from "mq/rateLimiter.ts";
+import { RateLimiter, type RateLimiterConfig } from "mq/rateLimiter.ts";
 import { SlidingWindow } from "mq/slidingWindow.ts";
 import { redis } from "db/redis.ts";
 import Redis from "ioredis";

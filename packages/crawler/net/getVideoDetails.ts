@@ -1,5 +1,5 @@
-import networkDelegate from "./delegate.ts";
-import { VideoDetailsData, VideoDetailsResponse } from "net/bilibili.d.ts";
+import networkDelegate from "@core/net/delegate.ts";
+import { VideoDetailsData, VideoDetailsResponse } from "@core/net/bilibili.d.ts";
 import logger from "log/logger.ts";
 
 export async function getVideoDetails(aid: number): Promise<VideoDetailsData | null> {

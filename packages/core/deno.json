@@ -1,4 +1,11 @@
 {
 	"name": "@cvsa/core",
-	"exports": "./main.ts"
+	"exports": "./main.ts",
+	"imports": {
+		"ioredis": "npm:ioredis",
+		"log/": "./log/",
+		"db/": "./db/",
+		"$std/": "https://deno.land/std@0.216.0/",
+		"mq/": "./mq/"
+	}
 }

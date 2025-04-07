@@ -3,7 +3,7 @@ import { VERSION } from "./main.ts";
 import { createHandlers } from "./utils.ts";
 
 export const rootHandler = createHandlers((c) => {
-	let singer: Singer | Singer[] | null = null;
+	let singer: Singer | Singer[] | null;
 	const shouldShowSpecialSinger = Math.random() < 0.016;
 	if (getSingerForBirthday().length !== 0) {
 		singer = getSingerForBirthday();

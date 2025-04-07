@@ -1,5 +1,5 @@
-import networkDelegate from "./delegate.ts";
-import { VideoInfoData, VideoInfoResponse } from "net/bilibili.d.ts";
+import networkDelegate from "@core/net/delegate.ts";
+import { VideoInfoData, VideoInfoResponse } from "@core/net/bilibili.d.ts";
 import logger from "log/logger.ts";
 
 /*
@@ -41,7 +41,7 @@ export async function getVideoInfo(aid: number, task: string): Promise<VideoInfo
  */
 export async function getVideoInfoByBV(bvid: string, task: string): Promise<VideoInfoData | number> {
 	const url = `https://api.bilibili.com/x/web-interface/view?bvid=${bvid}`;
-	const data = await netScheduler.request<VideoInfoResponse>(url, task);
+	const data = await networkDelegate.request<VideoInfoResponse>(url, task);
 	const errMessage = `Error fetching metadata for ${bvid}:`;
 	if (data.code !== 0) {
 		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfoByBV");

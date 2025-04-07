@@ -3,7 +3,7 @@ import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.t
 import logger from "log/logger.ts";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule.ts";
 import { db } from "db/init.ts";
-import { redis } from "db/redis.ts";
+import { redis } from "@core/db/redis.ts";
 
 export async function initMQ() {
 	const client = await db.connect();

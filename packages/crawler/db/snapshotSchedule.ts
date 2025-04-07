@@ -2,7 +2,7 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { SnapshotScheduleType } from "@core/db/schema";
 import logger from "log/logger.ts";
 import { MINUTE } from "$std/datetime/constants.ts";
-import { redis } from "db/redis.ts";
+import { redis } from "../../core/db/redis.ts";
 import { Redis } from "ioredis";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";

@@ -6,6 +6,7 @@
 		"zod": "npm:zod",
 		"yup": "npm:yup",
 		"@core/": "../core/",
+		"log/": "../core/log/",
 		"@crawler/net/videoInfo": "../crawler/net/getVideoInfo.ts",
 		"ioredis": "npm:ioredis"
 	},
