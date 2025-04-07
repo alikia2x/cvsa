@@ -12,7 +12,7 @@ const SnapshotQueryParamsSchema = object({
 	reverse: boolean().optional(),
 });
 
-const idSchema = mixed().test(
+export const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
 	async (value) => {
