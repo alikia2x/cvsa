@@ -7,13 +7,40 @@ import { idSchema } from "./snapshots.ts";
 import type { VideoInfoData } from "../crawler/net/bilibili.d.ts";
 import { Redis } from "ioredis";
 import { NetSchedulerError } from "../crawler/mq/scheduler.ts";
+import logger from "../crawler/log/logger.ts";
+import type { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 
 const redis = new Redis({ maxRetriesPerRequest: null });
 const CACHE_EXPIRATION_SECONDS = 60;
 
 type ContextType = Context<BlankEnv, "/video/:id/info", BlankInput>;
 
+async function insertVideoSnapshot(client: Client, data: VideoInfoData) {
+	const views = data.stat.view;
+	const danmakus = data.stat.danmaku;
+	const replies = data.stat.reply;
+	const likes = data.stat.like;
+	const coins = data.stat.coin;
+	const shares = data.stat.share;
+	const favorites = data.stat.favorite;
+	const aid = data.aid;
+
+	const query: string = `
+        INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `;
+
+	await client.queryObject(
+		query,
+		[aid, views, danmakus, replies, likes, coins, shares, favorites],
+	);
+
+	logger.log(`Inserted into snapshot for video ${aid} by videoInfo API.`, "api", "fn:insertVideoSnapshot");
+}
+
+
 export const videoInfoHandler = createHandlers(async (c: ContextType) => {
+	const client = c.get("db");
 	try {
 		const id = await idSchema.validate(c.req.param("id"));
 		let videoId: string | number = id as string;
@@ -42,6 +69,8 @@ export const videoInfoHandler = createHandlers(async (c: ContextType) => {
 		}
 
 		await redis.setex(cacheKey, CACHE_EXPIRATION_SECONDS, JSON.stringify(result));
+
+		await insertVideoSnapshot(client, result);
 
 		return c.json(result);
 	} catch (e) {
