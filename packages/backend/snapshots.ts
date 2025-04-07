@@ -12,12 +12,12 @@ const SnapshotQueryParamsSchema = object({
 	reverse: boolean().optional(),
 });
 
-const idSchema = mixed().test(
+export const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
 	async (value) => {
 		if (value && await number().integer().isValid(value)) {
-            const v = parseInt(value as string);
+			const v = parseInt(value as string);
 			return Number.isInteger(v) && v > 0;
 		}
 
@@ -46,10 +46,9 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 		let videoId: string | number = idParam as string;
 		if (videoId.startsWith("av")) {
 			videoId = parseInt(videoId.slice(2));
-		}
-        else if (await number().isValid(videoId)) {
+		} else if (await number().isValid(videoId)) {
 			videoId = parseInt(videoId);
-        }
+		}
 		const queryParams = await SnapshotQueryParamsSchema.validate(c.req.query());
 		const { ps, pn, offset, reverse = false } = queryParams;
 

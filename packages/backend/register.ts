@@ -8,7 +8,7 @@ import type { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 const RegistrationBodySchema = object({
 	username: string().trim().required("Username is required").max(50, "Username cannot exceed 50 characters"),
 	password: string().required("Password is required"),
-    nickname: string().optional(),
+	nickname: string().optional(),
 });
 
 type ContextType = Context<BlankEnv & { Bindings: Bindings }, "/user", BlankInput>;
@@ -19,7 +19,7 @@ export const userExists = async (username: string, client: Client) => {
     `;
 	const result = await client.queryObject(query, [username]);
 	return result.rows.length > 0;
-}
+};
 
 export const registerHandler = createHandlers(async (c: ContextType) => {
 	const client = c.get("dbCred");
@@ -28,11 +28,11 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 		const body = await RegistrationBodySchema.validate(await c.req.json());
 		const { username, password, nickname } = body;
 
-        if (await userExists(username, client)) {
+		if (await userExists(username, client)) {
 			return c.json({
 				message: `User "${username}" already exists.`,
 			}, 400);
-        }
+		}
 
 		const hash = await Argon2id.hashEncoded(password);
 
@@ -49,7 +49,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			return c.json({
 				message: "Invalid registration data.",
 				errors: e.errors,
-			}, 400); 
+			}, 400);
 		} else if (e instanceof SyntaxError) {
 			return c.json({
 				message: "Invalid JSON in request body.",

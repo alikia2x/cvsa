@@ -4,11 +4,12 @@
 		"@rabbit-company/argon2id": "jsr:@rabbit-company/argon2id@^2.1.0",
 		"hono": "jsr:@hono/hono@^4.7.5",
 		"zod": "npm:zod",
-		"yup": "npm:yup"
+		"yup": "npm:yup",
+		"@crawler/net/videoInfo": "../crawler/net/getVideoInfo.ts"
 	},
 	"tasks": {
-		"dev": "deno serve --env-file=.env --allow-env --allow-net --watch main.ts",
-		"start": "deno serve --env-file=.env --allow-env --allow-net --host 127.0.0.1 main.ts"
+		"dev": "deno serve --env-file=.env --allow-env --allow-net --allow-read --allow-write --allow-run --watch main.ts",
+		"start": "deno serve --env-file=.env --allow-env --allow-net --allow-read --allow-write --allow-run --host 127.0.0.1 main.ts"
 	},
 	"compilerOptions": {
 		"jsx": "precompile",
