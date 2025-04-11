@@ -2,7 +2,7 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { aidExistsInSongs, getNotCollectedSongs } from "db/songs.ts";
 import logger from "log/logger.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "$std/datetime/constants.ts";
+import { MINUTE } from "@std/datetime";
 
 export async function collectSongs(client: Client) {
 	const aids = await getNotCollectedSongs(client);

@@ -1,4 +1,4 @@
-import { MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { MINUTE, SECOND } from "@std/datetime";
 import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.ts";
 import logger from "log/logger.ts";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule.ts";

@@ -23,6 +23,7 @@
 	"imports": {
 		"@std/assert": "jsr:@std/assert@1",
 		"$std/": "https://deno.land/std@0.216.0/",
+		"@std/datetime": "jsr:@std/datetime@^0.225.4",
 		"@huggingface/transformers": "npm:@huggingface/transformers@3.0.0",
 		"bullmq": "npm:bullmq",
 		"mq/": "./mq/",

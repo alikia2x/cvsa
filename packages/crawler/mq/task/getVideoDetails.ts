@@ -4,7 +4,7 @@ import { formatTimestampToPsql } from "utils/formatTimestampToPostgre.ts";
 import logger from "log/logger.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
 import { userExistsInBiliUsers, videoExistsInAllData } from "db/allData.ts";
-import { HOUR, SECOND } from "$std/datetime/constants.ts";
+import { HOUR, SECOND } from "@std/datetime";
 
 export async function insertVideoInfo(client: Client, aid: number) {
 	const videoExists = await videoExistsInAllData(client, aid);

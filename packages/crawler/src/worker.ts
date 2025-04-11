@@ -1,19 +1,18 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { collectSongsWorker, getLatestVideosWorker } from "mq/executors.ts";
-import { redis } from "../../core/db/redis.ts";
+import { collectSongsWorker, getLatestVideosWorker, getVideoInfoWorker } from "mq/exec/executors.ts";
+import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
-import { getVideoInfoWorker } from "mq/exec/getLatestVideos.ts";
 import {
 	bulkSnapshotTickWorker,
 	collectMilestoneSnapshotsWorker,
 	regularSnapshotsWorker,
 	scheduleCleanupWorker,
 	snapshotTickWorker,
-	takeBulkSnapshotForVideosWorker,
 	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
+import {takeBulkSnapshotForVideosWorker} from "../mq/exec/takeBulkSnapshot.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");

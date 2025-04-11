@@ -8,7 +8,7 @@ import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db
 import { truncate } from "utils/truncate.ts";
 import { closetMilestone } from "./exec/snapshotTick.ts";
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { HOUR, MINUTE } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE } from "@std/datetime";
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 

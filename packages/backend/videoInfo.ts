@@ -10,7 +10,6 @@ import type { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import type { BlankEnv, BlankInput } from "hono/types";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
 
-
 const redis = new Redis({ maxRetriesPerRequest: null });
 const CACHE_EXPIRATION_SECONDS = 60;
 
@@ -38,7 +37,6 @@ async function insertVideoSnapshot(client: Client, data: VideoInfoData) {
 
 	logger.log(`Inserted into snapshot for video ${aid} by videoInfo API.`, "api", "fn:insertVideoSnapshot");
 }
-
 
 export const videoInfoHandler = createHandlers(async (c: ContextType) => {
 	const client = c.get("db");

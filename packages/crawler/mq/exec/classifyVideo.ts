@@ -8,7 +8,7 @@ import { lockManager } from "mq/lockManager.ts";
 import { aidExistsInSongs } from "db/songs.ts";
 import { insertIntoSongs } from "mq/task/collectSongs.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "$std/datetime/constants.ts";
+import { MINUTE } from "@std/datetime";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const client = await db.connect();
