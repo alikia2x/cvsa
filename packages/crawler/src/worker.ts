@@ -12,7 +12,7 @@ import {
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
-import {takeBulkSnapshotForVideosWorker} from "../mq/exec/takeBulkSnapshot.ts";
+import {takeBulkSnapshotForVideosWorker} from "mq/exec/executors.ts";
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
