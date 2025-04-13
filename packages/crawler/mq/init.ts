@@ -1,4 +1,4 @@
-import { MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
 import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.ts";
 import logger from "log/logger.ts";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule.ts";
@@ -52,6 +52,11 @@ export async function initMQ() {
 
 		await SnapshotQueue.upsertJobScheduler("dispatchRegularSnapshots", {
 			every: 30 * MINUTE,
+			immediately: true,
+		});
+
+		await SnapshotQueue.upsertJobScheduler("dispatchArchiveSnapshots", {
+			every: 6 * HOUR,
 			immediately: true,
 		});
 
