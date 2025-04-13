@@ -6,8 +6,16 @@ export async function getVideosNearMilestone(client: Client) {
 	const queryResult = await client.queryObject<LatestSnapshotType>(`
         SELECT ls.*
         FROM latest_video_snapshot ls
+                 RIGHT JOIN songs ON songs.aid = ls.aid
         WHERE
-            (views >= 5000 AND views < 100000) OR
+            (views >= 50000 AND views < 100000) OR
+            (views >= 900000 AND views < 1000000) OR
+            (views >= 9900000 AND views < 10000000)
+        UNION
+        SELECT ls.*
+        FROM latest_video_snapshot ls
+        WHERE
+            (views >= 90000 AND views < 100000) OR
             (views >= 900000 AND views < 1000000) OR
             (views >= 9900000 AND views < 10000000)
     `);
