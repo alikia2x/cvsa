@@ -1,25 +1,21 @@
 import { Job } from "bullmq";
 import { db } from "db/init.ts";
-import { getLatestVideoSnapshot, getVideosNearMilestone } from "db/snapshot.ts";
 import {
 	bulkGetVideosWithoutProcessingSchedules,
 	bulkSetSnapshotStatus,
 	getBulkSnapshotsInNextSecond,
 	getSnapshotsInNextSecond,
-	getVideosWithoutActiveSnapshotSchedule,
 	scheduleSnapshot,
 	setSnapshotStatus,
 	snapshotScheduleExists,
 	videoHasProcessingSchedule,
 } from "db/snapshotSchedule.ts";
-import { HOUR, MINUTE, SECOND, WEEK } from "@std/datetime";
+import { HOUR, MINUTE, SECOND } from "@std/datetime";
 import logger from "log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
 import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
 import { getBiliVideoStatus, setBiliVideoStatus } from "db/allData.ts";
-import { truncate } from "utils/truncate.ts";
-import { lockManager } from "mq/lockManager.ts";
 import { getSongsPublihsedAt } from "db/songs.ts";
 import { getAdjustedShortTermETA } from "../scheduling.ts";
 import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
