@@ -7,7 +7,7 @@ export async function getVideosNearMilestone(client: Client) {
         SELECT ls.*
         FROM latest_video_snapshot ls
         WHERE
-            views < 100000 OR
+            (views >= 5000 AND views < 100000) OR
             (views >= 900000 AND views < 1000000) OR
             (views >= 9900000 AND views < 10000000)
     `);
