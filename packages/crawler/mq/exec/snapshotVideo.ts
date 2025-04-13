@@ -31,7 +31,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		const status = await getBiliVideoStatus(client, aid);
 		if (status !== 0) {
 			logger.warn(
-				`Bilibili return status ${status} when snapshoting for ${aid}.`,
+				`Video ${aid} has status ${status} in the database. Abort snapshoting.`,
 				"mq",
 				"fn:dispatchRegularSnapshotsWorker",
 			);
