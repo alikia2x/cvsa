@@ -4,7 +4,6 @@ import { getLatestVideoSnapshot, getVideosNearMilestone } from "db/snapshot.ts";
 import {
 	bulkGetVideosWithoutProcessingSchedules,
 	bulkSetSnapshotStatus,
-	getAllVideosWithoutActiveSnapshotSchedule,
 	getBulkSnapshotsInNextSecond,
 	getSnapshotsInNextSecond,
 	getVideosWithoutActiveSnapshotSchedule,
