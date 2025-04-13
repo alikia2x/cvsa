@@ -277,7 +277,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				"mq",
 				"fn:takeBulkSnapshotForVideosWorker",
 			);
-			await bulkSetSnapshotStatus(client, ids, "completed");
+			await bulkSetSnapshotStatus(client, ids, "no_proxy");
 			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
 			return;
 		}
@@ -356,7 +356,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 				"mq",
 				"fn:takeSnapshotForVideoWorker",
 			);
-			await setSnapshotStatus(client, id, "completed");
+			await setSnapshotStatus(client, id, "no_proxy");
 			await scheduleSnapshot(client, aid, type, Date.now() + retryInterval);
 			return;
 		}
