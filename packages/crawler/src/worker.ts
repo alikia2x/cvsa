@@ -99,4 +99,5 @@ snapshotWorker.on("error", (err) => {
 
 snapshotWorker.on("closed", async () => {
 	await lockManager.releaseLock("dispatchRegularSnapshots");
+	await lockManager.releaseLock("dispatchArchiveSnapshots");
 });
