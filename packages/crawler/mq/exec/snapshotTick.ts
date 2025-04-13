@@ -159,7 +159,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
 			const interval = 168;
-			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
+			logger.log(`Scheduled archive snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			const targetTime = lastSnapshotedAt + interval * HOUR;
 			await scheduleSnapshot(client, aid, "archive", targetTime);
 			if (now - startedAt > 250 * MINUTE) {
