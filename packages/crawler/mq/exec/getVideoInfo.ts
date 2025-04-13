@@ -11,5 +11,5 @@ export const getVideoInfoWorker = async (job: Job): Promise<void> =>
 			logger.warn("aid does not exists", "mq", "job:getVideoInfo");
 			return;
 		}
-		await insertVideoInfo(client, aid)
+		await insertVideoInfo(client, aid);
 	});

@@ -1,5 +1,11 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { collectSongsWorker, getLatestVideosWorker, getVideoInfoWorker } from "mq/exec/executors.ts";
+import {
+	archiveSnapshotsWorker,
+	collectSongsWorker,
+	getLatestVideosWorker,
+	getVideoInfoWorker,
+	takeBulkSnapshotForVideosWorker,
+} from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
@@ -12,10 +18,22 @@ import {
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
-import {takeBulkSnapshotForVideosWorker} from "mq/exec/executors.ts";
+
+const releaseLockForJob = async (name: string) => {
+	await lockManager.releaseLock(name);
+	logger.log(`Released lock: ${name}`, "mq");
+};
+
+const releaseAllLocks = async () => {
+	const locks = ["dispatchRegularSnapshots", "dispatchArchiveSnapshots", "getLatestVideos"];
+	for (const lock of locks) {
+		await releaseLockForJob(lock);
+	}
+};
 
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -23,6 +41,7 @@ Deno.addSignalListener("SIGINT", async () => {
 
 Deno.addSignalListener("SIGTERM", async () => {
 	logger.log("SIGTERM Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -59,10 +78,6 @@ latestVideoWorker.on("error", (err) => {
 	logger.error(e.rawError, e.service, e.codePath);
 });
 
-latestVideoWorker.on("closed", async () => {
-	await lockManager.releaseLock("getLatestVideos");
-});
-
 const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
@@ -81,6 +96,8 @@ const snapshotWorker = new Worker(
 				return await takeBulkSnapshotForVideosWorker(job);
 			case "bulkSnapshotTick":
 				return await bulkSnapshotTickWorker(job);
+			case "dispatchArchiveSnapshots":
+				return await archiveSnapshotsWorker(job);
 			default:
 				break;
 		}
@@ -91,8 +108,4 @@ const snapshotWorker = new Worker(
 snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
-});
-
-snapshotWorker.on("closed", async () => {
-	await lockManager.releaseLock("dispatchRegularSnapshots");
 });

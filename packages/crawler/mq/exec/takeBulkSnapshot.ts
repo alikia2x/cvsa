@@ -11,15 +11,17 @@ import logger from "log/logger.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
 import { HOUR, MINUTE, SECOND } from "@std/datetime";
 import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
+import { SnapshotScheduleType } from "@core/db/schema";
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
-	const dataMap: { [key: number]: number } = job.data.map;
-	const ids = Object.keys(dataMap).map((id) => Number(id));
+	const schedules: SnapshotScheduleType[] = job.data.schedules;
+	const ids = schedules.map((schedule) => Number(schedule.id));
 	const aidsToFetch: number[] = [];
 	const client = await db.connect();
 	try {
-		for (const id of ids) {
-			const aid = Number(dataMap[id]);
+		for (const schedule of schedules) {
+			const aid = Number(schedule.aid);
+			const id = Number(schedule.id);
 			const exists = await snapshotScheduleExists(client, id);
 			if (!exists) {
 				continue;
@@ -43,8 +45,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			const shares = stat.share;
 			const favorites = stat.collect;
 			const query: string = `
-				INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 			`;
 			await client.queryObject(
 				query,
@@ -54,7 +56,11 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
 		}
 		await bulkSetSnapshotStatus(client, ids, "completed");
-		for (const aid of aidsToFetch) {
+
+		for (const schedule of schedules) {
+			const aid = Number(schedule.aid);
+			const type = schedule.type;
+			if (type == "archive") continue;
 			const interval = await getRegularSnapshotInterval(client, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			await scheduleSnapshot(client, aid, "normal", Date.now() + interval * HOUR);
@@ -67,8 +73,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				"mq",
 				"fn:takeBulkSnapshotForVideosWorker",
 			);
-			await bulkSetSnapshotStatus(client, ids, "completed");
-			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 2 * MINUTE);
+			await bulkSetSnapshotStatus(client, ids, "no_proxy");
+			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
 			return;
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
