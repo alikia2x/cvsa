@@ -16,8 +16,21 @@ import {
 	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
 
+const releaseLockForJob = async (name: string) => {
+	await lockManager.releaseLock(name);
+	logger.log(`Released lock: ${name}`, "mq");
+}
+
+const releaseAllLocks = async () => {
+	const locks = ["dispatchRegularSnapshots", "dispatchArchiveSnapshots", "getLatestVideos"];
+	for (const lock of locks) {
+		await releaseLockForJob(lock);
+	}
+}
+
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -25,6 +38,7 @@ Deno.addSignalListener("SIGINT", async () => {
 
 Deno.addSignalListener("SIGTERM", async () => {
 	logger.log("SIGTERM Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -61,10 +75,6 @@ latestVideoWorker.on("error", (err) => {
 	logger.error(e.rawError, e.service, e.codePath);
 });
 
-latestVideoWorker.on("closed", async () => {
-	await lockManager.releaseLock("getLatestVideos");
-});
-
 const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
@@ -95,10 +105,4 @@ const snapshotWorker = new Worker(
 snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
-});
-
-snapshotWorker.on("closed", async () => {
-	await lockManager.releaseLock("dispatchRegularSnapshots");
-	await lockManager.releaseLock("dispatchArchiveSnapshots");
-	logger.log(`Released lock: dispatchArchiveSnapshots, dispatchRegularSnapshots`, "mq", "snapshotWorker:on:closed");
 });
