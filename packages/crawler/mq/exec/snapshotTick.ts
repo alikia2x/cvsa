@@ -53,8 +53,19 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 			const filteredAids = await bulkGetVideosWithoutProcessingSchedules(client, aids);
 			if (filteredAids.length === 0) continue;
 			await bulkSetSnapshotStatus(client, filteredAids, "processing");
+			const schedulesData = group.map((schedule) => {
+				return {
+					aid: Number(schedule.aid),
+					id: Number(schedule.id),
+					type: schedule.type,
+					created_at: schedule.created_at,
+					started_at: schedule.started_at,
+					finished_at: schedule.finished_at,
+					status: schedule.status
+				}
+			})
 			await SnapshotQueue.add("bulkSnapshotVideo", {
-				schedules: group,
+				schedules: schedulesData,
 			}, { priority: 3 });
 		}
 		return `OK`
@@ -80,7 +91,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 			const aid = Number(schedule.aid);
 			await setSnapshotStatus(client, schedule.id, "processing");
 			await SnapshotQueue.add("snapshotVideo", {
-				aid: aid,
+				aid: Number(aid),
 				id: Number(schedule.id),
 				type: schedule.type ?? "normal",
 			}, { priority });
