@@ -5,3 +5,4 @@ export * from "./takeBulkSnapshot.ts";
 export * from "./archiveSnapshots.ts";
 export * from "./dispatchMilestoneSnapshots.ts";
 export * from "./dispatchRegularSnapshots.ts";
+export * from "./snapshotVideo.ts";

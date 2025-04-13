@@ -11,7 +11,7 @@ import { db } from "db/init.ts";
  */
 export async function withDbConnection<T>(
 	operation: (client: Client) => Promise<T>,
-	errorHandling?: (error: unknown) => void,
+	errorHandling?: (error: unknown, client: Client) => void,
 	cleanup?: () => void,
 ): Promise<T | undefined> {
 	const client = await db.connect();
@@ -19,7 +19,7 @@ export async function withDbConnection<T>(
 		return await operation(client);
 	} catch (error) {
 		if (errorHandling) {
-			errorHandling(error);
+			errorHandling(error, client);
 			return;
 		}
 		throw error;

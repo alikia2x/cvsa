@@ -2,22 +2,18 @@ import { ConnectionOptions, Job, Worker } from "bullmq";
 import {
 	archiveSnapshotsWorker,
 	collectSongsWorker,
+	dispatchMilestoneSnapshotsWorker,
+	dispatchRegularSnapshotsWorker,
 	getLatestVideosWorker,
 	getVideoInfoWorker,
+	snapshotVideoWorker,
 	takeBulkSnapshotForVideosWorker,
-	dispatchMilestoneSnapshotsWorker,
-	dispatchRegularSnapshotsWorker
 } from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
-import {
-	bulkSnapshotTickWorker,
-	scheduleCleanupWorker,
-	snapshotTickWorker,
-	takeSnapshotForVideoWorker,
-} from "mq/exec/snapshotTick.ts";
+import { bulkSnapshotTickWorker, scheduleCleanupWorker, snapshotTickWorker } from "mq/exec/snapshotTick.ts";
 
 const releaseLockForJob = async (name: string) => {
 	await lockManager.releaseLock(name);
@@ -83,7 +79,7 @@ const snapshotWorker = new Worker(
 	async (job: Job) => {
 		switch (job.name) {
 			case "snapshotVideo":
-				return await takeSnapshotForVideoWorker(job);
+				return await snapshotVideoWorker(job);
 			case "snapshotTick":
 				return await snapshotTickWorker(job);
 			case "dispatchMilestoneSnapshots":

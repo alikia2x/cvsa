@@ -9,8 +9,8 @@ import { HOUR, MINUTE, WEEK } from "@std/datetime";
 import { lockManager } from "../lockManager.ts";
 import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
 
-export const dispatchRegularSnapshotsWorker = (_job: Job): Promise<void> =>
-	withDbConnection(async (client: Client) => {
+export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> =>
+	await withDbConnection(async (client: Client) => {
 		const startedAt = Date.now();
 		if (await lockManager.isLocked("dispatchRegularSnapshots")) {
 			logger.log("dispatchRegularSnapshots is already running", "mq");
