@@ -7,28 +7,15 @@ import {
 	getSnapshotsInNextSecond,
 	scheduleSnapshot,
 	setSnapshotStatus,
-	snapshotScheduleExists,
 	videoHasProcessingSchedule,
 } from "db/snapshotSchedule.ts";
-import { HOUR, MINUTE, SECOND } from "@std/datetime";
+import { SECOND } from "@std/datetime";
 import logger from "log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
-import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
-import { NetSchedulerError } from "@core/net/delegate.ts";
-import { getBiliVideoStatus, setBiliVideoStatus } from "db/allData.ts";
-import { getSongsPublihsedAt } from "db/songs.ts";
-import { getAdjustedShortTermETA } from "../scheduling.ts";
-import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
 	"normal": 3,
-};
-
-const snapshotTypeToTaskMap: { [key: string]: string } = {
-	"milestone": "snapshotMilestoneVideo",
-	"normal": "snapshotVideo",
-	"new": "snapshotMilestoneVideo",
 };
 
 export const bulkSnapshotTickWorker = async (_job: Job) => {
