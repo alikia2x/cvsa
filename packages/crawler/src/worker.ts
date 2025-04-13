@@ -5,6 +5,8 @@ import {
 	getLatestVideosWorker,
 	getVideoInfoWorker,
 	takeBulkSnapshotForVideosWorker,
+	dispatchMilestoneSnapshotsWorker,
+	dispatchRegularSnapshotsWorker
 } from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
@@ -12,8 +14,6 @@ import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
 import {
 	bulkSnapshotTickWorker,
-	collectMilestoneSnapshotsWorker,
-	regularSnapshotsWorker,
 	scheduleCleanupWorker,
 	snapshotTickWorker,
 	takeSnapshotForVideoWorker,
@@ -86,10 +86,10 @@ const snapshotWorker = new Worker(
 				return await takeSnapshotForVideoWorker(job);
 			case "snapshotTick":
 				return await snapshotTickWorker(job);
-			case "collectMilestoneSnapshots":
-				return await collectMilestoneSnapshotsWorker(job);
+			case "dispatchMilestoneSnapshots":
+				return await dispatchMilestoneSnapshotsWorker(job);
 			case "dispatchRegularSnapshots":
-				return await regularSnapshotsWorker(job);
+				return await dispatchRegularSnapshotsWorker(job);
 			case "scheduleCleanup":
 				return await scheduleCleanupWorker(job);
 			case "bulkSnapshotVideo":

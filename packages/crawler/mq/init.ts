@@ -45,7 +45,7 @@ export async function initMQ() {
 			},
 		});
 
-		await SnapshotQueue.upsertJobScheduler("collectMilestoneSnapshots", {
+		await SnapshotQueue.upsertJobScheduler("dispatchMilestoneSnapshots", {
 			every: 5 * MINUTE,
 			immediately: true,
 		});

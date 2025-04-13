@@ -104,62 +104,6 @@ export const closetMilestone = (views: number) => {
 	return 10000000;
 };
 
-export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
-	const client = await db.connect();
-	try {
-		const videos = await getVideosNearMilestone(client);
-		for (const video of videos) {
-			const aid = Number(video.aid);
-			const eta = await getAdjustedShortTermETA(client, aid);
-			if (eta > 144) continue;
-			const now = Date.now();
-			const scheduledNextSnapshotDelay = eta * HOUR;
-			const maxInterval = 4 * HOUR;
-			const minInterval = 1 * SECOND;
-			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
-			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime);
-			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
-		}
-	} catch (e) {
-		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
-	} finally {
-		client.release();
-	}
-};
-
-export const regularSnapshotsWorker = async (_job: Job) => {
-	const client = await db.connect();
-	const startedAt = Date.now();
-	if (await lockManager.isLocked("dispatchRegularSnapshots")) {
-		logger.log("dispatchRegularSnapshots is already running", "mq");
-		client.release();
-		return;
-	}
-	await lockManager.acquireLock("dispatchRegularSnapshots", 30 * 60);
-	try {
-		const aids = await getVideosWithoutActiveSnapshotSchedule(client);
-		for (const rawAid of aids) {
-			const aid = Number(rawAid);
-			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
-			const now = Date.now();
-			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const interval = await getRegularSnapshotInterval(client, aid);
-			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
-			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
-			await scheduleSnapshot(client, aid, "normal", targetTime);
-			if (now - startedAt > 25 * MINUTE) {
-				return;
-			}
-		}
-	} catch (e) {
-		logger.error(e as Error, "mq", "fn:regularSnapshotsWorker");
-	} finally {
-		await lockManager.releaseLock("dispatchRegularSnapshots");
-		client.release();
-	}
-};
-
 export const takeSnapshotForVideoWorker = async (job: Job) => {
 	const id = job.data.id;
 	const aid = Number(job.data.aid);
