@@ -1,6 +1,6 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
 import { collectSongsWorker, getLatestVideosWorker } from "mq/executors.ts";
-import { redis } from "../../core/db/redis.ts";
+import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
@@ -100,4 +100,5 @@ snapshotWorker.on("error", (err) => {
 snapshotWorker.on("closed", async () => {
 	await lockManager.releaseLock("dispatchRegularSnapshots");
 	await lockManager.releaseLock("dispatchArchiveSnapshots");
+	logger.log(`Released lock: dispatchArchiveSnapshots, dispatchRegularSnapshots`, "mq", "snapshotWorker:on:closed");
 });
