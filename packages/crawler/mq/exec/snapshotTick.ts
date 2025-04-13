@@ -110,7 +110,7 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 		for (const video of videos) {
 			const aid = Number(video.aid);
 			const eta = await getAdjustedShortTermETA(client, aid);
-			if (eta > 72) continue;
+			if (eta > 144) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
 			const maxInterval = 4 * HOUR;
@@ -299,7 +299,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);
-		if (eta > 72) return "ETA_TOO_LONG";
+		if (eta > 144) return "ETA_TOO_LONG";
 		const now = Date.now();
 		const targetTime = now + eta * HOUR;
 		await scheduleSnapshot(client, aid, type, targetTime);
