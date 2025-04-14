@@ -1,5 +1,5 @@
-import networkDelegate from "./delegate.ts";
-import { MediaListInfoData, MediaListInfoResponse } from "net/bilibili.d.ts";
+import networkDelegate from "@core/net/delegate.ts";
+import { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d.ts";
 import logger from "log/logger.ts";
 
 /*

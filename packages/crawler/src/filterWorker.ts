@@ -1,5 +1,5 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { redis } from "db/redis.ts";
+import { redis } from "../../core/db/redis.ts";
 import logger from "log/logger.ts";
 import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo.ts";
 import { WorkerError } from "mq/schema.ts";

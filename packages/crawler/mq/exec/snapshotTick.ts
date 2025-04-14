@@ -6,7 +6,7 @@ import {
 	bulkScheduleSnapshot,
 	bulkSetSnapshotStatus,
 	findClosestSnapshot,
-	findSnapshotBefore,
+	findSnapshotBefore, getAllVideosWithoutActiveSnapshotSchedule,
 	getBulkSnapshotsInNextSecond,
 	getLatestSnapshot,
 	getSnapshotsInNextSecond,
@@ -21,13 +21,14 @@ import { HOUR, MINUTE, SECOND, WEEK } from "$std/datetime/constants.ts";
 import logger from "log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
 import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
-import { NetSchedulerError } from "net/delegate.ts";
+import { NetSchedulerError } from "@core/net/delegate.ts";
 import { getBiliVideoStatus, setBiliVideoStatus } from "db/allData.ts";
 import { truncate } from "utils/truncate.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { getSongsPublihsedAt } from "db/songs.ts";
 import { bulkGetVideoStats } from "net/bulkGetVideoStats.ts";
 import { getAdjustedShortTermETA } from "../scheduling.ts";
+import {SnapshotScheduleType} from "@core/db/schema";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
@@ -52,15 +53,22 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 			const filteredAids = await bulkGetVideosWithoutProcessingSchedules(client, aids);
 			if (filteredAids.length === 0) continue;
 			await bulkSetSnapshotStatus(client, filteredAids, "processing");
-			const dataMap: { [key: number]: number } = {};
-			for (const schedule of group) {
-				const id = Number(schedule.id);
-				dataMap[id] = Number(schedule.aid);
-			}
+			const schedulesData = group.map((schedule) => {
+				return {
+					aid: Number(schedule.aid),
+					id: Number(schedule.id),
+					type: schedule.type,
+					created_at: schedule.created_at,
+					started_at: schedule.started_at,
+					finished_at: schedule.finished_at,
+					status: schedule.status
+				}
+			})
 			await SnapshotQueue.add("bulkSnapshotVideo", {
-				map: dataMap,
+				schedules: schedulesData,
 			}, { priority: 3 });
 		}
+		return `OK`
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
@@ -74,7 +82,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 		const schedules = await getSnapshotsInNextSecond(client);
 		for (const schedule of schedules) {
 			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
-				return `ALREADY_PROCESSING`;
+				continue;
 			}
 			let priority = 3;
 			if (schedule.type && priorityMap[schedule.type]) {
@@ -83,11 +91,12 @@ export const snapshotTickWorker = async (_job: Job) => {
 			const aid = Number(schedule.aid);
 			await setSnapshotStatus(client, schedule.id, "processing");
 			await SnapshotQueue.add("snapshotVideo", {
-				aid: aid,
+				aid: Number(aid),
 				id: Number(schedule.id),
 				type: schedule.type ?? "normal",
 			}, { priority });
 		}
+		return `OK`;
 	} catch (e) {
 		logger.error(e as Error);
 	} finally {
@@ -108,14 +117,15 @@ export const collectMilestoneSnapshotsWorker = async (_job: Job) => {
 		for (const video of videos) {
 			const aid = Number(video.aid);
 			const eta = await getAdjustedShortTermETA(client, aid);
-			if (eta > 72) continue;
+			if (eta > 144) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
 			const maxInterval = 4 * HOUR;
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime, true);
+			await scheduleSnapshot(client, aid, "milestone", targetTime);
+			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
 		}
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:collectMilestoneSnapshotsWorker");
@@ -141,6 +151,38 @@ const getRegularSnapshotInterval = async (client: Client, aid: number) => {
 	if (speedPerDay < 120) return 24;
 	if (speedPerDay < 320) return 12;
 	return 6;
+};
+
+export const archiveSnapshotsWorker = async (_job: Job) => {
+	const client = await db.connect();
+	const startedAt = Date.now();
+	if (await lockManager.isLocked("dispatchArchiveSnapshots")) {
+		logger.log("dispatchArchiveSnapshots is already running", "mq");
+		client.release();
+		return;
+	}
+	await lockManager.acquireLock("dispatchArchiveSnapshots", 30 * 60);
+	try {
+		const aids = await getAllVideosWithoutActiveSnapshotSchedule(client);
+		for (const rawAid of aids) {
+			const aid = Number(rawAid);
+			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
+			const now = Date.now();
+			const lastSnapshotedAt = latestSnapshot?.time ?? now;
+			const interval = 168;
+			logger.log(`Scheduled archive snapshot for aid ${aid} in ${interval} hours.`, "mq", "fn:archiveSnapshotsWorker");
+			const targetTime = lastSnapshotedAt + interval * HOUR;
+			await scheduleSnapshot(client, aid, "archive", targetTime);
+			if (now - startedAt > 250 * MINUTE) {
+				return;
+			}
+		}
+	} catch (e) {
+		logger.error(e as Error, "mq", "fn:archiveSnapshotsWorker");
+	} finally {
+		await lockManager.releaseLock("dispatchArchiveSnapshots");
+		client.release();
+	}
 };
 
 export const regularSnapshotsWorker = async (_job: Job) => {
@@ -176,13 +218,14 @@ export const regularSnapshotsWorker = async (_job: Job) => {
 };
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
-	const dataMap: { [key: number]: number } = job.data.map;
-	const ids = Object.keys(dataMap).map((id) => Number(id));
+	const schedules: SnapshotScheduleType[] = job.data.schedules;
+	const ids = schedules.map((schedule) => Number(schedule.id));
 	const aidsToFetch: number[] = [];
 	const client = await db.connect();
 	try {
-		for (const id of ids) {
-			const aid = Number(dataMap[id]);
+		for (const schedule of schedules) {
+			const aid = Number(schedule.aid);
+			const id = Number(schedule.id);
 			const exists = await snapshotScheduleExists(client, id);
 			if (!exists) {
 				continue;
@@ -217,7 +260,11 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
 		}
 		await bulkSetSnapshotStatus(client, ids, "completed");
-		for (const aid of aidsToFetch) {
+
+		for (const schedule of schedules) {
+			const aid = Number(schedule.aid);
+			const type = schedule.type;
+			if (type == 'archive') continue;
 			const interval = await getRegularSnapshotInterval(client, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			await scheduleSnapshot(client, aid, "normal", Date.now() + interval * HOUR);
@@ -230,8 +277,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				"mq",
 				"fn:takeBulkSnapshotForVideosWorker",
 			);
-			await bulkSetSnapshotStatus(client, ids, "completed");
-			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 2 * MINUTE);
+			await bulkSetSnapshotStatus(client, ids, "no_proxy");
+			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
 			return;
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
@@ -296,10 +343,11 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 		}
 		if (type !== "milestone") return `DONE`;
 		const eta = await getAdjustedShortTermETA(client, aid);
-		if (eta > 72) return "ETA_TOO_LONG";
+		if (eta > 144) return "ETA_TOO_LONG";
 		const now = Date.now();
 		const targetTime = now + eta * HOUR;
 		await scheduleSnapshot(client, aid, type, targetTime);
+		await setSnapshotStatus(client, id, "completed");
 		return `DONE`;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
@@ -308,7 +356,7 @@ export const takeSnapshotForVideoWorker = async (job: Job) => {
 				"mq",
 				"fn:takeSnapshotForVideoWorker",
 			);
-			await setSnapshotStatus(client, id, "completed");
+			await setSnapshotStatus(client, id, "no_proxy");
 			await scheduleSnapshot(client, aid, type, Date.now() + retryInterval);
 			return;
 		}

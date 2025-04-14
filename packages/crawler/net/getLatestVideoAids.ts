@@ -1,6 +1,6 @@
-import { VideoListResponse } from "net/bilibili.d.ts";
+import { VideoListResponse } from "@core/net/bilibili.d.ts";
 import logger from "log/logger.ts";
-import networkDelegate from "./delegate.ts";
+import networkDelegate from "@core/net/delegate.ts";
 
 export async function getLatestVideoAids(page: number = 1, pageSize: number = 10): Promise<number[]> {
 	const startFrom = 1 + pageSize * (page - 1);

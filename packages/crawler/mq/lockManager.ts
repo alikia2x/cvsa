@@ -1,5 +1,5 @@
 import { Redis } from "ioredis";
-import { redis } from "db/redis.ts";
+import { redis } from "../../core/db/redis.ts";
 
 class LockManager {
 	private redis: Redis;

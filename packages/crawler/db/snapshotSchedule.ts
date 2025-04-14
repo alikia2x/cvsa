@@ -2,7 +2,7 @@ import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { SnapshotScheduleType } from "@core/db/schema";
 import logger from "log/logger.ts";
 import { MINUTE } from "$std/datetime/constants.ts";
-import { redis } from "db/redis.ts";
+import { redis } from "@core/db/redis.ts";
 import { Redis } from "ioredis";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
@@ -65,6 +65,14 @@ export async function videoHasActiveSchedule(client: Client, aid: number) {
 	const res = await client.queryObject<{ status: string }>(
 		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing')`,
 		[aid],
+	);
+	return res.rows.length > 0;
+}
+
+export async function videoHasActiveScheduleWithType(client: Client, aid: number, type: string) {
+	const res = await client.queryObject<{ status: string }>(
+		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing') AND type = $2`,
+		[aid, type],
 	);
 	return res.rows.length > 0;
 }
@@ -173,7 +181,7 @@ export async function scheduleSnapshot(
 	targetTime: number,
 	force: boolean = false,
 ) {
-	if (await videoHasActiveSchedule(client, aid) && !force) return;
+	if (await videoHasActiveScheduleWithType(client, aid, type) && !force) return;
 	let adjustedTime = new Date(targetTime);
 	if (type !== "milestone" && type !== "new") {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 1000, redis);
@@ -264,11 +272,17 @@ export async function getSnapshotsInNextSecond(client: Client) {
 
 export async function getBulkSnapshotsInNextSecond(client: Client) {
 	const query = `
-		SELECT *
-		FROM snapshot_schedule
-		WHERE started_at <= NOW() + INTERVAL '15 seconds' AND status = 'pending' AND type = 'normal'
-		ORDER BY started_at
-		LIMIT 1000;
+        SELECT *
+        FROM snapshot_schedule
+        WHERE (started_at <= NOW() + INTERVAL '15 seconds')
+          AND status = 'pending'
+          AND (type = 'normal' OR type = 'archive')
+        ORDER BY CASE
+                     WHEN type = 'normal' THEN 1
+                     WHEN type = 'archive' THEN 2
+                     END,
+                 started_at
+        LIMIT 1000;
 	`;
 	const res = await client.queryObject<SnapshotScheduleType>(query, []);
 	return res.rows;
@@ -298,3 +312,15 @@ export async function getVideosWithoutActiveSnapshotSchedule(client: Client) {
 	const res = await client.queryObject<{ aid: number }>(query, []);
 	return res.rows.map((r) => Number(r.aid));
 }
+
+export async function getAllVideosWithoutActiveSnapshotSchedule(client: Client) {
+	const query: string = `
+		SELECT s.aid
+		FROM bilibili_metadata s
+		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
+		WHERE ss.aid IS NULL
+	`;
+	const res = await client.queryObject<{ aid: number }>(query, []);
+	return res.rows.map((r) => Number(r.aid));
+}
+

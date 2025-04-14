@@ -1,9 +1,3 @@
-/*
- * Returns the minimum ETA in hours for the next snapshot
- * @param client - Postgres client
- * @param aid - aid of the video
- * @returns ETA in hours
- */
 import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db/snapshotSchedule.ts";
 import { truncate } from "utils/truncate.ts";
 import { closetMilestone } from "./exec/snapshotTick.ts";
@@ -12,6 +6,12 @@ import { HOUR, MINUTE } from "$std/datetime/constants.ts";
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 
+/*
+ * Returns the minimum ETA in hours for the next snapshot
+ * @param client - Postgres client
+ * @param aid - aid of the video
+ * @returns ETA in hours
+ */
 export const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 	const latestSnapshot = await getLatestSnapshot(client, aid);
 	// Immediately dispatch a snapshot if there is no snapshot yet

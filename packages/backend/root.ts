@@ -3,10 +3,10 @@ import { VERSION } from "./main.ts";
 import { createHandlers } from "./utils.ts";
 
 export const rootHandler = createHandlers((c) => {
-	let singer: Singer | Singer[] | null = null;
+	let singer: Singer | Singer[];
 	const shouldShowSpecialSinger = Math.random() < 0.016;
 	if (getSingerForBirthday().length !== 0) {
-		singer = getSingerForBirthday();
+		singer = JSON.parse(JSON.stringify(getSingerForBirthday())) as Singer[];
 		for (const s of singer) {
 			delete s.birthday;
 			s.message = `祝${s.name}生日快乐~`;

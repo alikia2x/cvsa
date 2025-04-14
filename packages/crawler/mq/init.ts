@@ -1,9 +1,9 @@
-import { MINUTE, SECOND } from "$std/datetime/constants.ts";
+import { HOUR, MINUTE, SECOND } from "$std/datetime/constants.ts";
 import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.ts";
 import logger from "log/logger.ts";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule.ts";
 import { db } from "db/init.ts";
-import { redis } from "db/redis.ts";
+import { redis } from "@core/db/redis.ts";
 
 export async function initMQ() {
 	const client = await db.connect();
@@ -30,8 +30,8 @@ export async function initMQ() {
 			immediately: true,
 		}, {
 			opts: {
-				removeOnComplete: 1,
-				removeOnFail: 1,
+				removeOnComplete: 300,
+				removeOnFail: 600,
 			},
 		});
 
@@ -40,8 +40,8 @@ export async function initMQ() {
 			immediately: true,
 		}, {
 			opts: {
-				removeOnComplete: 1,
-				removeOnFail: 1,
+				removeOnComplete: 60,
+				removeOnFail: 600,
 			},
 		});
 
@@ -52,6 +52,11 @@ export async function initMQ() {
 
 		await SnapshotQueue.upsertJobScheduler("dispatchRegularSnapshots", {
 			every: 30 * MINUTE,
+			immediately: true,
+		});
+
+		await SnapshotQueue.upsertJobScheduler("dispatchArchiveSnapshots", {
+			every: 6 * HOUR,
 			immediately: true,
 		});
 

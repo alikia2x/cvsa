@@ -17,6 +17,8 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/.vscode" />
       <excludeFolder url="file://$MODULE_DIR$/.zed" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/.astro" />
+      <excludeFolder url="file://$MODULE_DIR$/scripts" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

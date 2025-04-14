@@ -1,11 +1,12 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
 import { collectSongsWorker, getLatestVideosWorker } from "mq/executors.ts";
-import { redis } from "db/redis.ts";
+import { redis } from "@core/db/redis.ts";
 import logger from "log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
 import { getVideoInfoWorker } from "mq/exec/getLatestVideos.ts";
 import {
+	archiveSnapshotsWorker,
 	bulkSnapshotTickWorker,
 	collectMilestoneSnapshotsWorker,
 	regularSnapshotsWorker,
@@ -15,8 +16,21 @@ import {
 	takeSnapshotForVideoWorker,
 } from "mq/exec/snapshotTick.ts";
 
+const releaseLockForJob = async (name: string) => {
+	await lockManager.releaseLock(name);
+	logger.log(`Released lock: ${name}`, "mq");
+}
+
+const releaseAllLocks = async () => {
+	const locks = ["dispatchRegularSnapshots", "dispatchArchiveSnapshots", "getLatestVideos"];
+	for (const lock of locks) {
+		await releaseLockForJob(lock);
+	}
+}
+
 Deno.addSignalListener("SIGINT", async () => {
 	logger.log("SIGINT Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -24,6 +38,7 @@ Deno.addSignalListener("SIGINT", async () => {
 
 Deno.addSignalListener("SIGTERM", async () => {
 	logger.log("SIGTERM Received: Shutting down workers...", "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
 	Deno.exit();
@@ -34,14 +49,11 @@ const latestVideoWorker = new Worker(
 	async (job: Job) => {
 		switch (job.name) {
 			case "getLatestVideos":
-				await getLatestVideosWorker(job);
-				break;
+				return await getLatestVideosWorker(job);
 			case "getVideoInfo":
-				await getVideoInfoWorker(job);
-				break;
+				return await getVideoInfoWorker(job);
 			case "collectSongs":
-				await collectSongsWorker(job);
-				break;
+				return await collectSongsWorker(job);
 			default:
 				break;
 		}
@@ -63,35 +75,26 @@ latestVideoWorker.on("error", (err) => {
 	logger.error(e.rawError, e.service, e.codePath);
 });
 
-latestVideoWorker.on("closed", async () => {
-	await lockManager.releaseLock("getLatestVideos");
-});
-
 const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
 		switch (job.name) {
 			case "snapshotVideo":
-				await takeSnapshotForVideoWorker(job);
-				break;
+				return await takeSnapshotForVideoWorker(job);
 			case "snapshotTick":
-				await snapshotTickWorker(job);
-				break;
+				return await snapshotTickWorker(job);
 			case "collectMilestoneSnapshots":
-				await collectMilestoneSnapshotsWorker(job);
-				break;
+				return await collectMilestoneSnapshotsWorker(job);
 			case "dispatchRegularSnapshots":
-				await regularSnapshotsWorker(job);
-				break;
+				return await regularSnapshotsWorker(job);
 			case "scheduleCleanup":
-				await scheduleCleanupWorker(job);
-				break;
+				return await scheduleCleanupWorker(job);
 			case "bulkSnapshotVideo":
-				await takeBulkSnapshotForVideosWorker(job);
-				break;
+				return await takeBulkSnapshotForVideosWorker(job);
 			case "bulkSnapshotTick":
-				await bulkSnapshotTickWorker(job);
-				break;
+				return await bulkSnapshotTickWorker(job);
+			case "dispatchArchiveSnapshots":
+				return await archiveSnapshotsWorker(job);
 			default:
 				break;
 		}
@@ -102,8 +105,4 @@ const snapshotWorker = new Worker(
 snapshotWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
-});
-
-snapshotWorker.on("closed", async () => {
-	await lockManager.releaseLock("dispatchRegularSnapshots");
 });
