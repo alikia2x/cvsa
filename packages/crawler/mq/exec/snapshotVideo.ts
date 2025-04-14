@@ -41,7 +41,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		const stat = await insertVideoSnapshot(client, aid, task);
 		if (typeof stat === "number") {
 			await setBiliVideoStatus(client, aid, stat);
-			await setSnapshotStatus(client, id, "completed");
+			await setSnapshotStatus(client, id, "bili_error");
 			logger.warn(
 				`Bilibili return status ${status} when snapshoting for ${aid}.`,
 				"mq",
