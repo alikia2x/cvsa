@@ -5,11 +5,9 @@ import {
 	bulkSetSnapshotStatus,
 	getBulkSnapshotsInNextSecond,
 	getSnapshotsInNextSecond,
-	scheduleSnapshot,
 	setSnapshotStatus,
 	videoHasProcessingSchedule,
 } from "db/snapshotSchedule.ts";
-import { SECOND } from "@std/datetime";
 import logger from "log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
 
@@ -85,34 +83,4 @@ export const closetMilestone = (views: number) => {
 	if (views < 100000) return 100000;
 	if (views < 1000000) return 1000000;
 	return 10000000;
-};
-
-export const scheduleCleanupWorker = async (_job: Job) => {
-	const client = await db.connect();
-	try {
-		const query = `
-			SELECT id, aid, type 
-			FROM snapshot_schedule
-			WHERE status IN ('pending', 'processing')
-				AND started_at < NOW() - INTERVAL '30 minutes'
-		`;
-		const { rows } = await client.queryObject<{ id: bigint; aid: bigint; type: string }>(query);
-		if (rows.length === 0) return;
-		for (const row of rows) {
-			const id = Number(row.id);
-			const aid = Number(row.aid);
-			const type = row.type;
-			await setSnapshotStatus(client, id, "timeout");
-			await scheduleSnapshot(client, aid, type, Date.now() + 10 * SECOND);
-			logger.log(
-				`Schedule ${id} has no response received for 5 minutes, rescheduled.`,
-				"mq",
-				"fn:scheduleCleanupWorker",
-			);
-		}
-	} catch (e) {
-		logger.error(e as Error, "mq", "fn:scheduleCleanupWorker");
-	} finally {
-		client.release();
-	}
 };

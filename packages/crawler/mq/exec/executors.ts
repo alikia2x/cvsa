@@ -6,3 +6,5 @@ export * from "./archiveSnapshots.ts";
 export * from "./dispatchMilestoneSnapshots.ts";
 export * from "./dispatchRegularSnapshots.ts";
 export * from "./snapshotVideo.ts";
+export * from "./scheduleCleanup.ts";
+export * from "./snapshotTick.ts";

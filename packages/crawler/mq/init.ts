@@ -61,7 +61,7 @@ export async function initMQ() {
 		});
 
 		await SnapshotQueue.upsertJobScheduler("scheduleCleanup", {
-			every: 30 * MINUTE,
+			every: 2 * MINUTE,
 			immediately: true,
 		});
 
