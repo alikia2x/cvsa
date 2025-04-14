@@ -9,12 +9,12 @@
 
 ## 技术架构 <a href="#architecture" id="architecture"></a>
 
-- [概览](architecture/overview.md)
-- [数据库结构](architecture/database-structure/README.md)
-  - [歌曲类型](architecture/database-structure/type-of-song.md)
-- [人工智能](architecture/artificial-intelligence.md)
-- [消息队列](architecture/message-queue/README.md)
-  - [LatestVideosQueue 队列](architecture/message-queue/latestvideosqueue-dui-lie.md)
+* [概览](architecture/overview.md)
+* [Crawler 模块介绍](architecture/crawler.md)
+* [数据库结构](architecture/database-structure/README.md)
+  * [歌曲类型](architecture/database-structure/type-of-song.md)
+  * [snapshot\_schedule 表](architecture/database-structure/table-snapshot_schedule.md)
+* [机器学习](architecture/machine-learning.md)
 
 ## API 文档 <a href="#api-doc" id="api-doc"></a>
 
