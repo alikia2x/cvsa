@@ -184,7 +184,7 @@ export async function scheduleSnapshot(
 	let adjustedTime = new Date(targetTime);
 	if (type == "milestone") {
 		await client.queryObject(
-			`UPDATE snapshot_schedule SET started_at = $1 WHERE aid = $2 AND type = 'milestone'`,
+			`UPDATE snapshot_schedule SET started_at = $1 WHERE aid = $2 AND type = 'milestone' AND status = 'pending'`,
 			[adjustedTime, aid],
 		);
 		logger.log(
