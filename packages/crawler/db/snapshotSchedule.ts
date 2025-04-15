@@ -182,11 +182,15 @@ export async function scheduleSnapshot(
 	force: boolean = false,
 ) {
 	let adjustedTime = new Date(targetTime);
-	if (type == "milestone") {
-		await client.queryObject(
-			`UPDATE snapshot_schedule SET started_at = $1 WHERE aid = $2 AND type = 'milestone' AND status = 'pending'`,
-			[adjustedTime, aid],
-		);
+	const hashActiveSchedule = await videoHasActiveScheduleWithType(client, aid, type);
+	if (type == "milestone" && hashActiveSchedule) {
+		await client.queryObject(`
+            UPDATE snapshot_schedule
+            SET started_at = $1
+            WHERE aid = $2
+              AND type = 'milestone'
+              AND (status = 'pending' OR status = 'processing')
+		`, [adjustedTime, aid]);
 		logger.log(
 			`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
 			"mq",
@@ -194,7 +198,7 @@ export async function scheduleSnapshot(
 		);
 		return;
 	}
-	if (await videoHasActiveScheduleWithType(client, aid, type) && !force) return;
+	if (hashActiveSchedule && !force) return;
 	if (type !== "milestone" && type !== "new") {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
 	}
