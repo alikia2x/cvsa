@@ -181,10 +181,22 @@ export async function scheduleSnapshot(
 	targetTime: number,
 	force: boolean = false,
 ) {
-	if (await videoHasActiveScheduleWithType(client, aid, type) && !force) return;
 	let adjustedTime = new Date(targetTime);
+	if (type == "milestone") {
+		await client.queryObject(
+			`UPDATE snapshot_schedule SET started_at = $1 WHERE aid = $2 AND type = 'milestone'`,
+			[adjustedTime, aid],
+		);
+		logger.log(
+			`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
+			"mq",
+			"fn:scheduleSnapshot",
+		);
+		return;
+	}
+	if (await videoHasActiveScheduleWithType(client, aid, type) && !force) return;
 	if (type !== "milestone" && type !== "new") {
-		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 1000, redis);
+		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
 	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return client.queryObject(
