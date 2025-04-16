@@ -4,6 +4,7 @@ import logger from "log/logger.ts";
 import { MINUTE } from "$std/datetime/constants.ts";
 import { redis } from "@core/db/redis.ts";
 import { Redis } from "ioredis";
+import {parseTimestampFromPsql} from "../utils/formatTimestampToPostgre.ts";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
@@ -168,6 +169,20 @@ export async function getLatestSnapshot(client: Client, aid: number): Promise<Sn
 	};
 }
 
+export async function getLatestActiveScheduleWithType(client: Client, aid: number, type: string) {
+	const query: string = `
+		SELECT *
+		FROM snapshot_schedule
+		WHERE aid = $1
+		  AND type = $2 
+		  AND (status = 'pending' OR status = 'processing')
+		ORDER BY started_at DESC
+		LIMIT 1
+	`
+	const res = await client.queryObject<SnapshotScheduleType>(query, [aid, type]);
+	return res.rows[0];
+}
+
 /*
  * Creates a new snapshot schedule record.
  * @param client The database client.
@@ -184,19 +199,21 @@ export async function scheduleSnapshot(
 	let adjustedTime = new Date(targetTime);
 	const hashActiveSchedule = await videoHasActiveScheduleWithType(client, aid, type);
 	if (type == "milestone" && hashActiveSchedule) {
-		await client.queryObject(`
-            UPDATE snapshot_schedule
-            SET started_at = $1
-            WHERE aid = $2
-              AND type = 'milestone'
-              AND (status = 'pending' OR status = 'processing')
-		`, [adjustedTime, aid]);
-		logger.log(
-			`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
-			"mq",
-			"fn:scheduleSnapshot",
-		);
-		return;
+		const latestActiveSchedule = await getLatestActiveScheduleWithType(client, aid, type);
+		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at!));
+		if (latestScheduleStartedAt < adjustedTime) {
+			await client.queryObject(`
+                UPDATE snapshot_schedule
+                SET started_at = $1
+                WHERE id = $2
+			`, [adjustedTime, latestActiveSchedule.id]);
+			logger.log(
+				`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
+				"mq",
+				"fn:scheduleSnapshot",
+			);
+			return;
+		}
 	}
 	if (hashActiveSchedule && !force) return;
 	if (type !== "milestone" && type !== "new") {

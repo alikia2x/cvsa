@@ -3,7 +3,7 @@ import { getVideoDetails } from "net/getVideoDetails.ts";
 import { formatTimestampToPsql } from "utils/formatTimestampToPostgre.ts";
 import logger from "log/logger.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
-import { userExistsInBiliUsers, videoExistsInAllData } from "db/allData.ts";
+import { userExistsInBiliUsers, videoExistsInAllData } from "../../db/bilibili_metadata.ts";
 import { HOUR, SECOND } from "@std/datetime";
 
 export async function insertVideoInfo(client: Client, aid: number) {

@@ -1,6 +1,6 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getLatestVideoAids } from "net/getLatestVideoAids.ts";
-import { videoExistsInAllData } from "db/allData.ts";
+import { videoExistsInAllData } from "../../db/bilibili_metadata.ts";
 import { sleep } from "utils/sleep.ts";
 import { SECOND } from "@std/datetime";
 import logger from "log/logger.ts";

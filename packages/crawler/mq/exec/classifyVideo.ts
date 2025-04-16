@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { db } from "db/init.ts";
-import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "db/allData.ts";
+import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "../../db/bilibili_metadata.ts";
 import Akari from "ml/akari.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
 import logger from "log/logger.ts";

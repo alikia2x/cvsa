@@ -17,7 +17,7 @@ export const dispatchMilestoneSnapshotsWorker = (_job: Job): Promise<void> =>
 			if (eta > 144) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
-			const maxInterval = 4 * HOUR;
+			const maxInterval = 1 * HOUR;
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;

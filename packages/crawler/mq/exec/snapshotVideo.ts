@@ -5,7 +5,7 @@ import { scheduleSnapshot, setSnapshotStatus, snapshotScheduleExists } from "db/
 import logger from "log/logger.ts";
 import { HOUR, MINUTE, SECOND } from "@std/datetime";
 import { lockManager } from "mq/lockManager.ts";
-import { getBiliVideoStatus, setBiliVideoStatus } from "db/allData.ts";
+import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata.ts";
 import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
 import { getSongsPublihsedAt } from "db/songs.ts";
 import { getAdjustedShortTermETA } from "mq/scheduling.ts";
