@@ -201,7 +201,7 @@ export async function scheduleSnapshot(
 	if (type == "milestone" && hashActiveSchedule) {
 		const latestActiveSchedule = await getLatestActiveScheduleWithType(client, aid, type);
 		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at!));
-		if (latestScheduleStartedAt < adjustedTime) {
+		if (latestScheduleStartedAt > adjustedTime) {
 			await client.queryObject(`
                 UPDATE snapshot_schedule
                 SET started_at = $1
