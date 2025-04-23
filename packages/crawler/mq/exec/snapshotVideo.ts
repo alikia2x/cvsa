@@ -98,6 +98,15 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			await scheduleSnapshot(client, aid, type, Date.now() + retryInterval);
 			return;
 		}
+		else if (e instanceof NetSchedulerError && e.code === "ALICLOUD_PROXY_ERR") {
+			logger.warn(
+				`Failed to proxy request for aid ${job.data.aid}: ${e.message}`,
+				"mq",
+				"fn:takeSnapshotForVideoWorker",
+			);
+			await setSnapshotStatus(client, id, "failed");
+			await scheduleSnapshot(client, aid, type, Date.now() + retryInterval);
+		}
 		logger.error(e as Error, "mq", "fn:takeSnapshotForVideoWorker");
 		await setSnapshotStatus(client, id, "failed");
 	}, async () => {

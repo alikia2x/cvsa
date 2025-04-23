@@ -273,7 +273,7 @@ class NetworkDelegate {
 			}
 		} catch (e) {
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
-			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc.`, "ALICLOUD_PROXY_ERR", e);
+			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`, "ALICLOUD_PROXY_ERR", e);
 		}
 	}
 }
