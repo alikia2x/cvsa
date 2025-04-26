@@ -1,5 +1,7 @@
 ---
 import "../styles/global.css";
+const { title } = Astro.props;
+const pageTitle = title ? title + ' - 中V档案馆' :'中V档案馆';
 ---
 
 <!doctype html>
@@ -7,9 +9,9 @@ import "../styles/global.css";
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>中V档案馆</title>
+        <title>{pageTitle}</title>
     </head>
-    <body class="dark:bg-zinc-900 dark:text-zinc-100">
+    <body class="dark:bg-zinc-900 dark:text-zinc-100 min-h-screen flex flex-col">
         <slot />
     </body>
 </html>

@@ -15,7 +15,7 @@
     }
 </script>
 
-<div class="md:hidden fixed top-0 left-0 w-full h-16 bg-white/80 dark:bg-zinc-800/70 backdrop-blur-lg z-50">
+<div class="md:hidden relative top-0 left-0 w-full h-16 bg-white/80 dark:bg-zinc-800/70 backdrop-blur-lg z-50">
     {#if !showSearchBox}
         <button class="inline-block ml-4 mt-4 dark:text-white">
             <MenuIcon />

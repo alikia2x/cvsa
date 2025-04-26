@@ -21,4 +21,7 @@ export default defineConfig({
 		},
 		plugins: [tsconfigPaths()],
 	},
+	markdown: {
+		remarkRehype: { footnoteLabel: "脚注", footnoteBackLabel: "回到引用 1" },
+	}
 });
