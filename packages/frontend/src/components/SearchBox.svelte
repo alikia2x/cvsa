@@ -1,6 +1,6 @@
 <script lang="ts">
-	import SearchIcon from "@components/SearchIcon.svelte";
-	import CloseIcon from "@components/CloseIcon.svelte";
+	import SearchIcon from "src/components/icon/SearchIcon.svelte";
+	import CloseIcon from "src/components/icon/CloseIcon.svelte";
 
 	let inputBox: HTMLInputElement | null = null;
 	export let close = () => {};
@@ -43,7 +43,8 @@
 	<div class="w-full h-10 lg:h-12 px-4 rounded-full bg-surface-container-high dark:bg-zinc-800/70
 			backdrop-blur-lg flex justify-between md:px-5">
 		<button class="w-6" on:click={() => search(inputBox?.value ?? "")}>
-			<SearchIcon className="h-full inline-flex items-center text-[1.5rem] text-on-surface-variant" />
+			<SearchIcon className="h-full inline-flex items-center text-[1.5rem]
+			text-on-surface-variant dark:text-dark-on-surface-variant" />
 		</button>
 		<!--suppress HtmlUnknownAttribute -->
 		<input
@@ -56,8 +57,9 @@
 				class="top-0 h-full bg-transparent flex-grow px-4 focus:outline-none"
 				on:keydown={handleKeydown}
 		/>
-		<button class="w-6" on:click={close}>
-			<CloseIcon className="h-full w-6 inline-flex items-center text-[1.5rem] text-on-surface-variant"/>
+		<button class="w-6" on:click={() => {inputBox.value = ""; close();}}>
+			<CloseIcon className="h-full w-6 inline-flex items-center text-[1.5rem]
+			text-on-surface-variant dark:text-dark-on-surface-variant"/>
 		</button>
 	</div>
 </div>

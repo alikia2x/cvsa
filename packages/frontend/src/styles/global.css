@@ -5,6 +5,10 @@
 @theme {
     --color-surface-container-high: #f7e4e1;
     --color-on-surface-variant: #534341;
+    --color-dark-on-surface-variant: #d8c2be;
+    --color-dark-surface-container-high: #322826;
+    --color-dark-container: #271d1c;
+    --color-container: #fceae7;
 }
 
 a {
