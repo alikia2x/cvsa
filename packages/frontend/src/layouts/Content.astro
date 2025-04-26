@@ -1,0 +1,15 @@
+---
+import TitleBar from "@components/TitleBar.astro";
+import Layout from '@layouts/Layout.astro';
+import Footer from "./Footer.astro";
+---
+
+<Layout>
+	<TitleBar/>
+	<main class="flex flex-col items-center flex-grow gap-8 md:mt-12 relative z-0">
+		<div class="w-full lg:w-2/3 xl:w-1/2 content px-8 md:px-12 lg:px-0">
+			<slot/>
+		</div>
+	</main>
+	<Footer/>
+</Layout>
