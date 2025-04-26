@@ -20,3 +20,8 @@
 
 * [目录](api-doc/catalog.md)
 * [视频快照](api-doc/video-snapshot.md)
+
+## 参考 <a href="#references" id="references"></a>
+
+* [颜色系统](references/color-system.md)
+* [关于 APCA](references/about-apca.md)
