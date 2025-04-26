@@ -1,18 +1,21 @@
 @import url('InterFont/Inter.css');
 @import url('MiSans/MiSans.css');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@theme {
+    --color-surface-container-high: #f7e4e1;
+    --color-on-surface-variant: #534341;
+}
 
 a {
-    @apply text-[#8f4a50] dark:text-[#ffb2b7];
+    @apply text-[#904b40] dark:text-[#ffb2b7];
 }
 
 
 :root {
     font-family: "MiSans", "Inter", sans-serif;
     font-weight: 400;
+    @apply bg-[#fff8f6] dark:bg-[#1a1110] text-[#231918] dark:text-[#f1dfdc]
 }
 
 @supports (font-variation-settings: normal) {

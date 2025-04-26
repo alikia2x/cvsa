@@ -60,6 +60,11 @@ async function getAidFromBV(bv: string) {
     return null;
 }
 
+async function idExists(aid: number) {
+    const res = await client.query("SELECT COUNT(*) FROM bilibili_metadata WHERE aid = $1", [aid]);
+    return res.rows[0].count > 0;
+}
+
 async function getVideoAid(id: string) {
     if (id.startsWith("av")) {
         return parseInt(id.slice(2));
@@ -77,6 +82,12 @@ if (!id) {
 }
 const aid = await getVideoAid(id);
 if (!aid || isNaN(aid)) {
+    Astro.response.status = 404;
+    client.end();
+    return new Response(null, { status: 404 });
+}
+const aidExists = await idExists(aid);
+if (!aidExists) {
     Astro.response.status = 404;
     client.end();
     return new Response(null, { status: 404 });
@@ -100,68 +111,68 @@ interface Snapshot {
 
 <Layout>
     <TitleBar />
-    <main class="flex flex-col items-center min-h-screen gap-8 mt-6 relative z-0 overflow-x-auto">
-        <div class="max-w-4xl mx-auto rounded-lg p-6">
-            <h1 class="text-2xl font-medium mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline ">av{aid}</a></h1>
+    <main class="flex flex-col items-center min-h-screen gap-8 mt-10 md:mt-6 relative z-0 overflow-x-auto pb-8">
+        <div class="w-full lg:max-w-4xl lg:mx-auto lg:p-6">
+            <h1 class="text-2xl font-medium ml-2 mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline ">av{aid}</a></h1>
 
-            <div class="mb-6 p-4 rounded-lg">
-                <h2 class="text-xl font-medium mb-8">基本信息</h2>
-                <div class="overflow-x-auto max-w-full">
-                    <table class="table-auto w-full">
+            <div class="mb-6">
+                <h2 class="px-2 mb-2 text-xl font-medium">基本信息</h2>
+                <div class="overflow-x-auto max-w-full px-2">
+                    <table class="table-fixed">
                         <tbody>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-semibold">ID</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.id}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">ID</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.id}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-semibold">AID</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.aid}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">AID</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.aid}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-semibold">BVID</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.bvid}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">BVID</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.bvid}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">标题</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.title}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">标题</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.title}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">描述</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.description}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">描述</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.description}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-semibold">UID</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.uid}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">UID</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.uid}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">标签</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.tags}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">标签</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.tags}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">发布时间</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">发布时间</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">时长 (秒)</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.duration}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">时长 (秒)</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.duration}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">创建时间</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">创建时间</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
                             </tr>
                             <tr>
-                                <td class="border dark:border-zinc-500 px-4 py-2 font-[470]">封面</td>
-                                <td class="border dark:border-zinc-500 px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
+                                <td class="max-w-14 min-w-14 border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">封面</td>
+                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="p-4 rounded-lg">
-                <h2 class="text-xl font-medium mb-4">播放量历史数据</h2>
+            <div>
+                <h2 class="px-2 mb-2 text-xl font-medium">播放量历史数据</h2>
                 {snapshots && snapshots.length > 0 ? (
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto px-2">
                         <table class="table-auto w-full">
                             <thead>
                                 <tr>

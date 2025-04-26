@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { fade } from "svelte/transition";
 
     export let lightSrc: string;
     export let darkSrc: string;

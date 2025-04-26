@@ -1,9 +1,25 @@
 ---
 import Layout from "@layouts/Layout.astro";
+import RightArrow from "../../components/icon/RightArrow.astro";
 ---
 
 <Layout title="注册">
-	<main class="relative flex-grow pt-36">
-		<h1>欢迎</h1>
+	<main class="relative flex-grow pt-36 px-4 ">
+		<h1 class="text-5xl leading-[4rem] font-extralight">欢迎</h1>
+		<p class="h-14 mt-2.5">
+			欢迎来到中 V 档案馆。<br/>
+			这里是中文虚拟歌手相关信息的收集站与档案馆。
+		</p>
+		<p class="h-14">
+			注册一个账号，<br/>
+			让我们一起见证中 V 的历史，现在，与未来。
+		</p>
+		<p>
+			已有账户？
+			<a>
+				<span>登录</span>
+				<RightArrow class="inline -translate-y-0.5" aria-hidden="true"/>
+			</a>
+		</p>
 	</main>
 </Layout>

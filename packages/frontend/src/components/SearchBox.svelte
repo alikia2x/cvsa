@@ -1,39 +1,33 @@
 <script lang="ts">
-    let inputBox: HTMLInputElement | null = null;
+	import SearchIcon from "@components/SearchIcon.svelte";
+	import CloseIcon from "@components/CloseIcon.svelte";
 
-    export function changeFocusState(target: boolean) {
-        if (!inputBox) return;
-        if (target) {
-            inputBox.focus();
-        } else {
-            inputBox.blur();
-        }
-    }
+	let inputBox: HTMLInputElement | null = null;
+	export let close = () => {};
 
-    function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            const input = event.target as HTMLInputElement;
-            const value: string = input.value.trim();
-            if (!value) return;
-            window.location.href = `/song/${value}/info`;
-        }
-    }
+	export function changeFocusState(target: boolean) {
+		if (!inputBox) return;
+		if (target) {
+			inputBox.focus();
+		} else {
+			inputBox.blur();
+		}
+	}
+
+	function search(query: string) {
+		window.location.href = `/song/${query}/info`;
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === "Enter") {
+			event.preventDefault();
+			const input = event.target as HTMLInputElement;
+			const value = input.value.trim();
+			if (!value) return;
+			search(value);
+		}
+	}
 </script>
-
-<!-- svelte-ignore a11y_autofocus -->
-<div
-    class="absolute left-0 md:left-96 ml-4 w-[calc(100%-5rem)] md:w-[calc(100%-40rem)] 2xl:max-w-[50rem] 2xl:left-1/2 2xl:-translate-x-1/2 inline-flex items-center h-full"
->
-    <input
-        bind:this={inputBox}
-        type="search"
-        placeholder="搜索"
-        class="top-0 w-full h-10 px-4 rounded-lg bg-white/80 dark:bg-zinc-800/70
-          backdrop-blur-lg border border-zinc-300 dark:border-zinc-600 focus:border-zinc-400 duration-200 transition-colors focus:outline-none"
-        on:keydown={handleKeydown}
-    />
-</div>
 
 <style>
     [type="search"]::-webkit-search-cancel-button,
@@ -42,3 +36,28 @@
         appearance: none;
     }
 </style>
+
+<!-- svelte-ignore a11y_autofocus -->
+<div class="absolute md:relative left-0 h-full mr-0 inline-flex items-center w-full px-4 md:px-0
+	md:w-full xl:max-w-[50rem] md:mx-4">
+	<div class="w-full h-10 lg:h-12 px-4 rounded-full bg-surface-container-high dark:bg-zinc-800/70
+			backdrop-blur-lg flex justify-between md:px-5">
+		<button class="w-6" on:click={() => search(inputBox?.value ?? "")}>
+			<SearchIcon className="h-full inline-flex items-center text-[1.5rem] text-on-surface-variant" />
+		</button>
+		<!--suppress HtmlUnknownAttribute -->
+		<input
+				bind:this={inputBox}
+				type="search"
+				placeholder="搜索"
+				autocomplete="off"
+				autocapitalize="off"
+				autocorrect="off"
+				class="top-0 h-full bg-transparent flex-grow px-4 focus:outline-none"
+				on:keydown={handleKeydown}
+		/>
+		<button class="w-6" on:click={close}>
+			<CloseIcon className="h-full w-6 inline-flex items-center text-[1.5rem] text-on-surface-variant"/>
+		</button>
+	</div>
+</div>

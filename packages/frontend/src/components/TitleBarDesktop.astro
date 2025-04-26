@@ -5,22 +5,23 @@ import DarkModeImage from "@components/DarkModeImage.svelte";
 import SearchBox from "@components/SearchBox.svelte";
 ---
 
-<div class="hidden md:block relative top-0 left-0 w-full h-28 bg-white/80 dark:bg-zinc-900/70 backdrop-blur-lg z-50">
-	<div class="w-[305px] ml-8 inline-flex h-full items-center">
+<div class="hidden md:flex relative top-0 left-0 w-full h-28 z-50 justify-between">
+	<div class="w-[305px] xl:ml-8 inline-flex items-center">
 		<a href="/">
 			<DarkModeImage
-					lightSrc={astroLogoLight.src}
-					darkSrc={astroLogoDark.src}
-					alt="Logo"
-					className="w-[305px] h-24 inline-block"
-					client:load
+				lightSrc={astroLogoLight.src}
+				darkSrc={astroLogoDark.src}
+				alt="Logo"
+				className="w-[305px] h-24 inline-block max-w-[15rem] lg:max-w-[305px]"
+				client:load
 			/>
 		</a>
 	</div>
 	<SearchBox client:load/>
 
-	<div class="inline-flex right-12 absolute gap-4 h-full
-				text-xl font-medium items-center w-48 justify-end">
+	<div class="inline-flex relative gap-6 h-full lg:right-12
+				text-xl font-medium items-center w-[15rem] min-w-[8rem] mr-4 lg:mr-0 lg:w-[305px] justify-end">
+		<a href="/register">注册</a>
 		<a href="/about">关于</a>
 	</div>
 </div>
