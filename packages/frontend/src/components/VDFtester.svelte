@@ -3,7 +3,7 @@
     import { fade } from "svelte/transition";
     import { UAParser } from 'ua-parser-js';
 
-    const ua = navigator.userAgent;
+    const ua = navigator ? navigator.userAgent : "";
 
     const { browser } = UAParser(ua);
 
