@@ -1,8 +1,13 @@
 <script lang="ts">
     import { N_ARRAY } from "src/const";
     import { fade } from "svelte/transition";
+    import { UAParser } from 'ua-parser-js';
 
-	let bigintSupported = typeof BigInt !== 'undefined';
+    const ua = navigator.userAgent;
+
+    const { browser } = UAParser(ua);
+
+    let bigintSupported = typeof BigInt !== 'undefined';
 
     function generateRandomBigInt(min: bigint, max: bigint) {
         const range = max - min;
@@ -210,6 +215,8 @@
 			<span class="text-sm text-on-surface-variant dark:text-dark-on-surface-variant">
 				速度是在 N = {speedSample.N.toString(2).length} bits, T = {speedSample.difficulty} 的测试中测量的.
 			</span>
+            <br/>
+            浏览器版本：{browser}
         </p>
         <table class="w-full text-sm text-left rtl:text-right mt-4">
             <thead class="text-sm uppercase font-medium border-b border-outline dark:border-dark-outline">
