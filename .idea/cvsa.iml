@@ -19,6 +19,13 @@
       <excludeFolder url="file://$MODULE_DIR$/.zed" />
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/.astro" />
       <excludeFolder url="file://$MODULE_DIR$/scripts" />
+      <excludeFolder url="file://$MODULE_DIR$/.astro" />
+      <excludeFolder url="file://$MODULE_DIR$/ml/pred/checkpoints" />
+      <excludeFolder url="file://$MODULE_DIR$/ml/pred/observed" />
+      <excludeFolder url="file://$MODULE_DIR$/ml/pred/runs" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/backend/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/net/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/crawler/logs" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -68,11 +68,8 @@ package-lock.json
 .env.production.local
 .env.local
 
-# Fresh build directory
-_fresh/
 # npm dependencies
 node_modules/
-
 
 # project specific
 logs/
@@ -85,3 +82,6 @@ ml/data/
 ml/filter/checkpoints
 scripts
 model/
+
+
+.astro

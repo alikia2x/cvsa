@@ -4,6 +4,7 @@ import TitleBar from "@components/TitleBar.astro";
 import pg from "pg";
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import MetadataRow from "@components/InfoPage/MetadataRow.astro";
 
 const databaseHost = import.meta.env.DB_HOST
 const databaseName = import.meta.env.DB_NAME
@@ -121,50 +122,17 @@ interface Snapshot {
                 <div class="overflow-x-auto max-w-full px-2">
                     <table class="table-fixed">
                         <tbody>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">ID</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.id}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">AID</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.aid}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">BVID</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.bvid}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">标题</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.title}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">描述</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.description}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-semibold">UID</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.uid}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">标签</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.tags}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">发布时间</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.published_at ? format(new Date(videoInfo.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">时长 (秒)</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.duration}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">创建时间</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.created_at ? format(new Date(videoInfo.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN }) : '-'}</td>
-                            </tr>
-                            <tr>
-                                <td class="max-w-14 min-w-14 md:max-w-none md:min-w-none border dark:border-zinc-500 px-2 md:px-4 py-2 font-[470]">封面</td>
-                                <td class="break-all max-w-[calc(100vw-4.5rem)] border dark:border-zinc-500 px-4 py-2">{videoInfo?.cover_url ? videoInfo.cover_url : '-'}</td>
-                            </tr>
+                            <MetadataRow title={id} description={videoInfo?.id}/>
+                            <MetadataRow title={videoInfo?.aid} description={videoInfo?.aid}/>
+                            <MetadataRow title={videoInfo?.bvid} description={videoInfo?.bvid}/>
+                            <MetadataRow title="标题" description={videoInfo?.title}/>
+                            <MetadataRow title="描述" description={videoInfo?.description}/>
+                            <MetadataRow title="UID" description={videoInfo?.uid}/>
+                            <MetadataRow title="标签" description={videoInfo?.tags}/>
+                            <MetadataRow title="发布时间" description={format(new Date(videoInfo?.pubdate), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
+                            <MetadataRow title="时长 (秒)" description={videoInfo?.duration}/>
+                            <MetadataRow title="创建时间" description={format(new Date(videoInfo?.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
+                            <MetadataRow title="封面" description={videoInfo?.cover_url}/>
                         </tbody>
                     </table>
                 </div>

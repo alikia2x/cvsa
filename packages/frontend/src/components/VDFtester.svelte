@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { N_ARRAY } from "src/const"; // 假设你的常量文件现在导出 N_ARRAY
+    import { N_ARRAY } from "src/const";
+    import { fade } from "svelte/transition";
+
+	let bigintSupported = typeof BigInt !== 'undefined';
 
     function generateRandomBigInt(min: bigint, max: bigint) {
         const range = max - min;
@@ -68,11 +71,13 @@
 `;
 
     let isBenchmarking = false;
+
     interface BenchmarkResult {
         N: bigint;
         difficulty: bigint;
         time: number;
     }
+
     let benchmarkResults: BenchmarkResult[] = [];
     let currentProgress = 0;
     let currentN: bigint | null = null;
@@ -88,6 +93,10 @@
             testCombinations.push({ N: n, difficulty });
         });
     });
+
+    const preferredBits = 1024;
+	let closetBits = 0;
+	let speedSample: BenchmarkResult;
 
     async function startBenchmark() {
         if (testCombinations.length === 0) {
@@ -106,6 +115,10 @@
 
         worker.onmessage = (event) => {
             const { type, N: resultNStr, difficulty: resultDifficultyStr, time, progress } = event.data;
+			if (Math.abs(Number(resultDifficultyStr) - preferredBits) < Math.abs(Number(resultDifficultyStr) - closetBits)) {
+				closetBits = Number(resultDifficultyStr);
+			}
+
             const resultN = BigInt(resultNStr);
             const resultDifficulty = BigInt(resultDifficultyStr);
 
@@ -142,78 +155,125 @@
         return benchmarkResults.reduce((acc, result) => acc + result.time, 0);
     }
 
-    function getAccumulatedDifficulty() {
-        return benchmarkResults.reduce((acc, result) => acc + Number(result.difficulty), 0);
-    }
-
-    function getSpeed() {
-        return (getAccumulatedDifficulty() / getAccumulatedTime()) * 1000;
-    }
+	function getSpeed() {
+		speedSample = benchmarkResults.filter((result) => result.difficulty === BigInt(closetBits)).sort((a, b) => a.time - b.time)[0];
+		if (!speedSample) {
+			return 0;
+		}
+		return Number(speedSample.difficulty) / speedSample.time * 1000;
+	}
 </script>
 
 <div
-    class="md:bg-zinc-50 md:dark:bg-zinc-800 p-6 rounded-md md:border dark:border-zinc-700 mb-6 mt-8 md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto"
+    class="relative mt-8 md:mt-20 md:bg-surface-container-high md:dark:bg-dark-surface-container-high
+    p-6 rounded-md mb-6 md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto"
 >
-    <h2 class="text-xl font-bold mb-4 text-zinc-800 dark:text-zinc-200">VDF Benchmark</h2>
+    <h2 class="text-xl font-[500] mb-4">VDF 基准测试</h2>
 
-    {#if !isBenchmarking}
-        <button
-            class="bg-blue-500 hover:bg-blue-600 duration-100 text-white font-bold py-2 px-4 rounded"
-            on:click={startBenchmark}
-        >
-            Start Benchmark
-        </button>
-    {/if}
+	{#if !bigintSupported}
+		<p class="text-error dark:text-dark-error">
+			⚠️ 您的浏览器不支持 BigInt，无法运行基准测试。
+		</p>
+	{:else if !isBenchmarking}
+		<button
+				class="bg-primary dark:bg-dark-primary duration-100 text-on-primary dark:text-dark-on-primary
+                font-medium py-2 px-4 rounded hover:brightness-90"
+				on:click={startBenchmark}
+				disabled={!bigintSupported}
+		>
+			开始测试
+		</button>
+	{/if}
 
     {#if isBenchmarking}
-        <p class="mb-8 text-zinc-700 dark:text-zinc-300">
-            Benchmarking in progress... ({currentTestIndex + 1}/{testCombinations.length})
+        <p class="mb-8">
+            正在测试: {currentTestIndex + 1}/{testCombinations.length}
         </p>
         {#if currentN !== null && currentDifficulty !== null}
-            <p class="mb-2 text-zinc-700 dark:text-zinc-300">N Bits: {currentN.toString(2).length}</p>
-            <p class="mb-2 text-zinc-700 dark:text-zinc-300">Difficulty: {currentDifficulty}</p>
-            <div class="w-full bg-zinc-300 dark:bg-neutral-700 rounded-full h-1 relative overflow-hidden">
+            <p class="mb-2">密钥长度: {currentN.toString(2).length} 比特</p>
+            <p class="mb-2">难度: {currentDifficulty.toLocaleString()}</p>
+            <div class="w-full rounded-full h-1 relative overflow-hidden">
                 <div
-                    class="bg-black dark:bg-white h-full rounded-full relative"
+                    class="bg-primary dark:bg-dark-primary h-full rounded-full absolute"
                     style="width: {currentProgress}%"
                 ></div>
+                <div
+                    class="bg-secondary-container dark:bg-dark-secondary-container h-full rounded-full absolute right-0"
+                    style="width: calc({100 - currentProgress}% - 0.25rem)"
+                ></div>
+                <div class="bg-primary dark:bg-dark-primary h-full w-1 rounded-full absolute right-0"></div>
             </div>
         {/if}
     {/if}
 
     {#if benchmarkResults.length > 0 && !isBenchmarking}
-        <h3 class="text-lg font-bold mt-4 mb-2 text-zinc-800 dark:text-zinc-200">Benchmark Results</h3>
-        <p class="mb-4 text-zinc-700 dark:text-zinc-300 text-sm">
-            <b>Summary:</b>
-            {getAccumulatedDifficulty()}
-            calculations done in {getAccumulatedTime().toFixed(1)}ms,
-            speed: {getSpeed().toFixed(2)} op/s
+        <h3 class="text-lg font-medium mt-4 mb-2">测试结果</h3>
+        <p class="mb-4 text-sm">
+            测试在 {(getAccumulatedTime() / 1000).toFixed(3)} 秒内完成. <br/>
+			速度: {Math.round(getSpeed()).toLocaleString()} 迭代 / 秒. <br/>
+			<span class="text-sm text-on-surface-variant dark:text-dark-on-surface-variant">
+				速度是在 N = {preferredBits} bits, T = {speedSample.difficulty} 的测试中测量的.
+			</span>
         </p>
-        <table class="w-full text-sm text-left rtl:text-right text-zinc-500 dark:text-zinc-400">
-            <thead
-                class="text-xs text-zinc-700 uppercase dark:text-zinc-400 border-b border-zinc-400 dark:border-zinc-500"
-            >
+        <table class="w-full text-sm text-left rtl:text-right mt-4">
+            <thead class="text-sm uppercase font-medium border-b border-outline dark:border-dark-outline">
                 <tr>
-                    <th scope="col" class="px-6 py-3">Time (ms)</th>
+                    <th scope="col" class="px-6 py-3">耗时 (ms)</th>
                     <th scope="col" class="px-6 py-3">N (bits)</th>
-                    <th scope="col" class="px-6 py-3">T (log10)</th>
+                    <th scope="col" class="px-6 py-3">T (迭代)</th>
                 </tr>
             </thead>
             <tbody>
                 {#each benchmarkResults as result}
-                    <tr class="border-b dark:border-zinc-700 border-zinc-200">
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
-                            >{result.time.toFixed(2)}</td
-                        >
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
-                            >{result.N.toString(2).length}</td
-                        >
-                        <td class="px-6 py-4 font-medium text-zinc-900 whitespace-nowrap dark:text-white"
-                            >{Math.log10(Number(result.difficulty)).toFixed(2)}</td
-                        >
+                    <tr class="border-b border-outline-variant dark:border-dark-outline-variant">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {result.time.toFixed(2)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {result.N.toString(2).length}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {Number(result.difficulty)}
+                        </td>
                     </tr>
                 {/each}
             </tbody>
         </table>
     {/if}
 </div>
+
+{#if !isBenchmarking}
+    <div
+        class={"md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto mx-6 mb-12 " +
+            (benchmarkResults.length > 0 && !isBenchmarking ? "" : "absolute left-1/2 -translate-x-1/2 top-72")}
+        transition:fade={{ duration: 200 }}
+    >
+        <h2 class="text-lg font-medium">关于本页</h2>
+        <div class="text-sm text-on-surface-variant dark:text-dark-on-surface-variant">
+            <p>
+                这是一个性能测试页面，<br />
+                旨在测试我们的一个 VDF (Verifiable Delayed Function, 可验证延迟函数) 实现的性能。<br />
+                这是一个数学函数，它驱动了整个网站的验证码（CAPTCHA）。<br />
+                通过使用该函数，我们可以让您无需通过点选图片或滑动滑块既可完成验证， 同时防御我们的网站，使其免受自动程序的攻击。
+                <br />
+            </p>
+            <p>
+                点击 <i>Start Benchmark</i> 按钮，会自动测试并展示结果。<br />
+            </p>
+            <p>
+                你可以将结果发送至邮箱: <a href="mailto:contact@alikia2x.com">contact@alikia2x.com</a>
+                或 QQ：<a href="https://qm.qq.com/q/WS8zyhlcEU">1559913735</a>，并附上自己的设备信息
+                （例如，手机型号、电脑的 CPU 型号等）。<br />
+                我们会根据测试结果，优化我们的实现，使性能更优。<br />
+                感谢你的支持！<br />
+            </p>
+        </div>
+    </div>
+{/if}
+
+<style lang="postcss">
+    @reference "tailwindcss";
+    p {
+        @apply my-2;
+    }
+</style>
