@@ -9,17 +9,23 @@
     --color-dark-surface-container-high: #322826;
     --color-dark-container: #271d1c;
     --color-container: #fceae7;
+    --color-on-surface: #231918;
+    --color-dark-on-surface: #f1dfdc;
+    --color-surface: #fff8f6;
+    --color-dark-surface: #1a1110;
+    --color-primary: #904b40;
+    --color-dark-primary: #ffb2b7;
 }
 
 a {
-    @apply text-[#904b40] dark:text-[#ffb2b7];
+    @apply text-primary dark:text-dark-primary;
 }
 
 
 :root {
     font-family: "MiSans", "Inter", sans-serif;
     font-weight: 400;
-    @apply bg-[#fff8f6] dark:bg-[#1a1110] text-[#231918] dark:text-[#f1dfdc]
+    @apply bg-surface dark:bg-dark-surface text-on-surface dark:text-dark-on-surface
 }
 
 @supports (font-variation-settings: normal) {
