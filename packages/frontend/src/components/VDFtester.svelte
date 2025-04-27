@@ -94,8 +94,7 @@
         });
     });
 
-    const preferredBits = 1024;
-	let closetBits = 0;
+    const speedSampleIndex = 1;
 	let speedSample: BenchmarkResult;
 
     async function startBenchmark() {
@@ -115,9 +114,6 @@
 
         worker.onmessage = (event) => {
             const { type, N: resultNStr, difficulty: resultDifficultyStr, time, progress } = event.data;
-			if (Math.abs(Number(resultDifficultyStr) - preferredBits) < Math.abs(Number(resultDifficultyStr) - closetBits)) {
-				closetBits = Number(resultDifficultyStr);
-			}
 
             const resultN = BigInt(resultNStr);
             const resultDifficulty = BigInt(resultDifficultyStr);
@@ -156,7 +152,7 @@
     }
 
 	function getSpeed() {
-		speedSample = benchmarkResults.filter((result) => result.difficulty === BigInt(closetBits)).sort((a, b) => a.time - b.time)[0];
+		speedSample = benchmarkResults[speedSampleIndex];
 		if (!speedSample) {
 			return 0;
 		}
@@ -212,7 +208,7 @@
             测试在 {(getAccumulatedTime() / 1000).toFixed(3)} 秒内完成. <br/>
 			速度: {Math.round(getSpeed()).toLocaleString()} 迭代 / 秒. <br/>
 			<span class="text-sm text-on-surface-variant dark:text-dark-on-surface-variant">
-				速度是在 N = {preferredBits} bits, T = {speedSample.difficulty} 的测试中测量的.
+				速度是在 N = {speedSample.N.toString(2).length} bits, T = {speedSample.difficulty} 的测试中测量的.
 			</span>
         </p>
         <table class="w-full text-sm text-left rtl:text-right mt-4">
