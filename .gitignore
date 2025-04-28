@@ -91,5 +91,4 @@ model/
 *.db
 *.sqlite
 *.sqlite3
-db/
 data/
