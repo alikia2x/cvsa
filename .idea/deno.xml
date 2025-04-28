@@ -2,5 +2,6 @@
 <project version="4">
   <component name="DenoSettings">
     <option name="denoInit" value="{&#10;  &quot;enable&quot;: true,&#10;  &quot;lint&quot;: true,&#10;  &quot;unstable&quot;: true,&#10;  &quot;importMap&quot;: &quot;import_map.json&quot;,&#10;  &quot;config&quot;: &quot;deno.json&quot;,&#10;  &quot;fmt&quot;: {&#10;    &quot;useTabs&quot;: true,&#10;    &quot;lineWidth&quot;: 120,&#10;    &quot;indentWidth&quot;: 4,&#10;    &quot;semiColons&quot;: true,&#10;    &quot;proseWrap&quot;: &quot;always&quot;&#10;  }&#10;}" />
+    <option name="useDenoValue" value="DISABLE" />
   </component>
 </project>

@@ -51,7 +51,8 @@ async function getVideoSnapshots(aid: number) {
 }
 
 async function getAidFromBV(bv: string) {
-    const res = await client.query("SELECT aid FROM bilibili_metadata WHERE bvid = $1", [bv]);
+    const res = await client.query("SELECT aid FROM bilibili_metadata WHERE bvid = $1" +
+        "", [bv]);
     if (res.rows.length <= 0) {
         return null;
     }

@@ -17,13 +17,13 @@ export const rootHandler = createHandlers((c) => {
 		singer = pickSinger();
 	}
 	return c.json({
-		"project": {
-			"name": "中V档案馆",
-			"motto": "一起唱吧，心中的歌！",
+		project: {
+			name: "中V档案馆",
+			motto: "一起唱吧，心中的歌！"
 		},
-		"status": 200,
-		"version": VERSION,
-		"time": Date.now(),
-		"singer": singer,
+		status: 200,
+		version: VERSION,
+		time: Date.now(),
+		singer: singer
 	});
 });

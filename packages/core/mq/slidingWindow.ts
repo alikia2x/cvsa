@@ -1,4 +1,4 @@
-import { Redis } from "ioredis";
+import type { Redis } from "ioredis";
 
 export class SlidingWindow {
 	private redis: Redis;

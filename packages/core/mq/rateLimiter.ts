@@ -1,4 +1,4 @@
-import { SlidingWindow } from "./slidingWindow.ts";
+import type { SlidingWindow } from "./slidingWindow.ts";
 
 export interface RateLimiterConfig {
 	window: SlidingWindow;

@@ -3,63 +3,72 @@ import Argon2id from "@rabbit-company/argon2id";
 import { object, string, ValidationError } from "yup";
 import type { Context } from "hono";
 import type { Bindings, BlankEnv, BlankInput } from "hono/types";
-import type { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import sql from "./db/db.ts";
+import { ErrorResponse, StatusResponse } from "./schema";
 
 const RegistrationBodySchema = object({
 	username: string().trim().required("Username is required").max(50, "Username cannot exceed 50 characters"),
 	password: string().required("Password is required"),
-	nickname: string().optional(),
+	nickname: string().optional()
 });
 
 type ContextType = Context<BlankEnv & { Bindings: Bindings }, "/user", BlankInput>;
 
-export const userExists = async (username: string, client: Client) => {
-	const query = `
-        SELECT * FROM users WHERE username = $1
-    `;
-	const result = await client.queryObject(query, [username]);
-	return result.rows.length > 0;
+export const userExists = async (username: string) => {
+	const result = await sql`
+        SELECT 1
+        FROM users
+        WHERE username = ${username}
+	`;
+	return result.length > 0;
 };
 
 export const registerHandler = createHandlers(async (c: ContextType) => {
-	const client = c.get("dbCred");
-
 	try {
 		const body = await RegistrationBodySchema.validate(await c.req.json());
 		const { username, password, nickname } = body;
 
-		if (await userExists(username, client)) {
-			return c.json({
-				message: `User "${username}" already exists.`,
-			}, 400);
+		if (await userExists(username)) {
+			const response: StatusResponse = {
+				message: `User "${username}" already exists.`
+			};
+			return c.json<StatusResponse>(response, 400);
 		}
 
 		const hash = await Argon2id.hashEncoded(password);
 
-		const query = `
-            INSERT INTO users (username, password, nickname) VALUES ($1, $2, $3)
-        `;
-		await client.queryObject(query, [username, hash, nickname || null]);
+		await sql`
+            INSERT INTO users (username, password, nickname)
+            VALUES (${username}, ${hash}, ${nickname ? nickname : null})
+		`;
 
-		return c.json({
-			message: `User "${username}" registered successfully.`,
-		}, 201);
+		const response: StatusResponse = {
+			message: `User "${username}" registered successfully.`
+		}
+
+		return c.json<StatusResponse>(response, 201);
 	} catch (e) {
 		if (e instanceof ValidationError) {
-			return c.json({
+			const response: ErrorResponse<string> = {
 				message: "Invalid registration data.",
 				errors: e.errors,
-			}, 400);
+				code: "INVALID_PAYLOAD"
+			}
+			return c.json<ErrorResponse<string>>(response, 400);
 		} else if (e instanceof SyntaxError) {
-			return c.json({
-				message: "Invalid JSON in request body.",
-			}, 400);
+			const response: ErrorResponse<string> = {
+				message: "Invalid JSON payload.",
+				errors: [e.message],
+				code: "INVALID_FORMAT"
+			}
+			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
-			console.error("Registration error:", e);
-			return c.json({
-				message: "An unexpected error occurred during registration.",
-				error: (e as Error).message,
-			}, 500);
+			const response: ErrorResponse<string> = {
+				message: "Invalid JSON payload.",
+				errors: [(e as Error).message],
+				code: "UNKNOWN_ERR"
+			}
+			return c.json<ErrorResponse<string>>(response, 500);
 		}
 	}
 });

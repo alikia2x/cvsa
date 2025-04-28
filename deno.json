@@ -1,6 +1,6 @@
 {
 	"lock": false,
-	"workspace": ["./packages/crawler", "./packages/frontend", "./packages/backend", "./packages/core"],
+	"workspace": ["./packages/crawler", "./packages/core"],
 	"nodeModulesDir": "auto",
 	"tasks": {
 		"crawler": "deno task --filter 'crawler' all",
