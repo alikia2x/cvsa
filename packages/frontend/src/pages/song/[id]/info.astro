@@ -20,8 +20,6 @@ const postgresConfig = {
 	password: databasePassword,
 };
 
-console.log(postgresConfig)
-
 // 路由参数
 const { id } = Astro.params;
 const { Client } = pg;
@@ -96,7 +94,6 @@ if (!aidExists) {
     return new Response(null, { status: 404 });
 }
 const videoInfo = await getVideoMetadata(aid);
-console.log(videoInfo);
 const snapshots = await getVideoSnapshots(aid);
 client.end();
 
@@ -131,7 +128,7 @@ interface Snapshot {
                             <MetadataRow title="描述" description={videoInfo?.description}/>
                             <MetadataRow title="UID" description={videoInfo?.uid}/>
                             <MetadataRow title="标签" description={videoInfo?.tags}/>
-                            <MetadataRow title="发布时间" description={format(new Date(videoInfo?.pubdate), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
+                            <MetadataRow title="发布时间" description={format(new Date(videoInfo?.published_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
                             <MetadataRow title="时长 (秒)" description={videoInfo?.duration}/>
                             <MetadataRow title="创建时间" description={format(new Date(videoInfo?.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
                             <MetadataRow title="封面" description={videoInfo?.cover_url}/>
