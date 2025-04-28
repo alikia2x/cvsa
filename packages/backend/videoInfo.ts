@@ -34,7 +34,6 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 }
 
 export const videoInfoHandler = createHandlers(async (c: ContextType) => {
-	const client = c.get("db");
 	try {
 		const id = await idSchema.validate(c.req.param("id"));
 		let videoId: string | number = id as string;
@@ -64,7 +63,7 @@ export const videoInfoHandler = createHandlers(async (c: ContextType) => {
 
 		await redis.setex(cacheKey, CACHE_EXPIRATION_SECONDS, JSON.stringify(result));
 
-		await insertVideoSnapshot(client, result);
+		await insertVideoSnapshot(result);
 
 		return c.json(result);
 	} catch (e) {

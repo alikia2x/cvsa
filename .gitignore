@@ -91,5 +91,6 @@ model/
 *.db
 *.sqlite
 *.sqlite3
-db/
 data/
+
+docker-compose.yml

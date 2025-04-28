@@ -2,8 +2,12 @@ import logger from "log/logger.ts";
 import { RateLimiter, type RateLimiterConfig } from "mq/rateLimiter.ts";
 import { SlidingWindow } from "mq/slidingWindow.ts";
 import { redis } from "db/redis.ts";
-import Redis from "ioredis";
-import { SECOND } from "$std/datetime/constants.ts";
+import { ReplyError } from "ioredis";
+import { SECOND } from "../const/time.ts";
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(execFile);
 
 interface Proxy {
 	type: string;
@@ -99,7 +103,7 @@ class NetworkDelegate {
 			await this.providerLimiters[providerLimiterId]?.trigger();
 		} catch (e) {
 			const error = e as Error;
-			if (e instanceof Redis.ReplyError) {
+			if (e instanceof ReplyError) {
 				logger.error(error, "redis");
 			}
 			logger.warn(`Unhandled error: ${error.message}`, "mq", "proxyRequest");
@@ -209,7 +213,7 @@ class NetworkDelegate {
 			return providerAvailable && proxyAvailable;
 		} catch (e) {
 			const error = e as Error;
-			if (e instanceof Redis.ReplyError) {
+			if (e instanceof ReplyError) {
 				logger.error(error, "redis");
 				return false;
 			}
@@ -239,8 +243,7 @@ class NetworkDelegate {
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
 		try {
 			const decoder = new TextDecoder();
-			const output = await new Deno.Command("aliyun", {
-				args: [
+			const output = await execAsync("aliyun", [
 					"fc",
 					"POST",
 					`/2023-03-30/functions/proxy-${region}/invocations`,
@@ -258,9 +261,8 @@ class NetworkDelegate {
 					"10",
 					"--profile",
 					`CVSA-${region}`,
-				],
-			}).output();
-			const out = decoder.decode(output.stdout);
+			])
+			const out = output.stdout;
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
 				// noinspection ExceptionCaughtLocallyJS

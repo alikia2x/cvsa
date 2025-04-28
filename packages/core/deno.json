@@ -1,15 +1,17 @@
 {
-	"name": "@cvsa/core",
-	"exports": "./main.ts",
-	"imports": {
-		"ioredis": "npm:ioredis",
-		"log/": "./log/",
-		"db/": "./db/",
-		"$std/": "https://deno.land/std@0.216.0/",
-		"mq/": "./mq/",
-		"chalk": "npm:chalk",
-		"winston": "npm:winston",
-		"logform": "npm:logform",
-		"@core/": "./"
-	}
+    "name": "@cvsa/core",
+    "exports": "./main.ts",
+    "imports": {
+        "ioredis": "npm:ioredis",
+        "log/": "./log/",
+        "db/": "./db/",
+        "$std/": "https://deno.land/std@0.216.0/",
+        "mq/": "./mq/",
+        "chalk": "npm:chalk",
+        "winston": "npm:winston",
+        "logform": "npm:logform",
+        "@core/": "./",
+        "child_process": "node:child_process",
+        "util": "node:util"
+    }
 }

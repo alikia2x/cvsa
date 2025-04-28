@@ -1,0 +1,10 @@
+{
+    "name": "cvsa",
+    "version": "2.13.22",
+    "private": false,
+    "type": "module",
+    "workspaces": [
+        "packages/frontend",
+        "packages/core"
+    ]
+}

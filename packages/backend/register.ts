@@ -3,7 +3,7 @@ import Argon2id from "@rabbit-company/argon2id";
 import { object, string, ValidationError } from "yup";
 import type { Context } from "hono";
 import type { Bindings, BlankEnv, BlankInput } from "hono/types";
-import sql from "./db/db.ts";
+import { sql } from "./db/db.ts";
 import { ErrorResponse, StatusResponse } from "./schema";
 
 const RegistrationBodySchema = object({
