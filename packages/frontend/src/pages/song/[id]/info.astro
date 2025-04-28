@@ -12,7 +12,6 @@ const databaseUser = import.meta.env.DB_USER
 const databasePassword = import.meta.env.DB_PASSWORD
 const databasePort = import.meta.env.DB_PORT
 
-
 const postgresConfig = {
 	hostname: databaseHost,
 	port: parseInt(databasePort!),
@@ -20,6 +19,8 @@ const postgresConfig = {
 	user: databaseUser,
 	password: databasePassword,
 };
+
+console.log(postgresConfig)
 
 // 路由参数
 const { id } = Astro.params;
@@ -95,6 +96,7 @@ if (!aidExists) {
     return new Response(null, { status: 404 });
 }
 const videoInfo = await getVideoMetadata(aid);
+console.log(videoInfo);
 const snapshots = await getVideoSnapshots(aid);
 client.end();
 
