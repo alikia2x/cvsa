@@ -9,6 +9,7 @@
 		"mq/": "./mq/",
 		"chalk": "npm:chalk",
 		"winston": "npm:winston",
-		"logform": "npm:logform"
+		"logform": "npm:logform",
+		"@core/": "./"
 	}
 }
