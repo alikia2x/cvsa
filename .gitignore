@@ -85,3 +85,11 @@ model/
 
 
 .astro
+
+# Database
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+db/
+data/
