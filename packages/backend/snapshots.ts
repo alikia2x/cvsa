@@ -1,22 +1,23 @@
 import type { Context } from "hono";
 import { createHandlers } from "./utils.ts";
 import type { BlankEnv, BlankInput } from "hono/types";
-import { getVideoSnapshots, getVideoSnapshotsByBV } from "@core/db/videoSnapshot.ts";
+import { getVideoSnapshots, getVideoSnapshotsByBV } from "./db/videoSnapshot.ts";
 import type { VideoSnapshotType } from "@core/db/schema.d.ts";
 import { boolean, mixed, number, object, ValidationError } from "yup";
+import { ErrorResponse } from "./schema";
 
 const SnapshotQueryParamsSchema = object({
 	ps: number().integer().optional().positive(),
 	pn: number().integer().optional().positive(),
 	offset: number().integer().optional().positive(),
-	reverse: boolean().optional(),
+	reverse: boolean().optional()
 });
 
 export const idSchema = mixed().test(
 	"is-valid-id",
 	'id must be a string starting with "av" followed by digits, or "BV" followed by 10 alphanumeric characters, or a positive integer',
 	async (value) => {
-		if (value && await number().integer().isValid(value)) {
+		if (value && (await number().integer().isValid(value))) {
 			const v = parseInt(value as string);
 			return Number.isInteger(v) && v > 0;
 		}
@@ -34,13 +35,11 @@ export const idSchema = mixed().test(
 		}
 
 		return false;
-	},
+	}
 );
 
 type ContextType = Context<BlankEnv, "/video/:id/snapshots", BlankInput>;
 export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
-	const client = c.get("db");
-
 	try {
 		const idParam = await idSchema.validate(c.req.param("id"));
 		let videoId: string | number = idParam as string;
@@ -71,22 +70,32 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 		let result: VideoSnapshotType[];
 
 		if (typeof videoId === "number") {
-			result = await getVideoSnapshots(client, videoId, limit, pageOrOffset, reverse, mode);
+			result = await getVideoSnapshots(videoId, limit, pageOrOffset, reverse, mode);
 		} else {
-			result = await getVideoSnapshotsByBV(client, videoId, limit, pageOrOffset, reverse, mode);
+			result = await getVideoSnapshotsByBV(videoId, limit, pageOrOffset, reverse, mode);
 		}
 
 		const rows = result.map((row) => ({
 			...row,
-			aid: Number(row.aid),
+			aid: Number(row.aid)
 		}));
 
 		return c.json(rows);
-	} catch (e) {
+	} catch (e: unknown) {
 		if (e instanceof ValidationError) {
-			return c.json({ message: "Invalid query parameters", errors: e.errors }, 400);
+			const response: ErrorResponse<string> = {
+				code: "INVALID_QUERY_PARAMS",
+				message: "Invalid query parameters",
+				errors: e.errors,
+			}
+			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
-			return c.json({ message: "Unhandled error", error: e }, 500);
+			const response: ErrorResponse<unknown> = {
+				code: "UNKNOWN_ERR",
+				message: "Unhandled error",
+				errors: [e]
+			}
+			return c.json<ErrorResponse<unknown>>(response, 500);
 		}
 	}
 });

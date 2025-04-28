@@ -7,6 +7,9 @@
 		"db/": "./db/",
 		"$std/": "https://deno.land/std@0.216.0/",
 		"mq/": "./mq/",
-		"chalk": "npm:chalk"
+		"chalk": "npm:chalk",
+		"winston": "npm:winston",
+		"logform": "npm:logform",
+		"@core/": "./"
 	}
 }

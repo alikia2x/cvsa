@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "logform": "^2.7.0",
+    "winston": "^3.17.0"
+  }
+}

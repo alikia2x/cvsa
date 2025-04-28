@@ -1,0 +1,19 @@
+{
+	"scripts": {
+		"format": "prettier --write .",
+		"dev": "bun run --hot main.ts"
+	},
+	"dependencies": {
+		"@rabbit-company/argon2id": "^2.1.0",
+		"hono": "^4.7.8",
+		"hono-rate-limiter": "^0.4.2",
+		"ioredis": "^5.6.1",
+		"postgres": "^3.4.5",
+		"yup": "^1.6.1",
+		"zod": "^3.24.3"
+	},
+	"devDependencies": {
+		"prettier": "^3.5.3",
+		"@types/bun": "latest"
+	}
+}

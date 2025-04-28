@@ -1,5 +1,5 @@
 import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { getVideoInfo } from "net/getVideoInfo.ts";
+import { getVideoInfo } from "@core/net/getVideoInfo.ts";
 import logger from "log/logger.ts";
 
 export interface SnapshotNumber {

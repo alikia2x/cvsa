@@ -1,12 +1,12 @@
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { Redis } from "ioredis";
+import { sql } from "db/db.ts";
 import { number, ValidationError } from "yup";
 import { createHandlers } from "./utils.ts";
-import { getVideoInfo, getVideoInfoByBV } from "@crawler/net/videoInfo";
+import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo";
 import { idSchema } from "./snapshots.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
 import type { Context } from "hono";
-import type { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import type { BlankEnv, BlankInput } from "hono/types";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
 
@@ -15,7 +15,7 @@ const CACHE_EXPIRATION_SECONDS = 60;
 
 type ContextType = Context<BlankEnv, "/video/:id/info", BlankInput>;
 
-async function insertVideoSnapshot(client: Client, data: VideoInfoData) {
+async function insertVideoSnapshot(data: VideoInfoData) {
 	const views = data.stat.view;
 	const danmakus = data.stat.danmaku;
 	const replies = data.stat.reply;
@@ -25,15 +25,10 @@ async function insertVideoSnapshot(client: Client, data: VideoInfoData) {
 	const favorites = data.stat.favorite;
 	const aid = data.aid;
 
-	const query: string = `
+	await sql`
         INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites})
     `;
-
-	await client.queryObject(
-		query,
-		[aid, views, danmakus, replies, likes, coins, shares, favorites],
-	);
 
 	logger.log(`Inserted into snapshot for video ${aid} by videoInfo API.`, "api", "fn:insertVideoSnapshot");
 }
