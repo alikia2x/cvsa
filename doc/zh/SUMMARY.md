@@ -25,3 +25,7 @@
 
 * [颜色系统](references/color-system.md)
 * [关于 APCA](references/about-apca.md)
+
+## 开发指南 <a href="#dev-guide" id="dev-guide"></a>
+
+* [版本控制](dev-guide/version-control.md)
