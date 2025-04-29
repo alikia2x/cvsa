@@ -1,10 +1,11 @@
 import type { Context } from "hono";
-import { createHandlers } from "./utils.ts";
+import { createHandlers } from "../src/utils.ts";
 import type { BlankEnv, BlankInput } from "hono/types";
-import { getVideoSnapshots, getVideoSnapshotsByBV } from "./db/videoSnapshot.ts";
+import { getVideoSnapshots, getVideoSnapshotsByBV } from "../db/videoSnapshot.ts";
 import type { VideoSnapshotType } from "@core/db/schema.d.ts";
 import { boolean, mixed, number, object, ValidationError } from "yup";
-import { ErrorResponse } from "./schema";
+import { ErrorResponse } from "../src/schema";
+import { startTime, endTime } from "hono/timing";
 
 const SnapshotQueryParamsSchema = object({
 	ps: number().integer().optional().positive(),
@@ -40,6 +41,7 @@ export const idSchema = mixed().test(
 
 type ContextType = Context<BlankEnv, "/video/:id/snapshots", BlankInput>;
 export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
+	startTime(c, "parse", "Parse the request");
 	try {
 		const idParam = await idSchema.validate(c.req.param("id"));
 		let videoId: string | number = idParam as string;
@@ -69,11 +71,14 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 
 		let result: VideoSnapshotType[];
 
+		endTime(c, "parse");
+		startTime(c, "db", "Query the database");
 		if (typeof videoId === "number") {
 			result = await getVideoSnapshots(videoId, limit, pageOrOffset, reverse, mode);
 		} else {
 			result = await getVideoSnapshotsByBV(videoId, limit, pageOrOffset, reverse, mode);
 		}
+		endTime(c, "db");
 
 		const rows = result.map((row) => ({
 			...row,
@@ -86,15 +91,15 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 			const response: ErrorResponse<string> = {
 				code: "INVALID_QUERY_PARAMS",
 				message: "Invalid query parameters",
-				errors: e.errors,
-			}
+				errors: e.errors
+			};
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
 			const response: ErrorResponse<unknown> = {
 				code: "UNKNOWN_ERR",
 				message: "Unhandled error",
 				errors: [e]
-			}
+			};
 			return c.json<ErrorResponse<unknown>>(response, 500);
 		}
 	}

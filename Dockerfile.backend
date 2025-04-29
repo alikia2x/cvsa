@@ -1,0 +1,17 @@
+FROM oven/bun AS bun-builder
+
+WORKDIR /app
+
+COPY ./packages/core ./core
+
+COPY ./packages/backend/package.json ./packages/backend/bun.lock ./backend/
+
+WORKDIR backend
+
+RUN bun install
+
+COPY ./packages/backend/ .
+
+RUN mkdir -p /app/logs
+
+CMD ["bun", "start"]

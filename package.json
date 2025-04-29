@@ -5,6 +5,10 @@
     "type": "module",
     "workspaces": [
         "packages/frontend",
-        "packages/core"
-    ]
+        "packages/core",
+        "packages/backend"
+    ],
+    "dependencies": {
+        "postgres": "^3.4.5"
+    }
 }

@@ -2,29 +2,19 @@ FROM oven/bun AS bun-builder
 
 WORKDIR /app
 
-COPY ./packages/core ./core
-
-COPY ./packages/frontend/package.json ./packages/frontend/bun.lock ./packages/frontend/tsconfig.json ./packages/frontend/astro.config.mjs ./frontend/
-
-WORKDIR frontend
+COPY . .
 
 RUN bun install
 
-COPY ./packages/frontend/ .
+WORKDIR packages/frontend
 
 RUN bun run build
-
-FROM node:lts-alpine
-
-WORKDIR /app/frontend
-
-COPY --from=bun-builder /app/frontend/dist ./dist
-COPY --from=bun-builder /app/frontend/node_modules ./node_modules
-COPY --from=bun-builder /app/frontend/package.json ./package.json
 
 ENV HOST=0.0.0.0
 ENV PORT=4321
 
 EXPOSE 4321
 
-CMD ["node", "dist/server/entry.mjs"]
+RUN mkdir -p /app/logs
+
+CMD ["bun", "/app/packages/frontend/dist/server/entry.mjs"]

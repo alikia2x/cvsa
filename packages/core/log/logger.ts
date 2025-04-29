@@ -25,12 +25,12 @@ const createTransport = (level: string, filename: string) => {
 	let maxFiles = undefined;
 	let tailable = undefined;
 	if (level === "verbose") {
-		maxsize = 10 * MB;
+		maxsize = 500 * MB;
 		maxFiles = 10;
 		tailable = false;
 	} else if (level === "warn") {
 		maxsize = 10 * MB;
-		maxFiles = 1;
+		maxFiles = 5;
 		tailable = false;
 	}
 	function replacer(key: unknown, value: unknown) {
@@ -62,7 +62,7 @@ const winstonLogger = winston.createLogger({
 		new transports.Console({
 			level: "debug",
 			format: format.combine(
-				format.timestamp({ format: "HH:mm:ss.SSS" }),
+				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
 				format.colorize(),
 				format.errors({ stack: true }),
 				customFormat,
