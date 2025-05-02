@@ -4,10 +4,40 @@ import { SlidingWindow } from "mq/slidingWindow.ts";
 import { redis } from "db/redis.ts";
 import { ReplyError } from "ioredis";
 import { SECOND } from "../const/time.ts";
-import { execFile } from 'child_process';
-import { promisify } from 'util';
+import { spawn, SpawnOptions } from "child_process";
 
-const execAsync = promisify(execFile);
+export function spawnPromise(
+	command: string,
+	args: string[] = [],
+	options?: SpawnOptions,
+): Promise<{ stdout: string; stderr: string }> {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, args, options);
+
+		let stdout = "";
+		let stderr = "";
+
+		child.stdout?.on("data", (data) => {
+			stdout += data;
+		});
+
+		child.stderr?.on("data", (data) => {
+			stderr += data;
+		});
+
+		child.on("close", (code) => {
+			if (code !== 0) {
+				reject(new Error(`Error code: ${code}\nstderr: ${stderr}`));
+			} else {
+				resolve({ stdout, stderr });
+			}
+		});
+
+		child.on("error", (err) => {
+			reject(err);
+		});
+	});
+}
 
 interface Proxy {
 	type: string;
@@ -234,7 +264,7 @@ class NetworkDelegate {
 
 			clearTimeout(timeout);
 
-			return await response.json() as R;
+			return (await response.json()) as R;
 		} catch (e) {
 			throw new NetSchedulerError("Fetch error", "FETCH_ERROR", e);
 		}
@@ -242,42 +272,43 @@ class NetworkDelegate {
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
 		try {
-			const decoder = new TextDecoder();
-			const output = await execAsync("aliyun", [
-					"fc",
-					"POST",
-					`/2023-03-30/functions/proxy-${region}/invocations`,
-					"--qualifier",
-					"LATEST",
-					"--header",
-					"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
-					"--body",
-					JSON.stringify({ url: url }),
-					"--retry-count",
-					"5",
-					"--read-timeout",
-					"30",
-					"--connect-timeout",
-					"10",
-					"--profile",
-					`CVSA-${region}`,
-			])
+			const output = await spawnPromise("aliyun", [
+				"fc",
+				"POST",
+				`/2023-03-30/functions/proxy-${region}/invocations`,
+				"--qualifier",
+				"LATEST",
+				"--header",
+				"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
+				"--body",
+				JSON.stringify({ url: url }),
+				"--retry-count",
+				"5",
+				"--read-timeout",
+				"30",
+				"--connect-timeout",
+				"10",
+				"--profile",
+				`CVSA-${region}`,
+			]);
 			const out = output.stdout;
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
-				console.error("STATUS_CODE:", rawData.statusCode);
 				// noinspection ExceptionCaughtLocallyJS
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
 					"ALICLOUD_PROXY_ERR",
 				);
 			} else {
-				return JSON.parse(JSON.parse(rawData.body)) as R;
+				return JSON.parse(rawData.body) as R;
 			}
 		} catch (e) {
-			console.error(e);
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
-			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`, "ALICLOUD_PROXY_ERR", e);
+			throw new NetSchedulerError(
+				`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`,
+				"ALICLOUD_PROXY_ERR",
+				e,
+			);
 		}
 	}
 }
@@ -362,7 +393,11 @@ for (const region of regions) {
 }
 networkDelegate.addTask("getVideoInfo", "bilibili", "all");
 networkDelegate.addTask("getLatestVideos", "bilibili", "all");
-networkDelegate.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
+networkDelegate.addTask(
+	"snapshotMilestoneVideo",
+	"bilibili",
+	regions.map((region) => `alicloud-${region}`),
+);
 networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",
