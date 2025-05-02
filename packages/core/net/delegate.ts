@@ -265,6 +265,7 @@ class NetworkDelegate {
 			const out = output.stdout;
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
+				console.error("STATUS_CODE:", rawData.statusCode);
 				// noinspection ExceptionCaughtLocallyJS
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
@@ -274,6 +275,7 @@ class NetworkDelegate {
 				return JSON.parse(JSON.parse(rawData.body)) as R;
 			}
 		} catch (e) {
+			console.error(e);
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
 			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`, "ALICLOUD_PROXY_ERR", e);
 		}
