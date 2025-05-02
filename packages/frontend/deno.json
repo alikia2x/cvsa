@@ -1,4 +1,0 @@
-{
-	"name": "@cvsa/frontend",
-	"exports": "./main.ts"
-}

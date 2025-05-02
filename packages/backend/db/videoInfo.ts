@@ -1,16 +1,16 @@
 import logger from "@core/log/logger.ts";
-import { Redis } from "ioredis";
-import { sql } from "db/db.ts";
+import { redis } from "@core/db/redis.ts";
+import { sql } from "./db.ts";
 import { number, ValidationError } from "yup";
-import { createHandlers } from "./utils.ts";
-import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo";
-import { idSchema } from "./snapshots.ts";
+import { createHandlers } from "../src/utils.ts";
+import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo.ts";
+import { idSchema } from "../routes/snapshots.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
 import type { Context } from "hono";
 import type { BlankEnv, BlankInput } from "hono/types";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
+import { startTime, endTime } from 'hono/timing'
 
-const redis = new Redis({ maxRetriesPerRequest: null });
 const CACHE_EXPIRATION_SECONDS = 60;
 
 type ContextType = Context<BlankEnv, "/video/:id/info", BlankInput>;
@@ -34,7 +34,7 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 }
 
 export const videoInfoHandler = createHandlers(async (c: ContextType) => {
-	const client = c.get("db");
+	startTime(c, 'parse', 'Parse the request');
 	try {
 		const id = await idSchema.validate(c.req.param("id"));
 		let videoId: string | number = id as string;
@@ -45,27 +45,33 @@ export const videoInfoHandler = createHandlers(async (c: ContextType) => {
 		}
 
 		const cacheKey = `cvsa:videoInfo:${videoId}`;
+		endTime(c, 'parse');
+		startTime(c, 'cache', 'Check for cached data');
 		const cachedData = await redis.get(cacheKey);
-
+		endTime(c, 'cache');
 		if (cachedData) {
 			return c.json(JSON.parse(cachedData));
 		}
-
+		startTime(c, 'net', 'Fetch data');
 		let result: VideoInfoData | number;
 		if (typeof videoId === "number") {
 			result = await getVideoInfo(videoId, "getVideoInfo");
 		} else {
 			result = await getVideoInfoByBV(videoId, "getVideoInfo");
 		}
+		endTime(c, 'net');
 
 		if (typeof result === "number") {
 			return c.json({ message: "Error fetching video info", code: result }, 500);
 		}
 
+		startTime(c, 'db', 'Write data to database');
+
 		await redis.setex(cacheKey, CACHE_EXPIRATION_SECONDS, JSON.stringify(result));
 
-		await insertVideoSnapshot(client, result);
+		await insertVideoSnapshot(result);
 
+		endTime(c, 'db');
 		return c.json(result);
 	} catch (e) {
 		if (e instanceof ValidationError) {

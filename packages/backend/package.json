@@ -1,7 +1,9 @@
 {
+	"name": "backend",
 	"scripts": {
 		"format": "prettier --write .",
-		"dev": "bun run --hot main.ts"
+		"dev": "NODE_ENV=development bun run --hot src/main.ts",
+		"start": "NODE_ENV=production bun run src/main.ts"
 	},
 	"dependencies": {
 		"@rabbit-company/argon2id": "^2.1.0",
@@ -9,11 +11,12 @@
 		"hono-rate-limiter": "^0.4.2",
 		"ioredis": "^5.6.1",
 		"postgres": "^3.4.5",
+		"rate-limit-redis": "^4.2.0",
 		"yup": "^1.6.1",
 		"zod": "^3.24.3"
 	},
 	"devDependencies": {
-		"prettier": "^3.5.3",
-		"@types/bun": "latest"
+		"@types/bun": "^1.2.11",
+		"prettier": "^3.5.3"
 	}
 }

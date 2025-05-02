@@ -29,14 +29,6 @@ export const postgresConfigNpm = {
 	password: databasePassword
 };
 
-export const postgresCredConfigNpm = {
-	host: databaseHost,
-	port: parseInt(databasePort),
-	database: databaseNameCred,
-	username: databaseUser,
-	password: databasePassword
-}
-
 export const postgresConfigCred = {
 	hostname: databaseHost,
 	port: parseInt(databasePort),

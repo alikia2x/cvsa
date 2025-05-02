@@ -1,72 +1,31 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import TitleBar from "@components/TitleBar.astro";
-import pg from "pg";
-import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import MetadataRow from "@components/InfoPage/MetadataRow.astro";
+import { getAllSnapshots } from "src/db/snapshots/getAllSnapshots";
+import { getAidFromBV } from "src/db/bilibili_metadata/getAidFromBV";
+import { getVideoMetadata } from "src/db/bilibili_metadata/getVideoMetadata";
+import { aidExists as idExists } from "src/db/bilibili_metadata/aidExists";
 
-const databaseHost = import.meta.env.DB_HOST
-const databaseName = import.meta.env.DB_NAME
-const databaseUser = import.meta.env.DB_USER
-const databasePassword = import.meta.env.DB_PASSWORD
-const databasePort = import.meta.env.DB_PORT
-
+const databaseHost = import.meta.env.DB_HOST;
+const databaseName = import.meta.env.DB_NAME;
+const databaseUser = import.meta.env.DB_USER;
+const databasePassword = import.meta.env.DB_PASSWORD;
+const databasePort = import.meta.env.DB_PORT;
 
 const postgresConfig = {
-	hostname: databaseHost,
-	port: parseInt(databasePort!),
-	database: databaseName,
-	user: databaseUser,
-	password: databasePassword,
+    hostname: databaseHost,
+    port: parseInt(databasePort!),
+    database: databaseName,
+    user: databaseUser,
+    password: databasePassword,
 };
 
-// 路由参数
+console.log(postgresConfig);
+
 const { id } = Astro.params;
-const { Client } = pg;
-const client = new Client(postgresConfig);
-await client.connect();
-
-// 数据库查询函数
-async function getVideoMetadata(aid: number) {
-    const res = await client.query("SELECT * FROM bilibili_metadata WHERE aid = $1", [aid]);
-    if (res.rows.length <= 0) {
-        return null;
-    }
-    const row = res.rows[0];
-    if (row) {
-        return row;
-    }
-    return {};
-}
-
-async function getVideoSnapshots(aid: number) {
-    const res = await client.query("SELECT * FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC", [
-        aid,
-    ]);
-    if (res.rows.length <= 0) {
-        return null;
-    }
-    return res.rows;
-}
-
-async function getAidFromBV(bv: string) {
-    const res = await client.query("SELECT aid FROM bilibili_metadata WHERE bvid = $1" +
-        "", [bv]);
-    if (res.rows.length <= 0) {
-        return null;
-    }
-    const row = res.rows[0];
-    if (row && row.aid) {
-        return Number(row.aid);
-    }
-    return null;
-}
-
-async function idExists(aid: number) {
-    const res = await client.query("SELECT COUNT(*) FROM bilibili_metadata WHERE aid = $1", [aid]);
-    return res.rows[0].count > 0;
-}
 
 async function getVideoAid(id: string) {
     if (id.startsWith("av")) {
@@ -77,27 +36,22 @@ async function getVideoAid(id: string) {
     return parseInt(id);
 }
 
-// 获取数据
 if (!id) {
     Astro.response.status = 404;
-    client.end();
     return new Response(null, { status: 404 });
 }
 const aid = await getVideoAid(id);
 if (!aid || isNaN(aid)) {
     Astro.response.status = 404;
-    client.end();
     return new Response(null, { status: 404 });
 }
 const aidExists = await idExists(aid);
 if (!aidExists) {
     Astro.response.status = 404;
-    client.end();
     return new Response(null, { status: 404 });
 }
 const videoInfo = await getVideoMetadata(aid);
-const snapshots = await getVideoSnapshots(aid);
-client.end();
+const snapshots = await getAllSnapshots(aid);
 
 interface Snapshot {
     created_at: Date;
@@ -116,24 +70,36 @@ interface Snapshot {
     <TitleBar />
     <main class="flex flex-col items-center min-h-screen gap-8 mt-10 md:mt-6 relative z-0 overflow-x-auto pb-8">
         <div class="w-full lg:max-w-4xl lg:mx-auto lg:p-6">
-            <h1 class="text-2xl font-medium ml-2 mb-4">视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline ">av{aid}</a></h1>
+            <h1 class="text-2xl font-medium ml-2 mb-4">
+                视频信息: <a href={`https://www.bilibili.com/video/av${aid}`} class="underline">av{aid}</a>
+            </h1>
 
             <div class="mb-6">
                 <h2 class="px-2 mb-2 text-xl font-medium">基本信息</h2>
                 <div class="overflow-x-auto max-w-full px-2">
                     <table class="table-fixed">
                         <tbody>
-                            <MetadataRow title={id} description={videoInfo?.id}/>
-                            <MetadataRow title={videoInfo?.aid} description={videoInfo?.aid}/>
-                            <MetadataRow title={videoInfo?.bvid} description={videoInfo?.bvid}/>
-                            <MetadataRow title="标题" description={videoInfo?.title}/>
-                            <MetadataRow title="描述" description={videoInfo?.description}/>
-                            <MetadataRow title="UID" description={videoInfo?.uid}/>
-                            <MetadataRow title="标签" description={videoInfo?.tags}/>
-                            <MetadataRow title="发布时间" description={format(new Date(videoInfo?.pubdate), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
-                            <MetadataRow title="时长 (秒)" description={videoInfo?.duration}/>
-                            <MetadataRow title="创建时间" description={format(new Date(videoInfo?.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}/>
-                            <MetadataRow title="封面" description={videoInfo?.cover_url}/>
+                            <MetadataRow title={id} description={videoInfo?.id} />
+                            <MetadataRow title={videoInfo?.aid} description={videoInfo?.aid} />
+                            <MetadataRow title={videoInfo?.bvid} description={videoInfo?.bvid} />
+                            <MetadataRow title="标题" description={videoInfo?.title} />
+                            <MetadataRow title="描述" description={videoInfo?.description} />
+                            <MetadataRow title="UID" description={videoInfo?.uid} />
+                            <MetadataRow title="标签" description={videoInfo?.tags} />
+                            <MetadataRow
+                                title="发布时间"
+                                description={format(new Date(videoInfo?.published_at), "yyyy-MM-dd HH:mm:ss", {
+                                    locale: zhCN,
+                                })}
+                            />
+                            <MetadataRow title="时长 (秒)" description={videoInfo?.duration} />
+                            <MetadataRow
+                                title="创建时间"
+                                description={format(new Date(videoInfo?.created_at), "yyyy-MM-dd HH:mm:ss", {
+                                    locale: zhCN,
+                                })}
+                            />
+                            <MetadataRow title="封面" description={videoInfo?.cover_url} />
                         </tbody>
                     </table>
                 </div>
@@ -141,40 +107,46 @@ interface Snapshot {
 
             <div>
                 <h2 class="px-2 mb-2 text-xl font-medium">播放量历史数据</h2>
-                {snapshots && snapshots.length > 0 ? (
-                    <div class="overflow-x-auto px-2">
-                        <table class="table-auto w-full">
-                            <thead>
-                                <tr>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">创建时间</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">观看</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">硬币</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">点赞</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">收藏</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">分享</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">弹幕</th>
-                                    <th class="border dark:border-zinc-500 px-4 py-2 font-medium">评论</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {snapshots.map((snapshot: Snapshot) => (
+                {
+                    snapshots && snapshots.length > 0 ? (
+                        <div class="overflow-x-auto px-2">
+                            <table class="table-auto w-full">
+                                <thead>
                                     <tr>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{format(new Date(snapshot.created_at), 'yyyy-MM-dd HH:mm:ss', { locale: zhCN })}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.views}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.coins}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.likes}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.favorites}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.shares}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.danmakus}</td>
-                                        <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.replies}</td>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">创建时间</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">观看</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">硬币</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">点赞</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">收藏</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">分享</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">弹幕</th>
+                                        <th class="border dark:border-zinc-500 px-4 py-2 font-medium">评论</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <p>暂无历史数据。</p>
-                )}
+                                </thead>
+                                <tbody>
+                                    {snapshots.map((snapshot: Snapshot) => (
+                                        <tr>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">
+                                                {format(new Date(snapshot.created_at), "yyyy-MM-dd HH:mm:ss", {
+                                                    locale: zhCN,
+                                                })}
+                                            </td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.views}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.coins}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.likes}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.favorites}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.shares}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.danmakus}</td>
+                                            <td class="border dark:border-zinc-500 px-4 py-2">{snapshot.replies}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <p>暂无历史数据。</p>
+                    )
+                }
             </div>
         </div>
     </main>

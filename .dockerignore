@@ -92,6 +92,5 @@ model/
 *.sqlite
 *.sqlite3
 data/
-redis/
 
 docker-compose.yml
