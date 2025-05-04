@@ -1,31 +1,29 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { sql } from "@core/db/dbNew";
 import { aidExistsInSongs, getNotCollectedSongs } from "db/songs.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "@std/datetime";
+import { MINUTE } from "@core/const/time.ts";
+import type { Psql } from "global.d.ts";
 
-export async function collectSongs(client: Client) {
-	const aids = await getNotCollectedSongs(client);
+export async function collectSongs() {
+	const aids = await getNotCollectedSongs(sql);
 	for (const aid of aids) {
-		const exists = await aidExistsInSongs(client, aid);
+		const exists = await aidExistsInSongs(sql, aid);
 		if (exists) continue;
-		await insertIntoSongs(client, aid);
-		await scheduleSnapshot(client, aid, "new", Date.now() + 10 * MINUTE, true);
+		await insertIntoSongs(sql, aid);
+		await scheduleSnapshot(sql, aid, "new", Date.now() + 10 * MINUTE, true);
 		logger.log(`Video ${aid} was added into the songs table.`, "mq", "fn:collectSongs");
 	}
 }
 
-export async function insertIntoSongs(client: Client, aid: number) {
-	await client.queryObject(
-		`
-			INSERT INTO songs (aid, published_at, duration)
-			VALUES (
-				$1,
-				(SELECT published_at FROM bilibili_metadata WHERE aid = $1),
-				(SELECT duration FROM bilibili_metadata WHERE aid = $1)
-			)
-			ON CONFLICT DO NOTHING
-		`,
-		[aid],
-	);
+export async function insertIntoSongs(sql: Psql, aid: number) {
+	await sql`
+		INSERT INTO songs (aid, published_at, duration)
+		VALUES (
+			$1,
+			(SELECT published_at FROM bilibili_metadata WHERE aid = ${aid}),
+			(SELECT duration FROM bilibili_metadata WHERE aid = ${aid})
+		)
+		ON CONFLICT DO NOTHING
+	`
 }

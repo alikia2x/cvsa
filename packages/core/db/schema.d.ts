@@ -1,6 +1,6 @@
 export interface AllDataType {
 	id: number;
-	aid: bigint;
+	aid: number;
 	bvid: string | null;
 	description: string | null;
 	uid: number | null;
@@ -28,12 +28,12 @@ export interface VideoSnapshotType {
 	favorites: number;
 	shares: number;
 	danmakus: number;
-	aid: bigint;
+	aid: number;
 	replies: number;
 }
 
 export interface LatestSnapshotType {
-	aid: bigint;
+	aid: number;
 	time: number;
 	views: number;
 	danmakus: number;
@@ -46,7 +46,7 @@ export interface LatestSnapshotType {
 
 export interface SnapshotScheduleType {
 	id: number;
-	aid: bigint;
+	aid: number;
 	type?: string;
 	created_at: string;
 	started_at?: string;

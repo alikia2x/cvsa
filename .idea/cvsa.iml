@@ -26,6 +26,8 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/backend/logs" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/net/logs" />
       <excludeFolder url="file://$MODULE_DIR$/packages/crawler/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/data" />
+      <excludeFolder url="file://$MODULE_DIR$/redis" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

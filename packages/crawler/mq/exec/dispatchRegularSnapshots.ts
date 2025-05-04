@@ -1,16 +1,15 @@
-import { Job } from "npm:bullmq@5.45.2";
-import { withDbConnection } from "db/withConnection.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { Job } from "bullmq";
 import { getLatestVideoSnapshot } from "db/snapshot.ts";
 import { truncate } from "utils/truncate.ts";
 import { getVideosWithoutActiveSnapshotSchedule, scheduleSnapshot } from "db/snapshotSchedule.ts";
-import logger from "log/logger.ts";
-import { HOUR, MINUTE, WEEK } from "@std/datetime";
-import { lockManager } from "../lockManager.ts";
-import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
+import logger from "@core/log/logger.ts";
+import { HOUR, MINUTE, WEEK } from "@core/const/time.ts";
+import { lockManager } from "mq/lockManager.ts";
+import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval.ts";
+import { sql } from "@core/db/dbNew.ts";
 
-export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> =>
-	await withDbConnection(async (client: Client) => {
+export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> => {
+	try {
 		const startedAt = Date.now();
 		if (await lockManager.isLocked("dispatchRegularSnapshots")) {
 			logger.log("dispatchRegularSnapshots is already running", "mq");
@@ -18,22 +17,23 @@ export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> =
 		}
 		await lockManager.acquireLock("dispatchRegularSnapshots", 30 * 60);
 
-		const aids = await getVideosWithoutActiveSnapshotSchedule(client);
+		const aids = await getVideosWithoutActiveSnapshotSchedule(sql);
 		for (const rawAid of aids) {
 			const aid = Number(rawAid);
-			const latestSnapshot = await getLatestVideoSnapshot(client, aid);
+			const latestSnapshot = await getLatestVideoSnapshot(sql, aid);
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const interval = await getRegularSnapshotInterval(client, aid);
+			const interval = await getRegularSnapshotInterval(sql, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
-			await scheduleSnapshot(client, aid, "normal", targetTime);
+			await scheduleSnapshot(sql, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
 				return;
 			}
 		}
-	}, (e) => {
+	} catch (e) {
 		logger.error(e as Error, "mq", "fn:regularSnapshotsWorker");
-	}, async () => {
+	} finally {
 		await lockManager.releaseLock("dispatchRegularSnapshots");
-	});
+	}
+};

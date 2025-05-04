@@ -1,10 +1,10 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { SnapshotScheduleType } from "@core/db/schema";
-import logger from "log/logger.ts";
-import { MINUTE } from "$std/datetime/constants.ts";
+import type { SnapshotScheduleType } from "@core/db/schema.d.ts";
+import logger from "@core/log/logger.ts";
+import { MINUTE } from "@core/const/time.ts";
 import { redis } from "@core/db/redis.ts";
 import { Redis } from "ioredis";
-import {parseTimestampFromPsql} from "../utils/formatTimestampToPostgre.ts";
+import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre.ts";
+import type { Psql } from "global.d.ts";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
@@ -14,11 +14,11 @@ function getCurrentWindowIndex(): number {
 	return Math.floor(minutesSinceMidnight / 5);
 }
 
-export async function refreshSnapshotWindowCounts(client: Client, redisClient: Redis) {
+export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
 	const now = new Date();
 	const startTime = now.getTime();
 
-	const result = await client.queryObject<{ window_start: Date; count: number }>`
+	const result = await sql<{ window_start: Date; count: number }[]>`
 		SELECT 
 		date_trunc('hour', started_at) + 
 		(EXTRACT(minute FROM started_at)::int / 5 * INTERVAL '5 minutes') AS window_start,
@@ -33,7 +33,7 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 
 	const currentWindow = getCurrentWindowIndex();
 
-	for (const row of result.rows) {
+	for (const row of result) {
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
 		const offset = currentWindow + targetOffset;
 		if (offset >= 0) {
@@ -42,10 +42,10 @@ export async function refreshSnapshotWindowCounts(client: Client, redisClient: R
 	}
 }
 
-export async function initSnapshotWindowCounts(client: Client, redisClient: Redis) {
-	await refreshSnapshotWindowCounts(client, redisClient);
+export async function initSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
+	await refreshSnapshotWindowCounts(sql, redisClient);
 	setInterval(async () => {
-		await refreshSnapshotWindowCounts(client, redisClient);
+		await refreshSnapshotWindowCounts(sql, redisClient);
 	}, 5 * MINUTE);
 }
 
@@ -54,44 +54,56 @@ async function getWindowCount(redisClient: Redis, offset: number): Promise<numbe
 	return count ? parseInt(count, 10) : 0;
 }
 
-export async function snapshotScheduleExists(client: Client, id: number) {
-	const res = await client.queryObject<{ id: number }>(
-		`SELECT id FROM snapshot_schedule WHERE id = $1`,
-		[id],
-	);
-	return res.rows.length > 0;
+export async function snapshotScheduleExists(sql: Psql, id: number) {
+	const rows = await sql<{ id: number }[]>`
+		SELECT id 
+		FROM snapshot_schedule 
+		WHERE id = ${id}
+	`;
+	return rows.length > 0;
 }
 
-export async function videoHasActiveSchedule(client: Client, aid: number) {
-	const res = await client.queryObject<{ status: string }>(
-		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing')`,
-		[aid],
-	);
-	return res.rows.length > 0;
+export async function videoHasActiveSchedule(sql: Psql, aid: number) {
+	const rows = await sql<{ status: string }[]>`
+		SELECT status
+		FROM snapshot_schedule 
+		WHERE aid = ${aid}
+			AND (status = 'pending' 
+				OR status = 'processing'
+			)
+	`
+	return rows.length > 0;
 }
 
-export async function videoHasActiveScheduleWithType(client: Client, aid: number, type: string) {
-	const res = await client.queryObject<{ status: string }>(
-		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND (status = 'pending' OR status = 'processing') AND type = $2`,
-		[aid, type],
-	);
-	return res.rows.length > 0;
+export async function videoHasActiveScheduleWithType(sql: Psql, aid: number, type: string) {
+	const rows = await sql<{ status: string }[]>`
+		SELECT status FROM snapshot_schedule 
+		WHERE aid = ${aid}
+			AND (status = 'pending' OR status = 'processing') 
+			AND type = ${type}
+	`;
+	return rows.length > 0;
 }
 
-export async function videoHasProcessingSchedule(client: Client, aid: number) {
-	const res = await client.queryObject<{ status: string }>(
-		`SELECT status FROM snapshot_schedule WHERE aid = $1 AND status = 'processing'`,
-		[aid],
-	);
-	return res.rows.length > 0;
+export async function videoHasProcessingSchedule(sql: Psql, aid: number) {
+	const rows = await sql<{ status: string }[]>`
+		SELECT status
+		FROM snapshot_schedule 
+		WHERE aid = ${aid}
+			AND status = 'processing'
+	`
+	return rows.length > 0;
 }
 
-export async function bulkGetVideosWithoutProcessingSchedules(client: Client, aids: number[]) {
-	const res = await client.queryObject<{ aid: number }>(
-		`SELECT aid FROM snapshot_schedule WHERE aid = ANY($1) AND status != 'processing' GROUP BY aid`,
-		[aids],
-	);
-	return res.rows.map((row) => row.aid);
+export async function bulkGetVideosWithoutProcessingSchedules(sql: Psql, aids: number[]) {
+	const rows = await sql<{ aid: string }[]>`
+		SELECT aid
+		FROM snapshot_schedule
+		WHERE aid = ANY(${aids})
+			AND status != 'processing' 
+		GROUP BY aid
+	`
+	return rows.map((row) => Number(row.aid));
 }
 
 interface Snapshot {
@@ -99,118 +111,106 @@ interface Snapshot {
 	views: number;
 }
 
-export async function findClosestSnapshot(
-	client: Client,
-	aid: number,
-	targetTime: Date,
-): Promise<Snapshot | null> {
-	const query = `
+export async function findClosestSnapshot(sql: Psql, aid: number, targetTime: Date): Promise<Snapshot | null> {
+	const result = await sql<{ created_at: string; views: number }[]>`
         SELECT created_at, views
         FROM video_snapshot
-        WHERE aid = $1
-        ORDER BY ABS(EXTRACT(EPOCH FROM (created_at - $2::timestamptz)))
+        WHERE aid = ${aid}
+        ORDER BY ABS(EXTRACT(EPOCH FROM (created_at - ${targetTime.toISOString()}::timestamptz)))
         LIMIT 1
 	`;
-	const result = await client.queryObject<{ created_at: string; views: number }>(
-		query,
-		[aid, targetTime.toISOString()],
-	);
-	if (result.rows.length === 0) return null;
-	const row = result.rows[0];
+	if (result.length === 0) return null;
+	const row = result[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views,
+		views: row.views
 	};
 }
 
-export async function findSnapshotBefore(
-	client: Client,
-	aid: number,
-	targetTime: Date,
-): Promise<Snapshot | null> {
-	const query = `
+export async function findSnapshotBefore(sql: Psql, aid: number, targetTime: Date): Promise<Snapshot | null> {
+	const result = await sql<{ created_at: string; views: number }[]>`
         SELECT created_at, views
         FROM video_snapshot
-        WHERE aid = $1
-		AND created_at <= $2::timestamptz
+        WHERE aid = ${aid}
+		AND created_at <= ${targetTime}::timestamptz
         ORDER BY created_at DESC
         LIMIT 1
 	`;
-	const result = await client.queryObject<{ created_at: string; views: number }>(
-		query,
-		[aid, targetTime.toISOString()],
-	);
-	if (result.rows.length === 0) return null;
-	const row = result.rows[0];
+	if (result.length === 0) return null;
+	const row = result[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views,
+		views: row.views
 	};
 }
 
-export async function hasAtLeast2Snapshots(client: Client, aid: number) {
-	const res = await client.queryObject<{ count: number }>(
-		`SELECT COUNT(*) FROM video_snapshot WHERE aid = $1`,
-		[aid],
-	);
-	return res.rows[0].count >= 2;
+export async function hasAtLeast2Snapshots(sql: Psql, aid: number) {
+	const res = await sql<{ count: number }[]>`
+		SELECT COUNT(*) 
+		FROM video_snapshot 
+		WHERE aid = ${aid}
+	`;
+	return res[0].count >= 2;
 }
 
-export async function getLatestSnapshot(client: Client, aid: number): Promise<Snapshot | null> {
-	const res = await client.queryObject<{ created_at: string; views: number }>(
-		`SELECT created_at, views FROM video_snapshot WHERE aid = $1 ORDER BY created_at DESC LIMIT 1`,
-		[aid],
-	);
-	if (res.rows.length === 0) return null;
-	const row = res.rows[0];
+export async function getLatestSnapshot(sql: Psql, aid: number): Promise<Snapshot | null> {
+	const res = await sql<{ created_at: string; views: number }[]>`
+		SELECT created_at, views 
+		FROM video_snapshot 
+		WHERE aid = ${aid}
+		ORDER BY created_at DESC 
+		LIMIT 1
+	`;
+	if (res.length === 0) return null;
+	const row = res[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views,
+		views: row.views
 	};
 }
 
-export async function getLatestActiveScheduleWithType(client: Client, aid: number, type: string) {
-	const query: string = `
+export async function getLatestActiveScheduleWithType(sql: Psql, aid: number, type: string) {
+	const rows = await sql`
 		SELECT *
 		FROM snapshot_schedule
-		WHERE aid = $1
-		  AND type = $2 
+		WHERE aid = ${aid}
+		  AND type = ${type}
 		  AND (status = 'pending' OR status = 'processing')
 		ORDER BY started_at DESC
 		LIMIT 1
-	`
-	const res = await client.queryObject<SnapshotScheduleType>(query, [aid, type]);
-	return res.rows[0];
+	`;
+	return rows[0];
 }
 
 /*
  * Creates a new snapshot schedule record.
- * @param client The database client.
  * @param aid The aid of the video.
+ * @param type Type of the snapshot.
  * @param targetTime Scheduled time for snapshot. (Timestamp in milliseconds)
+ * @param force Ignore all restrictions and force the creation of the schedule.
  */
 export async function scheduleSnapshot(
-	client: Client,
+	sql: Psql,
 	aid: number,
 	type: string,
 	targetTime: number,
-	force: boolean = false,
+	force: boolean = false
 ) {
 	let adjustedTime = new Date(targetTime);
-	const hashActiveSchedule = await videoHasActiveScheduleWithType(client, aid, type);
+	const hashActiveSchedule = await videoHasActiveScheduleWithType(sql, aid, type);
 	if (type == "milestone" && hashActiveSchedule) {
-		const latestActiveSchedule = await getLatestActiveScheduleWithType(client, aid, type);
+		const latestActiveSchedule = await getLatestActiveScheduleWithType(sql, aid, type);
 		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at!));
 		if (latestScheduleStartedAt > adjustedTime) {
-			await client.queryObject(`
+			await sql`
                 UPDATE snapshot_schedule
-                SET started_at = $1
-                WHERE id = $2
-			`, [adjustedTime, latestActiveSchedule.id]);
+                SET started_at = ${adjustedTime}
+                WHERE id = ${latestActiveSchedule.id}
+			`;
 			logger.log(
 				`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
 				"mq",
-				"fn:scheduleSnapshot",
+				"fn:scheduleSnapshot"
 			);
 			return;
 		}
@@ -220,28 +220,33 @@ export async function scheduleSnapshot(
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
 	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
-	return client.queryObject(
-		`INSERT INTO snapshot_schedule (aid, type, started_at) VALUES ($1, $2, $3)`,
-		[aid, type, adjustedTime.toISOString()],
-	);
+	return sql`
+		INSERT INTO snapshot_schedule 
+			(aid, type, started_at) 
+			VALUES (
+				${aid}, 
+				${type}, 
+				${adjustedTime.toISOString()}
+			)
+	`;
 }
 
 export async function bulkScheduleSnapshot(
-	client: Client,
+	sql: Psql,
 	aids: number[],
 	type: string,
 	targetTime: number,
-	force: boolean = false,
+	force: boolean = false
 ) {
 	for (const aid of aids) {
-		await scheduleSnapshot(client, aid, type, targetTime, force);
+		await scheduleSnapshot(sql, aid, type, targetTime, force);
 	}
 }
 
 export async function adjustSnapshotTime(
 	expectedStartTime: Date,
 	allowedCounts: number = 1000,
-	redisClient: Redis,
+	redisClient: Redis
 ): Promise<Date> {
 	const currentWindow = getCurrentWindowIndex();
 	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE)) - 6;
@@ -286,8 +291,8 @@ export async function adjustSnapshotTime(
 	return expectedStartTime;
 }
 
-export async function getSnapshotsInNextSecond(client: Client) {
-	const query = `
+export async function getSnapshotsInNextSecond(sql: Psql) {
+	const rows = await sql<SnapshotScheduleType[]>`
 		SELECT *
 		FROM snapshot_schedule
 		WHERE started_at <= NOW() + INTERVAL '1 seconds' AND status = 'pending' AND type != 'normal'
@@ -298,13 +303,12 @@ export async function getSnapshotsInNextSecond(client: Client) {
 			END,
 			started_at
 		LIMIT 10;
-	`;
-	const res = await client.queryObject<SnapshotScheduleType>(query, []);
-	return res.rows;
+	`
+	return rows;
 }
 
-export async function getBulkSnapshotsInNextSecond(client: Client) {
-	const query = `
+export async function getBulkSnapshotsInNextSecond(sql: Psql) {
+	const rows = await sql<SnapshotScheduleType[]>`
         SELECT *
         FROM snapshot_schedule
         WHERE (started_at <= NOW() + INTERVAL '15 seconds')
@@ -316,43 +320,38 @@ export async function getBulkSnapshotsInNextSecond(client: Client) {
                      END,
                  started_at
         LIMIT 1000;
+	`
+	return rows;
+}
+
+export async function setSnapshotStatus(sql: Psql, id: number, status: string) {
+	return await sql`
+		UPDATE snapshot_schedule SET status = ${status} WHERE id = ${id}
 	`;
-	const res = await client.queryObject<SnapshotScheduleType>(query, []);
-	return res.rows;
 }
 
-export async function setSnapshotStatus(client: Client, id: number, status: string) {
-	return await client.queryObject(
-		`UPDATE snapshot_schedule SET status = $2 WHERE id = $1`,
-		[id, status],
-	);
+export async function bulkSetSnapshotStatus(sql: Psql, ids: number[], status: string) {
+	return await sql`
+		UPDATE snapshot_schedule SET status = ${status} WHERE id = ANY(${ids})
+	`;
 }
 
-export async function bulkSetSnapshotStatus(client: Client, ids: number[], status: string) {
-	return await client.queryObject(
-		`UPDATE snapshot_schedule SET status = $2 WHERE id = ANY($1)`,
-		[ids, status],
-	);
-}
-
-export async function getVideosWithoutActiveSnapshotSchedule(client: Client) {
-	const query: string = `
+export async function getVideosWithoutActiveSnapshotSchedule(sql: Psql) {
+	const rows = await sql<{ aid: string }[]>`
 		SELECT s.aid
 		FROM songs s
 		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
 		WHERE ss.aid IS NULL
 	`;
-	const res = await client.queryObject<{ aid: number }>(query, []);
-	return res.rows.map((r) => Number(r.aid));
+	return rows.map((r) => Number(r.aid));
 }
 
-export async function getAllVideosWithoutActiveSnapshotSchedule(client: Client) {
-	const query: string = `
+export async function getAllVideosWithoutActiveSnapshotSchedule(psql: Psql) {
+	const rows = await psql<{ aid: number }[]>`
 		SELECT s.aid
 		FROM bilibili_metadata s
 		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
 		WHERE ss.aid IS NULL
-	`;
-	const res = await client.queryObject<{ aid: number }>(query, []);
-	return res.rows.map((r) => Number(r.aid));
+	`
+	return rows.map((r) => Number(r.aid));
 }

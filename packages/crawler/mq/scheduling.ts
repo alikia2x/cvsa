@@ -1,8 +1,8 @@
 import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db/snapshotSchedule.ts";
 import { truncate } from "utils/truncate.ts";
 import { closetMilestone } from "./exec/snapshotTick.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { HOUR, MINUTE } from "@std/datetime";
+import { HOUR, MINUTE } from "@core/const/time.ts";
+import type { Psql } from "global.d.ts";
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 
@@ -26,11 +26,11 @@ const getFactor = (x: number) => {
  * @param aid - aid of the video
  * @returns ETA in hours
  */
-export const getAdjustedShortTermETA = async (client: Client, aid: number) => {
-	const latestSnapshot = await getLatestSnapshot(client, aid);
+export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
+	const latestSnapshot = await getLatestSnapshot(sql, aid);
 	// Immediately dispatch a snapshot if there is no snapshot yet
 	if (!latestSnapshot) return 0;
-	const snapshotsEnough = await hasAtLeast2Snapshots(client, aid);
+	const snapshotsEnough = await hasAtLeast2Snapshots(sql, aid);
 	if (!snapshotsEnough) return 0;
 
 	const currentTimestamp = new Date().getTime();
@@ -40,7 +40,7 @@ export const getAdjustedShortTermETA = async (client: Client, aid: number) => {
 
 	for (const timeInterval of timeIntervals) {
 		const date = new Date(currentTimestamp - timeInterval);
-		const snapshot = await findClosestSnapshot(client, aid, date);
+		const snapshot = await findClosestSnapshot(sql, aid, date);
 		if (!snapshot) continue;
 		const hoursDiff = (latestSnapshot.created_at - snapshot.created_at) / HOUR;
 		const viewsDiff = latestSnapshot.views - snapshot.views;

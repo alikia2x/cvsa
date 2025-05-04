@@ -1,15 +1,13 @@
-import { Job } from "npm:bullmq@5.45.2";
+import { Job } from "bullmq";
 import { insertVideoInfo } from "mq/task/getVideoDetails.ts";
-import { withDbConnection } from "db/withConnection.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
+import { sql } from "@core/db/dbNew";
 
-export const getVideoInfoWorker = async (job: Job): Promise<void> =>
-	await withDbConnection<void>(async (client: Client) => {
-		const aid = job.data.aid;
-		if (!aid) {
-			logger.warn("aid does not exists", "mq", "job:getVideoInfo");
-			return;
-		}
-		await insertVideoInfo(client, aid);
-	});
+export const getVideoInfoWorker = async (job: Job): Promise<void> => {
+	const aid = job.data.aid;
+	if (!aid) {
+		logger.warn("aid does not exists", "mq", "job:getVideoInfo");
+		return;
+	}
+	await insertVideoInfo(sql, aid);
+}

@@ -1,19 +1,18 @@
-import { Job } from "npm:bullmq@5.45.2";
-import { withDbConnection } from "db/withConnection.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
+import { Job } from "bullmq";
 import { getVideosNearMilestone } from "db/snapshot.ts";
 import { getAdjustedShortTermETA } from "mq/scheduling.ts";
 import { truncate } from "utils/truncate.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import logger from "log/logger.ts";
-import { HOUR, MINUTE, SECOND } from "@std/datetime";
+import logger from "@core/log/logger.ts";
+import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
+import { sql } from "@core/db/dbNew";
 
-export const dispatchMilestoneSnapshotsWorker = (_job: Job): Promise<void> =>
-	withDbConnection(async (client: Client) => {
-		const videos = await getVideosNearMilestone(client);
+export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
+	try {
+		const videos = await getVideosNearMilestone(sql);
 		for (const video of videos) {
 			const aid = Number(video.aid);
-			const eta = await getAdjustedShortTermETA(client, aid);
+			const eta = await getAdjustedShortTermETA(sql, aid);
 			if (eta > 144) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
@@ -21,9 +20,10 @@ export const dispatchMilestoneSnapshotsWorker = (_job: Job): Promise<void> =>
 			const minInterval = 1 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
-			await scheduleSnapshot(client, aid, "milestone", targetTime);
+			await scheduleSnapshot(sql, aid, "milestone", targetTime);
 			logger.log(`Scheduled milestone snapshot for aid ${aid} in ${(delay / MINUTE).toFixed(2)} mins.`, "mq");
 		}
-	}, (e) => {
+	} catch (e) {
 		logger.error(e as Error, "mq", "fn:dispatchMilestoneSnapshotsWorker");
-	});
+	};
+}

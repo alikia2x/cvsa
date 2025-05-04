@@ -1,13 +1,13 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { getLatestVideoAids } from "net/getLatestVideoAids.ts";
-import { videoExistsInAllData } from "../../db/bilibili_metadata.ts";
+import { videoExistsInAllData } from "db/bilibili_metadata.ts";
 import { sleep } from "utils/sleep.ts";
-import { SECOND } from "@std/datetime";
-import logger from "log/logger.ts";
+import { SECOND } from "@core/const/time.ts";
+import logger from "@core/log/logger.ts";
 import { LatestVideosQueue } from "mq/index.ts";
+import type { Psql } from "global.d.ts";
 
 export async function queueLatestVideos(
-	client: Client,
+	sql: Psql,
 ): Promise<number | null> {
 	let page = 1;
 	let i = 0;
@@ -22,7 +22,7 @@ export async function queueLatestVideos(
 		let allExists = true;
 		let delay = 0;
 		for (const aid of aids) {
-			const videoExists = await videoExistsInAllData(client, aid);
+			const videoExists = await videoExistsInAllData(sql, aid);
 			if (videoExists) {
 				continue;
 			}

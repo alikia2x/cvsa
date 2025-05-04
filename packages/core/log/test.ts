@@ -1,4 +1,4 @@
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 
 logger.error(Error("test error"), "test service");
 logger.debug(`some string`);
