@@ -24,9 +24,9 @@ const createTransport = (level: string, filename: string) => {
 	let maxsize = undefined;
 	let maxFiles = undefined;
 	let tailable = undefined;
-	if (level === "verbose") {
+	if (level === "silly") {
 		maxsize = 500 * MB;
-		maxFiles = 10;
+		maxFiles = undefined;
 		tailable = false;
 	} else if (level === "warn") {
 		maxsize = 10 * MB;
