@@ -1,5 +1,5 @@
 {
-	"name": "core",
+	"name": "crawler",
 	"scripts": {
 		"test": "bun --env-file=.env.test run vitest",
 		"worker:main": "bun run ./src/worker.ts",
