@@ -1,6 +1,6 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { getVideoInfo } from "net/getVideoInfo.ts";
-import logger from "log/logger.ts";
+import { getVideoInfo } from "@core/net/getVideoInfo.ts";
+import logger from "@core/log/logger.ts";
+import type { Psql } from "global.d.ts";
 
 export interface SnapshotNumber {
 	time: number;
@@ -25,7 +25,7 @@ export interface SnapshotNumber {
  * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
  */
 export async function insertVideoSnapshot(
-	client: Client,
+	sql: Psql,
 	aid: number,
 	task: string,
 ): Promise<number | SnapshotNumber> {
@@ -42,14 +42,10 @@ export async function insertVideoSnapshot(
 	const shares = data.stat.share;
 	const favorites = data.stat.favorite;
 
-	const query: string = `
+    await sql`
         INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    `;
-	await client.queryObject(
-		query,
-		[aid, views, danmakus, replies, likes, coins, shares, favorites],
-	);
+        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites})
+    `
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 

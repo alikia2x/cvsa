@@ -1,5 +1,4 @@
-import { Job } from "npm:bullmq@5.45.2";
-import { db } from "db/init.ts";
+import { Job } from "bullmq";
 import {
 	bulkScheduleSnapshot,
 	bulkSetSnapshotStatus,
@@ -7,22 +6,22 @@ import {
 	snapshotScheduleExists,
 } from "db/snapshotSchedule.ts";
 import { bulkGetVideoStats } from "net/bulkGetVideoStats.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
-import { HOUR, MINUTE, SECOND } from "@std/datetime";
+import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
 import { getRegularSnapshotInterval } from "../task/regularSnapshotInterval.ts";
 import { SnapshotScheduleType } from "@core/db/schema";
+import { sql } from "@core/db/dbNew.ts";
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 	const schedules: SnapshotScheduleType[] = job.data.schedules;
 	const ids = schedules.map((schedule) => Number(schedule.id));
 	const aidsToFetch: number[] = [];
-	const client = await db.connect();
 	try {
 		for (const schedule of schedules) {
 			const aid = Number(schedule.aid);
 			const id = Number(schedule.id);
-			const exists = await snapshotScheduleExists(client, id);
+			const exists = await snapshotScheduleExists(sql, id);
 			if (!exists) {
 				continue;
 			}
@@ -30,8 +29,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		}
 		const data = await bulkGetVideoStats(aidsToFetch);
 		if (typeof data === "number") {
-			await bulkSetSnapshotStatus(client, ids, "failed");
-			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 15 * SECOND);
+			await bulkSetSnapshotStatus(sql, ids, "failed");
+			await bulkScheduleSnapshot(sql, aidsToFetch, "normal", Date.now() + 15 * SECOND);
 			return `GET_BILI_STATUS_${data}`;
 		}
 		for (const video of data) {
@@ -44,26 +43,31 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			const coins = stat.coin;
 			const shares = stat.share;
 			const favorites = stat.collect;
-			const query: string = `
+			await sql`
                 INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-			`;
-			await client.queryObject(
-				query,
-				[aid, views, danmakus, replies, likes, coins, shares, favorites],
-			);
+                VALUES (
+					${aid}, 
+					${views}, 
+					${danmakus}, 
+					${replies}, 
+					${likes}, 
+					${coins}, 
+					${shares}, 
+					${favorites}
+				)
+			`
 
 			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
 		}
-		await bulkSetSnapshotStatus(client, ids, "completed");
+		await bulkSetSnapshotStatus(sql, ids, "completed");
 
 		for (const schedule of schedules) {
 			const aid = Number(schedule.aid);
 			const type = schedule.type;
 			if (type == "archive") continue;
-			const interval = await getRegularSnapshotInterval(client, aid);
+			const interval = await getRegularSnapshotInterval(sql, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
-			await scheduleSnapshot(client, aid, "normal", Date.now() + interval * HOUR);
+			await scheduleSnapshot(sql, aid, "normal", Date.now() + interval * HOUR);
 		}
 		return `DONE`;
 	} catch (e) {
@@ -73,13 +77,11 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				"mq",
 				"fn:takeBulkSnapshotForVideosWorker",
 			);
-			await bulkSetSnapshotStatus(client, ids, "no_proxy");
-			await bulkScheduleSnapshot(client, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
+			await bulkSetSnapshotStatus(sql, ids, "no_proxy");
+			await bulkScheduleSnapshot(sql, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
 			return;
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
-		await bulkSetSnapshotStatus(client, ids, "failed");
-	} finally {
-		client.release();
+		await bulkSetSnapshotStatus(sql, ids, "failed");
 	}
 };

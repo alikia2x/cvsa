@@ -1,5 +1,4 @@
 import { Job } from "bullmq";
-import { db } from "db/init.ts";
 import {
 	bulkGetVideosWithoutProcessingSchedules,
 	bulkSetSnapshotStatus,
@@ -8,8 +7,9 @@ import {
 	setSnapshotStatus,
 	videoHasProcessingSchedule,
 } from "db/snapshotSchedule.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
+import { sql } from "@core/db/dbNew";
 
 const priorityMap: { [key: string]: number } = {
 	"milestone": 1,
@@ -17,17 +17,16 @@ const priorityMap: { [key: string]: number } = {
 };
 
 export const bulkSnapshotTickWorker = async (_job: Job) => {
-	const client = await db.connect();
 	try {
-		const schedules = await getBulkSnapshotsInNextSecond(client);
+		const schedules = await getBulkSnapshotsInNextSecond(sql);
 		const count = schedules.length;
 		const groups = Math.ceil(count / 30);
 		for (let i = 0; i < groups; i++) {
 			const group = schedules.slice(i * 30, (i + 1) * 30);
 			const aids = group.map((schedule) => Number(schedule.aid));
-			const filteredAids = await bulkGetVideosWithoutProcessingSchedules(client, aids);
+			const filteredAids = await bulkGetVideosWithoutProcessingSchedules(sql, aids);
 			if (filteredAids.length === 0) continue;
-			await bulkSetSnapshotStatus(client, filteredAids, "processing");
+			await bulkSetSnapshotStatus(sql, filteredAids, "processing");
 			const schedulesData = group.map((schedule) => {
 				return {
 					aid: Number(schedule.aid),
@@ -46,17 +45,14 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 		return `OK`;
 	} catch (e) {
 		logger.error(e as Error);
-	} finally {
-		client.release();
 	}
 };
 
 export const snapshotTickWorker = async (_job: Job) => {
-	const client = await db.connect();
 	try {
-		const schedules = await getSnapshotsInNextSecond(client);
+		const schedules = await getSnapshotsInNextSecond(sql);
 		for (const schedule of schedules) {
-			if (await videoHasProcessingSchedule(client, Number(schedule.aid))) {
+			if (await videoHasProcessingSchedule(sql, Number(schedule.aid))) {
 				continue;
 			}
 			let priority = 3;
@@ -64,7 +60,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 				priority = priorityMap[schedule.type];
 			}
 			const aid = Number(schedule.aid);
-			await setSnapshotStatus(client, schedule.id, "processing");
+			await setSnapshotStatus(sql, schedule.id, "processing");
 			await SnapshotQueue.add("snapshotVideo", {
 				aid: Number(aid),
 				id: Number(schedule.id),
@@ -74,8 +70,6 @@ export const snapshotTickWorker = async (_job: Job) => {
 		return `OK`;
 	} catch (e) {
 		logger.error(e as Error);
-	} finally {
-		client.release();
 	}
 };
 

@@ -1,0 +1,19 @@
+{
+	"include": ["**/*.ts"],
+	"compilerOptions": {
+		"baseUrl": ".",
+		"target": "ESNext",
+		"module": "ESNext",
+		"useDefineForClassFields": true,
+		"moduleResolution": "bundler",
+		"lib": ["ES2020", "DOM", "DOM.Iterable"],
+		"skipLibCheck": true,
+		"paths": {
+			"@core/*": ["../core/*"],
+			"@crawler/*": ["../crawler/*"]
+		},
+		"allowSyntheticDefaultImports": true,
+		"allowImportingTsExtensions": true,
+		"noEmit": true
+	}
+}

@@ -1,16 +1,17 @@
 import { AIManager } from "ml/manager.ts";
-import * as ort from "onnxruntime";
-import logger from "log/logger.ts";
+import * as ort from "onnxruntime-node";
+import logger from "@core/log/logger.ts";
 import { WorkerError } from "mq/schema.ts";
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
+import { AkariModelVersion } from "./const";
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
-const onnxClassifierPath = "../../model/akari/3.17.onnx";
+const onnxClassifierPath = `../../model/akari/${AkariModelVersion}.onnx`;
 const onnxEmbeddingPath = "../../model/embedding/model.onnx";
 
 class AkariProto extends AIManager {
 	private tokenizer: PreTrainedTokenizer | null = null;
-	private readonly modelVersion = "3.17";
+	private readonly modelVersion = AkariModelVersion;
 
 	constructor() {
 		super();
@@ -104,4 +105,5 @@ class AkariProto extends AIManager {
 }
 
 const Akari = new AkariProto();
+await Akari.init();
 export default Akari;

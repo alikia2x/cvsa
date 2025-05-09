@@ -1,0 +1,20 @@
+FROM oven/bun
+
+WORKDIR /app
+
+COPY . .
+
+RUN bun install
+
+WORKDIR packages/frontend
+
+RUN bun run build
+
+ENV HOST=0.0.0.0
+ENV PORT=4321
+
+EXPOSE 4321
+
+RUN mkdir -p /app/logs
+
+CMD ["bun", "/app/packages/frontend/dist/server/entry.mjs"]

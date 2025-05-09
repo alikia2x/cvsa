@@ -1,13 +1,13 @@
 import { findClosestSnapshot, findSnapshotBefore, getLatestSnapshot } from "db/snapshotSchedule.ts";
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
-import { HOUR } from "@std/datetime";
+import { HOUR } from "@core/const/time.ts";
+import type { Psql } from "global.d.ts";
 
-export const getRegularSnapshotInterval = async (client: Client, aid: number) => {
+export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	const now = Date.now();
 	const date = new Date(now - 24 * HOUR);
-	let oldSnapshot = await findSnapshotBefore(client, aid, date);
-	if (!oldSnapshot) oldSnapshot = await findClosestSnapshot(client, aid, date);
-	const latestSnapshot = await getLatestSnapshot(client, aid);
+	let oldSnapshot = await findSnapshotBefore(sql, aid, date);
+	if (!oldSnapshot) oldSnapshot = await findClosestSnapshot(sql, aid, date);
+	const latestSnapshot = await getLatestSnapshot(sql, aid);
 	if (!oldSnapshot || !latestSnapshot) return 0;
 	if (oldSnapshot.created_at === latestSnapshot.created_at) return 0;
 	const hoursDiff = (latestSnapshot.created_at - oldSnapshot.created_at) / HOUR;

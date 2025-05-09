@@ -1,9 +1,9 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 import { LatestSnapshotType } from "@core/db/schema";
 import { SnapshotNumber } from "mq/task/getVideoStats.ts";
+import type { Psql } from "global.d.ts";
 
-export async function getVideosNearMilestone(client: Client) {
-	const queryResult = await client.queryObject<LatestSnapshotType>(`
+export async function getVideosNearMilestone(sql: Psql) {
+	const queryResult = await sql<LatestSnapshotType[]>`
         SELECT ls.*
         FROM latest_video_snapshot ls
                  RIGHT JOIN songs ON songs.aid = ls.aid
@@ -18,8 +18,8 @@ export async function getVideosNearMilestone(client: Client) {
             (views >= 90000 AND views < 100000) OR
             (views >= 900000 AND views < 1000000) OR
             (views >= 9900000 AND views < 10000000)
-    `);
-	return queryResult.rows.map((row) => {
+    `;
+	return queryResult.map((row) => {
 		return {
 			...row,
 			aid: Number(row.aid),
@@ -27,19 +27,16 @@ export async function getVideosNearMilestone(client: Client) {
 	});
 }
 
-export async function getLatestVideoSnapshot(client: Client, aid: number): Promise<null | SnapshotNumber> {
-	const queryResult = await client.queryObject<LatestSnapshotType>(
-		`
+export async function getLatestVideoSnapshot(sql: Psql, aid: number): Promise<null | SnapshotNumber> {
+	const queryResult = await sql<LatestSnapshotType[]>`
 	    SELECT *
 	    FROM latest_video_snapshot
-	    WHERE aid = $1
-	`,
-		[aid],
-	);
-	if (queryResult.rows.length === 0) {
+	    WHERE aid = ${aid}
+	`;
+	if (queryResult.length === 0) {
 		return null;
 	}
-	return queryResult.rows.map((row) => {
+	return queryResult.map((row) => {
 		return {
 			...row,
 			aid: Number(row.aid),

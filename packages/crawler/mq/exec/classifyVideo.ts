@@ -1,23 +1,22 @@
 import { Job } from "bullmq";
-import { db } from "db/init.ts";
 import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "../../db/bilibili_metadata.ts";
 import Akari from "ml/akari.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { aidExistsInSongs } from "db/songs.ts";
 import { insertIntoSongs } from "mq/task/collectSongs.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "@std/datetime";
+import { MINUTE } from "@core/const/time.ts";
+import { sql } from "@core/db/dbNew.ts";
 
 export const classifyVideoWorker = async (job: Job) => {
-	const client = await db.connect();
 	const aid = job.data.aid;
 	if (!aid) {
 		return 3;
 	}
 
-	const videoInfo = await getVideoInfoFromAllData(client, aid);
+	const videoInfo = await getVideoInfoFromAllData(sql, aid);
 	const title = videoInfo.title?.trim() || "untitled";
 	const description = videoInfo.description?.trim() || "N/A";
 	const tags = videoInfo.tags?.trim() || "empty";
@@ -25,15 +24,13 @@ export const classifyVideoWorker = async (job: Job) => {
 	if (label == -1) {
 		logger.warn(`Failed to classify video ${aid}`, "ml");
 	}
-	await insertVideoLabel(client, aid, label);
+	await insertVideoLabel(sql, aid, label);
 
-	const exists = await aidExistsInSongs(client, aid);
+	const exists = await aidExistsInSongs(sql, aid);
 	if (!exists && label !== 0) {
-		await scheduleSnapshot(client, aid, "new", Date.now() + 10 * MINUTE, true);
-		await insertIntoSongs(client, aid);
+		await scheduleSnapshot(sql, aid, "new", Date.now() + 10 * MINUTE, true);
+		await insertIntoSongs(sql, aid);
 	}
-
-	client.release();
 
 	await job.updateData({
 		...job.data,
@@ -51,10 +48,8 @@ export const classifyVideosWorker = async () => {
 
 	await lockManager.acquireLock("classifyVideos");
 
-	const client = await db.connect();
-	const videos = await getUnlabelledVideos(client);
+	const videos = await getUnlabelledVideos(sql);
 	logger.log(`Found ${videos.length} unlabelled videos`);
-	client.release();
 
 	let i = 0;
 	for (const aid of videos) {

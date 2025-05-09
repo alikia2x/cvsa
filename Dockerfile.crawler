@@ -1,0 +1,19 @@
+FROM oven/bun:1.2.8-debian
+
+WORKDIR /app
+
+COPY . .
+
+RUN bun i
+
+RUN mkdir -p /app/logs
+
+RUN apt update && apt install -y curl
+
+RUN ln -s /bin/uname /usr/bin/uname
+
+RUN /bin/bash -c "$(curl -fsSL https://aliyuncli.alicdn.com/install.sh)"
+
+WORKDIR packages/crawler
+
+CMD ["bun", "all"]

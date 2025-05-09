@@ -1,5 +1,5 @@
-import * as ort from "onnxruntime";
-import logger from "log/logger.ts";
+import * as ort from "onnxruntime-node";
+import logger from "@core/log/logger.ts";
 import { WorkerError } from "mq/schema.ts";
 
 export class AIManager {

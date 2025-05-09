@@ -1,9 +1,43 @@
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { RateLimiter, type RateLimiterConfig } from "mq/rateLimiter.ts";
 import { SlidingWindow } from "mq/slidingWindow.ts";
 import { redis } from "db/redis.ts";
-import Redis from "ioredis";
-import { SECOND } from "$std/datetime/constants.ts";
+import { ReplyError } from "ioredis";
+import { SECOND } from "../const/time.ts";
+import { spawn, SpawnOptions } from "child_process";
+
+export function spawnPromise(
+	command: string,
+	args: string[] = [],
+	options?: SpawnOptions,
+): Promise<{ stdout: string; stderr: string }> {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, args, options);
+
+		let stdout = "";
+		let stderr = "";
+
+		child.stdout?.on("data", (data) => {
+			stdout += data;
+		});
+
+		child.stderr?.on("data", (data) => {
+			stderr += data;
+		});
+
+		child.on("close", (code) => {
+			if (code !== 0) {
+				reject(new Error(`Error code: ${code}\nstderr: ${stderr}`));
+			} else {
+				resolve({ stdout, stderr });
+			}
+		});
+
+		child.on("error", (err) => {
+			reject(err);
+		});
+	});
+}
 
 interface Proxy {
 	type: string;
@@ -99,7 +133,7 @@ class NetworkDelegate {
 			await this.providerLimiters[providerLimiterId]?.trigger();
 		} catch (e) {
 			const error = e as Error;
-			if (e instanceof Redis.ReplyError) {
+			if (e instanceof ReplyError) {
 				logger.error(error, "redis");
 			}
 			logger.warn(`Unhandled error: ${error.message}`, "mq", "proxyRequest");
@@ -209,7 +243,7 @@ class NetworkDelegate {
 			return providerAvailable && proxyAvailable;
 		} catch (e) {
 			const error = e as Error;
-			if (e instanceof Redis.ReplyError) {
+			if (e instanceof ReplyError) {
 				logger.error(error, "redis");
 				return false;
 			}
@@ -230,7 +264,7 @@ class NetworkDelegate {
 
 			clearTimeout(timeout);
 
-			return await response.json() as R;
+			return (await response.json()) as R;
 		} catch (e) {
 			throw new NetSchedulerError("Fetch error", "FETCH_ERROR", e);
 		}
@@ -238,29 +272,26 @@ class NetworkDelegate {
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
 		try {
-			const decoder = new TextDecoder();
-			const output = await new Deno.Command("aliyun", {
-				args: [
-					"fc",
-					"POST",
-					`/2023-03-30/functions/proxy-${region}/invocations`,
-					"--qualifier",
-					"LATEST",
-					"--header",
-					"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
-					"--body",
-					JSON.stringify({ url: url }),
-					"--retry-count",
-					"5",
-					"--read-timeout",
-					"30",
-					"--connect-timeout",
-					"10",
-					"--profile",
-					`CVSA-${region}`,
-				],
-			}).output();
-			const out = decoder.decode(output.stdout);
+			const output = await spawnPromise("aliyun", [
+				"fc",
+				"POST",
+				`/2023-03-30/functions/proxy-${region}/invocations`,
+				"--qualifier",
+				"LATEST",
+				"--header",
+				"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
+				"--body",
+				JSON.stringify({ url: url }),
+				"--retry-count",
+				"5",
+				"--read-timeout",
+				"30",
+				"--connect-timeout",
+				"10",
+				"--profile",
+				`CVSA-${region}`,
+			]);
+			const out = output.stdout;
 			const rawData = JSON.parse(out);
 			if (rawData.statusCode !== 200) {
 				// noinspection ExceptionCaughtLocallyJS
@@ -269,11 +300,15 @@ class NetworkDelegate {
 					"ALICLOUD_PROXY_ERR",
 				);
 			} else {
-				return JSON.parse(JSON.parse(rawData.body)) as R;
+				return JSON.parse(rawData.body) as R;
 			}
 		} catch (e) {
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
-			throw new NetSchedulerError(`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`, "ALICLOUD_PROXY_ERR", e);
+			throw new NetSchedulerError(
+				`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`,
+				"ALICLOUD_PROXY_ERR",
+				e,
+			);
 		}
 	}
 }
@@ -358,7 +393,11 @@ for (const region of regions) {
 }
 networkDelegate.addTask("getVideoInfo", "bilibili", "all");
 networkDelegate.addTask("getLatestVideos", "bilibili", "all");
-networkDelegate.addTask("snapshotMilestoneVideo", "bilibili", regions.map((region) => `alicloud-${region}`));
+networkDelegate.addTask(
+	"snapshotMilestoneVideo",
+	"bilibili",
+	regions.map((region) => `alicloud-${region}`),
+);
 networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-qingdao",
 	"alicloud-shanghai",

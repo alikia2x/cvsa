@@ -1,6 +1,6 @@
 import networkDelegate from "@core/net/delegate.ts";
-import { VideoDetailsData, VideoDetailsResponse } from "@core/net/bilibili.d.ts";
-import logger from "log/logger.ts";
+import type { VideoDetailsData, VideoDetailsResponse } from "@core/net/bilibili.d.ts";
+import logger from "@core/log/logger.ts";
 
 export async function getVideoDetails(aid: number): Promise<VideoDetailsData | null> {
 	const url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`;

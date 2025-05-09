@@ -13,7 +13,7 @@ import {
 	takeBulkSnapshotForVideosWorker,
 } from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
-import logger from "log/logger.ts";
+import logger from "@core/log/logger.ts";
 import { lockManager } from "mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
 
@@ -29,21 +29,16 @@ const releaseAllLocks = async () => {
 	}
 };
 
-Deno.addSignalListener("SIGINT", async () => {
-	logger.log("SIGINT Received: Shutting down workers...", "mq");
-	await releaseAllLocks();
+const shutdown = async (signal: string) => {
+    logger.log(`${signal} Received: Shutting down workers...`, "mq");
+    await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
-	Deno.exit();
-});
+    process.exit(0);
+};
 
-Deno.addSignalListener("SIGTERM", async () => {
-	logger.log("SIGTERM Received: Shutting down workers...", "mq");
-	await releaseAllLocks();
-	await latestVideoWorker.close(true);
-	await snapshotWorker.close(true);
-	Deno.exit();
-});
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 const latestVideoWorker = new Worker(
 	"latestVideos",

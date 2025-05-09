@@ -1,5 +1,5 @@
-import winston, { format, transports } from "npm:winston";
-import type { TransformableInfo } from "npm:logform";
+import winston, { format, transports } from "winston";
+import type { TransformableInfo } from "logform";
 import chalk from "chalk";
 
 const customFormat = format.printf((info: TransformableInfo) => {
@@ -24,13 +24,13 @@ const createTransport = (level: string, filename: string) => {
 	let maxsize = undefined;
 	let maxFiles = undefined;
 	let tailable = undefined;
-	if (level === "verbose") {
-		maxsize = 10 * MB;
-		maxFiles = 10;
+	if (level === "silly") {
+		maxsize = 500 * MB;
+		maxFiles = undefined;
 		tailable = false;
 	} else if (level === "warn") {
 		maxsize = 10 * MB;
-		maxFiles = 1;
+		maxFiles = 5;
 		tailable = false;
 	}
 	function replacer(key: unknown, value: unknown) {
@@ -52,9 +52,9 @@ const createTransport = (level: string, filename: string) => {
 	});
 };
 
-const sillyLogPath = Deno.env.get("LOG_VERBOSE") ?? "logs/verbose.log";
-const warnLogPath = Deno.env.get("LOG_WARN") ?? "logs/warn.log";
-const errorLogPath = Deno.env.get("LOG_ERROR") ?? "logs/error.log";
+const sillyLogPath = process.env["LOG_VERBOSE"] ?? "logs/verbose.log";
+const warnLogPath = process.env["LOG_WARN"] ?? "logs/warn.log";
+const errorLogPath = process.env["LOG_ERROR"] ?? "logs/error.log";
 
 const winstonLogger = winston.createLogger({
 	levels: winston.config.npm.levels,
@@ -62,7 +62,7 @@ const winstonLogger = winston.createLogger({
 		new transports.Console({
 			level: "debug",
 			format: format.combine(
-				format.timestamp({ format: "HH:mm:ss.SSS" }),
+				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
 				format.colorize(),
 				format.errors({ stack: true }),
 				customFormat,
