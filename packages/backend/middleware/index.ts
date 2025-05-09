@@ -8,7 +8,7 @@ import { logger } from "./logger.ts";
 import { timing } from "hono/timing";
 import { contentType } from "./contentType.ts";
 
-export function configureMiddleWares(app: Hono<{Variables: Variables }>) {
+export function configureMiddleWares(app: Hono<{ Variables: Variables }>) {
 	app.use("*", contentType);
 	app.use(timing());
 	app.use("*", preetifyResponse);

@@ -35,7 +35,7 @@ export const postgresCredConfigNpm = {
 	database: databaseNameCred,
 	username: databaseUser,
 	password: databasePassword
-}
+};
 
 export const postgresConfigCred = {
 	hostname: databaseHost,

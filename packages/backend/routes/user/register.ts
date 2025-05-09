@@ -44,7 +44,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 
 		const response: StatusResponse = {
 			message: `User '${username}' registered successfully.`
-		}
+		};
 
 		return c.json<StatusResponse>(response, 201);
 	} catch (e) {
@@ -53,21 +53,21 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 				message: "Invalid registration data.",
 				errors: e.errors,
 				code: "INVALID_PAYLOAD"
-			}
+			};
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else if (e instanceof SyntaxError) {
 			const response: ErrorResponse<string> = {
 				message: "Invalid JSON payload.",
 				errors: [e.message],
 				code: "INVALID_FORMAT"
-			}
+			};
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
 			const response: ErrorResponse<string> = {
 				message: "Invalid JSON payload.",
 				errors: [(e as Error).message],
 				code: "UNKNOWN_ERR"
-			}
+			};
 			return c.json<ErrorResponse<string>>(response, 500);
 		}
 	}
