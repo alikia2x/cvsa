@@ -102,6 +102,8 @@
     --color-dark-surface-container-low: rgb(35 25 24);
     --color-surface-container-highest: rgb(241 223 220);
     --color-dark-surface-container-highest: rgb(61 50 48);
+
+    --font-zh: "InterVariable", "MiSans VF", sans-serif;
 }
 
 a {

@@ -7,7 +7,7 @@
 	};
 
 	export function changeFocusState(target: boolean) {
-		if (!inputElement) return; // 使用 inputElement 而不是 inputBox
+		if (!inputElement) return;
 		if (target) {
 			inputElement.focus();
 		} else {
@@ -22,13 +22,13 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.key === "Enter") {
 			event.preventDefault();
-			const value = inputValue.trim(); // 使用绑定的变量
+			const value = inputValue.trim();
 			if (!value) return;
 			search(value);
 		}
 	}
 
-	let inputElement: HTMLInputElement; // 引用 input 元素
+	let inputElement: HTMLInputElement;
 </script>
 
 <style>

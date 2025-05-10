@@ -1,17 +1,21 @@
 const requiredEnvVars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_PORT", "DB_NAME_CRED"];
 
-const unsetVars = requiredEnvVars.filter((key) => process.env[key] === undefined);
+const getEnvVar = (key: string) => {
+    return process.env[key] || import.meta.env[key];
+}
+
+const unsetVars = requiredEnvVars.filter((key) => getEnvVar(key) === undefined);
 
 if (unsetVars.length > 0) {
 	throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
 }
 
-const databaseHost = process.env["DB_HOST"]!;
-const databaseName = process.env["DB_NAME"];
-const databaseNameCred = process.env["DB_NAME_CRED"]!;
-const databaseUser = process.env["DB_USER"]!;
-const databasePassword = process.env["DB_PASSWORD"]!;
-const databasePort = process.env["DB_PORT"]!;
+const databaseHost = getEnvVar("DB_HOST")!;
+const databaseName = getEnvVar("DB_NAME");
+const databaseNameCred = getEnvVar("DB_NAME_CRED")!;
+const databaseUser = getEnvVar("DB_USER")!;
+const databasePassword = getEnvVar("DB_PASSWORD")!;
+const databasePort = getEnvVar("DB_PORT")!;
 
 export const postgresConfig = {
 	hostname: databaseHost,

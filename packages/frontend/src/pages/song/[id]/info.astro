@@ -9,22 +9,6 @@ import { getAidFromBV } from "src/db/bilibili_metadata/getAidFromBV";
 import { getVideoMetadata } from "src/db/bilibili_metadata/getVideoMetadata";
 import { aidExists as idExists } from "src/db/bilibili_metadata/aidExists";
 
-const databaseHost = import.meta.env.DB_HOST;
-const databaseName = import.meta.env.DB_NAME;
-const databaseUser = import.meta.env.DB_USER;
-const databasePassword = import.meta.env.DB_PASSWORD;
-const databasePort = import.meta.env.DB_PORT;
-
-const postgresConfig = {
-    hostname: databaseHost,
-    port: parseInt(databasePort!),
-    database: databaseName,
-    user: databaseUser,
-    password: databasePassword,
-};
-
-console.log(postgresConfig);
-
 const { id } = Astro.params;
 
 async function getVideoAid(id: string) {
@@ -52,18 +36,6 @@ if (!aidExists) {
 }
 const videoInfo = await getVideoMetadata(aid);
 const snapshots = await getAllSnapshots(aid);
-
-interface Snapshot {
-    created_at: Date;
-    views: number;
-    danmakus: number;
-    replies: number;
-    coins: number;
-    likes: number;
-    favorites: number;
-    shares: number;
-    id: number;
-}
 ---
 
 <Layout>
@@ -79,9 +51,9 @@ interface Snapshot {
                 <div class="overflow-x-auto max-w-full px-2">
                     <table class="table-fixed">
                         <tbody>
-                            <MetadataRow title={id} description={videoInfo?.id} />
-                            <MetadataRow title={videoInfo?.aid} description={videoInfo?.aid} />
-                            <MetadataRow title={videoInfo?.bvid} description={videoInfo?.bvid} />
+                            <MetadataRow title="ID" description={videoInfo?.id} />
+                            <MetadataRow title="av 号" description={videoInfo?.aid} />
+                            <MetadataRow title="BV 号" description={videoInfo?.bvid} />
                             <MetadataRow title="标题" description={videoInfo?.title} />
                             <MetadataRow title="描述" description={videoInfo?.description} />
                             <MetadataRow title="UID" description={videoInfo?.uid} />
@@ -124,7 +96,7 @@ interface Snapshot {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {snapshots.map((snapshot: Snapshot) => (
+                                    {snapshots.map((snapshot) => (
                                         <tr>
                                             <td class="border dark:border-zinc-500 px-4 py-2">
                                                 {format(new Date(snapshot.created_at), "yyyy-MM-dd HH:mm:ss", {
