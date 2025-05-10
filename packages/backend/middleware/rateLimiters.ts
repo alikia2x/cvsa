@@ -11,14 +11,18 @@ export const registerRateLimiter = rateLimiter<BlankEnv, "/user", {}>({
 	limit: 10,
 	standardHeaders: "draft-6",
 	keyGenerator: (c) => {
+		let ipAddr = crypto.randomUUID() as string;
 		const info = getConnInfo(c as unknown as Context<BlankEnv, "/user", {}>);
-		if (!info.remote || !info.remote.address) {
-			return crypto.randomUUID();
+		if (info.remote && info.remote.address) {
+			ipAddr = info.remote.address;
 		}
-		const addr = info.remote.address;
+		const forwardedFor = c.req.header("X-Forwarded-For");
+		if (forwardedFor) {
+			ipAddr = forwardedFor.split(",")[0];
+		}
 		const path = new URL(c.req.url).pathname;
 		const method = c.req.method;
-		return `${method}-${path}@${addr}`;
+		return `${method}-${path}@${ipAddr}`;
 	},
 	store: new RedisStore({
 		// @ts-expect-error - Known issue: the `c`all` function is not present in @types/ioredis

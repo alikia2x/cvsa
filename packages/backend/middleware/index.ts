@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Variables } from "hono/types";
 import { bodyLimitForPing } from "./bodyLimits.ts";
-import { pingHandler } from "../routes/ping.ts";
+import { pingHandler } from "routes/ping";
 import { registerRateLimiter } from "./rateLimiters.ts";
 import { preetifyResponse } from "./preetifyResponse.ts";
 import { logger } from "./logger.ts";

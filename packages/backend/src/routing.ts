@@ -4,6 +4,7 @@ import { registerHandler } from "routes/user";
 import { videoInfoHandler, getSnapshotsHanlder } from "routes/video";
 import { Hono } from "hono";
 import { Variables } from "hono/types";
+import { createValidationSessionHandler } from "routes/validation/token";
 
 export function configureRoutes(app: Hono<{ Variables: Variables }>) {
 	app.get("/", ...rootHandler);
@@ -13,4 +14,6 @@ export function configureRoutes(app: Hono<{ Variables: Variables }>) {
 	app.post("/user", ...registerHandler);
 
 	app.get("/video/:id/info", ...videoInfoHandler);
+
+	app.get("/validation/token", ...createValidationSessionHandler)
 }
