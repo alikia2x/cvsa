@@ -3,7 +3,7 @@ type ErrorCode = "INVALID_QUERY_PARAMS" | "UNKNOWN_ERR" | "INVALID_PAYLOAD" | "I
 export interface ErrorResponse<E> {
 	code: ErrorCode;
 	message: string;
-	errors: E[];
+	errors?: E[];
 }
 
 export interface StatusResponse {

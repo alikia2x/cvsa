@@ -15,11 +15,10 @@ const createNewChallenge = async (difficulty: number) => {
             difficulty: difficulty,
         })
     });
-    const data = await res.json();
-    return data;
+    return res;
 }
 
-export const createValidationSessionHandler = createHandlers(async (c) => {
-    const challenge = await createNewChallenge(DIFFICULTY);
-    return c.json(challenge);
+export const createCaptchaSessionHandler = createHandlers(async (_c) => {
+    const res = await createNewChallenge(DIFFICULTY);
+    return res;
 });

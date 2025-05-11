@@ -4,7 +4,7 @@ import { registerHandler } from "routes/user";
 import { videoInfoHandler, getSnapshotsHanlder } from "routes/video";
 import { Hono } from "hono";
 import { Variables } from "hono/types";
-import { createValidationSessionHandler } from "routes/validation/session";
+import { createCaptchaSessionHandler, verifyChallengeHandler } from "routes/captcha";
 
 export function configureRoutes(app: Hono<{ Variables: Variables }>) {
 	app.get("/", ...rootHandler);
@@ -15,5 +15,6 @@ export function configureRoutes(app: Hono<{ Variables: Variables }>) {
 
 	app.get("/video/:id/info", ...videoInfoHandler);
 
-	app.post("/validation/session", ...createValidationSessionHandler)
+	app.post("/captcha/session", ...createCaptchaSessionHandler);
+	app.get("/captcha/:id/result", ...verifyChallengeHandler);
 }
