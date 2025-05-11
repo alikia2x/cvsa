@@ -96,7 +96,7 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
 			const response: ErrorResponse<unknown> = {
-				code: "UNKNOWN_ERR",
+				code: "UNKNOWN_ERROR",
 				message: "Unhandled error",
 				errors: [e]
 			};

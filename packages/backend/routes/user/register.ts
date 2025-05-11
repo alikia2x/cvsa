@@ -66,7 +66,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			const response: ErrorResponse<string> = {
 				message: "Invalid JSON payload.",
 				errors: [(e as Error).message],
-				code: "UNKNOWN_ERR"
+				code: "UNKNOWN_ERROR"
 			};
 			return c.json<ErrorResponse<string>>(response, 500);
 		}
