@@ -1,8 +1,7 @@
 import logger from "@core/log/logger.ts";
 import { RateLimiter, type RateLimiterConfig } from "mq/rateLimiter.ts";
-import { redis } from "db/redis.ts";
 import { ReplyError } from "ioredis";
-import { SECOND } from "../const/time.ts";
+import { SECOND } from "@core/const/time.ts";
 import { spawn, SpawnOptions } from "child_process";
 
 export function spawnPromise(

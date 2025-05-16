@@ -1,11 +1,14 @@
 import { Context } from "hono";
-import { Bindings, BlankEnv, BlankInput } from "hono/types";
+import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
 import { createHandlers } from "src/utils.ts";
 import * as jose from "jose";
+import { generateRandomId } from "@core/lib/randomID.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 
 interface CaptchaResponse {
 	success: boolean;
+	difficulty?: number;
 	error?: string;
 }
 
@@ -13,7 +16,7 @@ const getChallengeVerificationResult = async (id: string, ans: string) => {
 	const baseURL = process.env["UCAPTCHA_URL"];
 	const url = new URL(baseURL);
 	url.pathname = `/challenge/${id}/validation`;
-	const res = await fetch(url.toString(), {
+	return await fetch(url.toString(), {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json"
@@ -22,11 +25,10 @@ const getChallengeVerificationResult = async (id: string, ans: string) => {
 			y: ans
 		})
 	});
-	return res;
 };
 
 export const verifyChallengeHandler = createHandlers(
-	async (c: Context<BlankEnv & { Bindings: Bindings }, "/captcha/:id/result", BlankInput>) => {
+	async (c: Context<BlankEnv & { Bindings: Bindings }, "/captcha/:id/result">) => {
 		const id = c.req.param("id");
 		const ans = c.req.query("ans");
 		if (!ans) {
@@ -76,7 +78,11 @@ export const verifyChallengeHandler = createHandlers(
 		const jwtSecret = new TextEncoder().encode(secret);
 		const alg = "HS256";
 
-		const jwt = await new jose.SignJWT()
+
+		const tokenID = generateRandomId(10);
+		const EXPIRE_FIVE_MINUTES = 300;
+		await lockManager.acquireLock(tokenID, EXPIRE_FIVE_MINUTES);
+		const jwt = await new jose.SignJWT({ difficulty: data.difficulty!, id: tokenID })
 			.setProtectedHeader({ alg })
 			.setIssuedAt()
 			.sign(jwtSecret);

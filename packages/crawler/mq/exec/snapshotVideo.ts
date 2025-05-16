@@ -2,7 +2,7 @@ import { Job } from "bullmq";
 import { scheduleSnapshot, setSnapshotStatus, snapshotScheduleExists } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
 import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata.ts";
 import { insertVideoSnapshot } from "mq/task/getVideoStats.ts";
 import { getSongsPublihsedAt } from "db/songs.ts";

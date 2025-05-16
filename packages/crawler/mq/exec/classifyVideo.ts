@@ -3,7 +3,7 @@ import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "
 import Akari from "ml/akari.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
 import logger from "@core/log/logger.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import { aidExistsInSongs } from "db/songs.ts";
 import { insertIntoSongs } from "mq/task/collectSongs.ts";
 import { scheduleSnapshot } from "db/snapshotSchedule.ts";
