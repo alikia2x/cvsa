@@ -1,11 +1,10 @@
-import { rateLimiter, Store } from "hono-rate-limiter";
 import type { BlankEnv } from "hono/types";
-import { MINUTE } from "@core/const/time.ts";
 import { getConnInfo } from "hono/bun";
-import type { Context } from "hono";
-import { redis } from "@core/db/redis.ts";
-import { RedisStore } from "rate-limit-redis";
+import { Context, Next } from "hono";
 import { generateRandomId } from "@core/lib/randomID.ts";
+import { RateLimiter } from "@koshnic/ratelimit";
+import { ErrorResponse } from "@/src/schema";
+import { redis } from "@core/db/redis.ts";
 
 export const getIdentifier = (c: Context, includeIP: boolean = true) => {
 	let ipAddr = generateRandomId(6);
@@ -20,16 +19,26 @@ export const getIdentifier = (c: Context, includeIP: boolean = true) => {
 	const path = c.req.path;
 	const method = c.req.method;
 	const ipIdentifier = includeIP ? `@${ipAddr}` : "";
-	return `${method}-${path}${ipIdentifier}`
-}
+	return `${method}-${path}${ipIdentifier}`;
+};
 
-export const registerRateLimiter = rateLimiter<BlankEnv, "/user", {}>({
-	windowMs: 60 * MINUTE,
-	limit: 10,
-	standardHeaders: "draft-6",
-	keyGenerator: getIdentifier,
-	store: new RedisStore({
-		// @ts-expect-error - Known issue: the `c`all` function is not present in @types/ioredis
-		sendCommand: (...args: string[]) => redis.call(...args)
-	}) as unknown as Store
-});
+export const registerRateLimiter = async (c: Context<BlankEnv, "/user", {}>, next: Next) => {
+	const limiter = new RateLimiter(redis);
+	const identifier = getIdentifier(c, true);
+	const { allowed, retryAfter } = await limiter.allow(identifier, {
+		burst: 5,
+		ratePerPeriod: 5,
+		period: 120,
+		cost: 1
+	});
+
+	if (!allowed) {
+		const response: ErrorResponse = {
+			message: `Too many requests, please retry after ${Math.round(retryAfter)} seconds.`,
+			code: "RATE_LIMIT_EXCEEDED"
+		};
+		return c.json<ErrorResponse>(response, 429);
+	}
+
+	await next();
+};

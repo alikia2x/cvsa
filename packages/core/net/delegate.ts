@@ -1,5 +1,5 @@
 import logger from "@core/log/logger.ts";
-import { RateLimiter, type RateLimiterConfig } from "mq/rateLimiter.ts";
+import { MultipleRateLimiter, type RateLimiterConfig } from "@core/mq/multipleRateLimiter.ts";
 import { ReplyError } from "ioredis";
 import { SECOND } from "@core/const/time.ts";
 import { spawn, SpawnOptions } from "child_process";
@@ -71,11 +71,11 @@ export class NetSchedulerError extends Error {
 }
 
 type LimiterMap = {
-	[name: string]: RateLimiter;
+	[name: string]: MultipleRateLimiter;
 };
 
 type OptionalLimiterMap = {
-	[name: string]: RateLimiter | null;
+	[name: string]: MultipleRateLimiter | null;
 };
 
 type TaskMap = {
@@ -119,7 +119,7 @@ class NetworkDelegate {
 		const proxies = this.getTaskProxies(taskName);
 		for (const proxyName of proxies) {
 			const limiterId = "proxy-" + proxyName + "-" + taskName;
-			this.proxyLimiters[limiterId] = config ? new RateLimiter(limiterId, config) : null;
+			this.proxyLimiters[limiterId] = config ? new MultipleRateLimiter(limiterId, config) : null;
 		}
 	}
 
@@ -147,7 +147,7 @@ class NetworkDelegate {
 		}
 		for (const proxyName of bindProxies) {
 			const limiterId = "provider-" + proxyName + "-" + providerName;
-			this.providerLimiters[limiterId] = new RateLimiter(limiterId, config);
+			this.providerLimiters[limiterId] = new MultipleRateLimiter(limiterId, config);
 		}
 	}
 

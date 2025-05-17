@@ -9,6 +9,7 @@ import { JwtTokenInvalid, JwtTokenExpired } from "hono/utils/jwt/types";
 import { getJWTsecret } from "@/lib/auth/getJWTsecret.ts";
 import { lockManager } from "@core/mq/lockManager.ts";
 import { object, string, number, ValidationError } from "yup";
+import { getIdentifier } from "@/middleware/rateLimiters.ts";
 
 const tokenSchema = object({
 	exp: number().integer(),
@@ -48,7 +49,7 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 	const method = c.req.method;
 	const route = `${method}-${path}`;
 
-	const requiredDifficulty = await getCurrentCaptchaDifficulty(sqlCred, route);
+	const requiredDifficulty = await getCurrentCaptchaDifficulty(sqlCred, c);
 
 	try {
 		const decodedPayload = await verify(token, jwtSecret);
@@ -65,7 +66,7 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 		}
 		if (difficulty < requiredDifficulty) {
 			const response: ErrorResponse = {
-				message: "Token to weak.",
+				message: "Token too weak.",
 				code: "UNAUTHORIZED"
 			};
 			return c.json<ErrorResponse>(response, 401);
@@ -106,7 +107,11 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 	}
 	const duration = await getCaptchaConfigMaxDuration(sqlCred, route);
 	const window = new SlidingWindow(redis, duration);
-	await window.event(`captcha-${route}`);
+
+	const identifierWithIP = getIdentifier(c, true);
+	const identifier = getIdentifier(c, false);
+	await window.event(`captcha-${identifier}`);
+	await window.event(`captcha-${identifierWithIP}`);
 
 	await next();
 };

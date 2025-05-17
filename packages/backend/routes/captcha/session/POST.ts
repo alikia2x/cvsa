@@ -1,6 +1,21 @@
 import { createHandlers } from "src/utils.ts";
+import { getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty.ts";
+import { sqlCred } from "@core/db/dbNew.ts";
+import { object, string, ValidationError } from "yup";
+import { ErrorResponse } from "@/src/schema";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-const DIFFICULTY = 200000;
+const bodySchema = object({
+    route: string().matches(/(?:GET|POST|PUT|PATCH|DELETE)-\/.*/g)
+});
+
+interface CaptchaSessionResponse {
+    success: boolean;
+    id: string;
+    g: string;
+    n: string;
+    t: number;
+}
 
 const createNewChallenge = async (difficulty: number) => {
     const baseURL = process.env["UCAPTCHA_URL"];
@@ -17,7 +32,28 @@ const createNewChallenge = async (difficulty: number) => {
     });
 }
 
-export const createCaptchaSessionHandler = createHandlers(async (_c) => {
-    const res = await createNewChallenge(DIFFICULTY);
-    return res;
+export const createCaptchaSessionHandler = createHandlers(async (c) => {
+    try {
+        const requestBody = await bodySchema.validate(await c.req.json());
+        const { route } = requestBody;
+        const difficuly = await getCurrentCaptchaDifficulty(sqlCred, route)
+        const res = await createNewChallenge(difficuly);
+        return c.json<CaptchaSessionResponse|unknown>(await res.json(), res.status as ContentfulStatusCode);
+    } catch (e: unknown) {
+        if (e instanceof ValidationError) {
+            const response: ErrorResponse = {
+                code: "INVALID_QUERY_PARAMS",
+                message: "Invalid query parameters",
+                errors: e.errors
+            };
+            return c.json<ErrorResponse>(response, 400);
+        } else {
+            const response: ErrorResponse<unknown> = {
+                code: "UNKNOWN_ERROR",
+                message: "Unknown error",
+                errors: [e]
+            };
+            return c.json<ErrorResponse<unknown>>(response, 500);
+        }
+    }
 });

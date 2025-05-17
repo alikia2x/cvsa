@@ -1,6 +1,8 @@
 import { Psql } from "@core/db/psql";
 import { SlidingWindow } from "@core/mq/slidingWindow.ts";
 import { redis } from "@core/db/redis.ts";
+import { getIdentifier } from "@/middleware/rateLimiters.ts";
+import { Context } from "hono";
 
 type seconds = number;
 
@@ -33,7 +35,9 @@ export const getCaptchaConfigMaxDuration = async (sql: Psql, route: string): Pro
 }
 
 
-export const getCurrentCaptchaDifficulty = async (sql: Psql, route: string): Promise<number | null> => {
+export const getCurrentCaptchaDifficulty = async (sql: Psql, c: Context | string): Promise<number | null> => {
+	const isRoute = typeof c === "string";
+	const route = isRoute ? c : `${c.req.method}-${c.req.path}`
 	const configs = await getCaptchaDifficultyConfigByRoute(sql, route);
 	if (configs.length < 1) {
 		return null
@@ -44,14 +48,15 @@ export const getCurrentCaptchaDifficulty = async (sql: Psql, route: string): Pro
 	const maxDuration = configs.reduce((max, config) =>
 		Math.max(max, config.duration), 0);
 	const slidingWindow = new SlidingWindow(redis, maxDuration);
-	for (let i = 0; i < configs.length; i++) {
+	for (let i = 1; i < configs.length; i++) {
 		const config = configs[i];
 		const lastConfig = configs[i - 1];
-		const count = await slidingWindow.count(`captcha-${route}`, config.duration);
+		const identifier = isRoute ? c : getIdentifier(c, config.global);
+		const count = await slidingWindow.count(`captcha-${identifier}`, config.duration);
 		if (count >= config.threshold) {
 			continue;
 		}
 		return lastConfig.difficulty
 	}
-	return configs[0].difficulty;
+	return configs[configs.length-1].difficulty;
 }

@@ -8,7 +8,8 @@ type ErrorCode =
 	| "UNAUTHORIZED"
 	| "INVALID_CREDENTIALS"
 	| "ENTITY_NOT_FOUND"
-	| "SERVER_ERROR";
+	| "SERVER_ERROR"
+	| "RATE_LIMIT_EXCEEDED";
 
 export interface ErrorResponse<E=string> {
 	code: ErrorCode;
