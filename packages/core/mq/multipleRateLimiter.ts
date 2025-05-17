@@ -6,6 +6,15 @@ export interface RateLimiterConfig {
     max: number;
 }
 
+export class RateLimiterError extends Error {
+    public code: string;
+    constructor(message: string) {
+        super(message);
+        this.name = "RateLimiterError";
+        this.code = "RATE_LIMIT_EXCEEDED";
+    }
+}
+
 export class MultipleRateLimiter {
     private readonly name: string;
     private readonly configs: RateLimiterConfig[] = [];
@@ -27,37 +36,20 @@ export class MultipleRateLimiter {
     }
 
     /*
-     * Check if the event has reached the rate limit
-     */
-    async getAvailability(): Promise<boolean> {
-        for (let i = 0; i < this.configs.length; i++) {
-            const { duration, max } = this.configs[i];
-            const { remaining } = await this.limiter.allow(`cvsa:${this.name}_${i}`, {
-                burst: max,
-                ratePerPeriod: max,
-                period: duration,
-                cost: 0
-            });
-
-            if (remaining < 1) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /*
      * Trigger an event in the rate limiter
      */
-    async trigger(): Promise<void> {
+    async trigger(shouldThrow = true): Promise<void> {
         for (let i = 0; i < this.configs.length; i++) {
             const { duration, max } = this.configs[i];
-            await this.limiter.allow(`cvsa:${this.name}_${i}`, {
+            const { allowed } = await this.limiter.allow(`cvsa:${this.name}_${i}`, {
                 burst: max,
                 ratePerPeriod: max,
                 period: duration,
                 cost: 1
             });
+            if (!allowed && shouldThrow) {
+                throw new RateLimiterError("Rate limit exceeded")
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
 import logger from "@core/log/logger.ts";
-import { MultipleRateLimiter, type RateLimiterConfig } from "@core/mq/multipleRateLimiter.ts";
+import { MultipleRateLimiter, RateLimiterError, type RateLimiterConfig } from "@core/mq/multipleRateLimiter.ts";
 import { ReplyError } from "ioredis";
 import { SECOND } from "@core/const/time.ts";
 import { spawn, SpawnOptions } from "child_process";
@@ -123,16 +123,19 @@ class NetworkDelegate {
 		}
 	}
 
-	async triggerLimiter(task: string, proxy: string): Promise<void> {
+	async triggerLimiter(task: string, proxy: string, force: boolean = false): Promise<void> {
 		const limiterId = "proxy-" + proxy + "-" + task;
 		const providerLimiterId = "provider-" + proxy + "-" + this.tasks[task].provider;
 		try {
-			await this.proxyLimiters[limiterId]?.trigger();
-			await this.providerLimiters[providerLimiterId]?.trigger();
+			await this.proxyLimiters[limiterId]?.trigger(!force);
+			await this.providerLimiters[providerLimiterId]?.trigger(!force);
 		} catch (e) {
 			const error = e as Error;
 			if (e instanceof ReplyError) {
 				logger.error(error, "redis");
+			} else if (e instanceof RateLimiterError) {
+				// Re-throw it to ensure this.request can catch it
+				throw e;
 			}
 			logger.warn(`Unhandled error: ${error.message}`, "mq", "proxyRequest");
 		}
@@ -166,8 +169,14 @@ class NetworkDelegate {
 		// find a available proxy
 		const proxiesNames = this.getTaskProxies(task);
 		for (const proxyName of shuffleArray(proxiesNames)) {
-			if (await this.getProxyAvailability(proxyName, task)) {
+			try {
 				return await this.proxyRequest<R>(url, proxyName, task, method);
+			}
+			catch (e) {
+				if (e instanceof RateLimiterError) {
+					continue;
+				}
+				throw e;
 			}
 		}
 		throw new NetSchedulerError("No proxy is available currently.", "NO_PROXY_AVAILABLE");
@@ -200,16 +209,8 @@ class NetworkDelegate {
 			throw new NetSchedulerError(`Proxy "${proxyName}" not found`, "PROXY_NOT_FOUND");
 		}
 
-		if (!force) {
-			const isAvailable = await this.getProxyAvailability(proxyName, task);
-			const limiter = "proxy-" + proxyName + "-" + task;
-			if (!isAvailable) {
-				throw new NetSchedulerError(`Proxy "${limiter}" is rate limited`, "PROXY_RATE_LIMITED");
-			}
-		}
-
+		await this.triggerLimiter(task, proxyName, force);
 		const result = await this.makeRequest<R>(url, proxy, method);
-		await this.triggerLimiter(task, proxyName);
 		return result;
 	}
 
@@ -221,32 +222,6 @@ class NetworkDelegate {
 				return await this.alicloudFcRequest<R>(url, proxy.data);
 			default:
 				throw new NetSchedulerError(`Proxy type ${proxy.type} not supported`, "NOT_IMPLEMENTED");
-		}
-	}
-
-	private async getProxyAvailability(proxyName: string, taskName: string): Promise<boolean> {
-		try {
-			const task = this.tasks[taskName];
-			const provider = task.provider;
-			const proxyLimiterId = "proxy-" + proxyName + "-" + task;
-			const providerLimiterId = "provider-" + proxyName + "-" + provider;
-			if (!this.proxyLimiters[proxyLimiterId]) {
-				const providerLimiter = this.providerLimiters[providerLimiterId];
-				return await providerLimiter.getAvailability();
-			}
-			const proxyLimiter = this.proxyLimiters[proxyLimiterId];
-			const providerLimiter = this.providerLimiters[providerLimiterId];
-			const providerAvailable = await providerLimiter.getAvailability();
-			const proxyAvailable = await proxyLimiter.getAvailability();
-			return providerAvailable && proxyAvailable;
-		} catch (e) {
-			const error = e as Error;
-			if (e instanceof ReplyError) {
-				logger.error(error, "redis");
-				return false;
-			}
-			logger.error(error, "mq", "getProxyAvailability");
-			return false;
 		}
 	}
 
