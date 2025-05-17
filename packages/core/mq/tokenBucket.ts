@@ -1,12 +1,21 @@
 import { redis } from "@core/db/redis";
 import { SECOND } from "@core/const/time";
 
-interface TokenBucketOptions {
+export interface TokenBucketRateOptions {
 	capacity: number;
 	rate: number;
 	identifier: string;
-	keyPrefix?: string; 
+	keyPrefix?: string;
 }
+
+export interface TokenBucketDurationOptions {
+	duration: number;
+	max: number;
+	identifier: string;
+	keyPrefix?: string;
+}
+
+export type TokenBucketConstructorOptions = TokenBucketRateOptions | TokenBucketDurationOptions;
 
 export class TokenBucket {
 	private readonly capacity: number;
@@ -14,15 +23,34 @@ export class TokenBucket {
 	private readonly keyPrefix: string;
 	private readonly identifier: string;
 
-	constructor(options: TokenBucketOptions) {
-		if (options.capacity <= 0 || options.rate <= 0) {
-			throw new Error("Capacity and rate must be greater than zero.");
+	constructor(options: TokenBucketConstructorOptions) {
+		if (!options.identifier) {
+			throw new Error("Identifier is required.");
 		}
-
-		this.capacity = options.capacity;
-		this.rate = options.rate;
 		this.identifier = options.identifier;
 		this.keyPrefix = options.keyPrefix || "cvsa:token_bucket:";
+
+		const isRateOptions = 'capacity' in options && 'rate' in options;
+		const isDurationOptions = 'duration' in options && 'max' in options;
+
+		if (isRateOptions && isDurationOptions) {
+			throw new Error("Provide either 'capacity'/'rate' or 'duration'/'max', not both.");
+		} else if (isRateOptions) {
+			if (options.capacity <= 0 || options.rate <= 0) {
+				throw new Error("'capacity' and 'rate' must be greater than zero.");
+			}
+			this.capacity = options.capacity;
+			this.rate = options.rate;
+		} else if (isDurationOptions) {
+			if (options.duration <= 0 || options.max <= 0) {
+				throw new Error("'duration' and 'max' must be greater than zero.");
+			}
+			this.capacity = options.max;
+			this.rate = options.max / options.duration;
+
+		} else {
+			throw new Error("Provide either 'capacity'/'rate' or 'duration'/'max'.");
+		}
 	}
 
 	getKey(): string {

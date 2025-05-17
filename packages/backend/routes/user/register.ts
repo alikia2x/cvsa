@@ -3,7 +3,7 @@ import Argon2id from "@rabbit-company/argon2id";
 import { object, string, ValidationError } from "yup";
 import type { Context } from "hono";
 import type { Bindings, BlankEnv, BlankInput } from "hono/types";
-import { sqlCred } from "db/db.ts";
+import { sqlCred } from "@core/db/dbNew.ts";
 import { ErrorResponse, StatusResponse } from "src/schema";
 
 const RegistrationBodySchema = object({
@@ -64,7 +64,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
 			const response: ErrorResponse<string> = {
-				message: "Invalid JSON payload.",
+				message: "Unknown error.",
 				errors: [(e as Error).message],
 				code: "UNKNOWN_ERROR"
 			};

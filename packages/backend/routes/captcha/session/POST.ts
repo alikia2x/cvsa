@@ -6,7 +6,7 @@ const createNewChallenge = async (difficulty: number) => {
     const baseURL = process.env["UCAPTCHA_URL"];
     const url = new URL(baseURL);
     url.pathname = "/challenge";
-    const res = await fetch(url.toString(), {
+    return await fetch(url.toString(), {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -15,7 +15,6 @@ const createNewChallenge = async (difficulty: number) => {
             difficulty: difficulty,
         })
     });
-    return res;
 }
 
 export const createCaptchaSessionHandler = createHandlers(async (_c) => {

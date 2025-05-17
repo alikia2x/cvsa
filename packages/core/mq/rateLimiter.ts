@@ -8,7 +8,7 @@ export interface RateLimiterConfig {
 export class RateLimiter {
     private configs: RateLimiterConfig[] = [];
     private buckets: TokenBucket[] = [];
-    private identifierFn: (configIndex: number) => string;
+    private readonly identifierFn: (configIndex: number) => string;
 
     /*
      * @param name The name of the rate limiter
@@ -26,8 +26,8 @@ export class RateLimiter {
         for (let i = 0; i < configs.length; i++) {
             const config = configs[i];
             const bucket = new TokenBucket({
-                capacity: config.max,
-                rate: config.max / config.duration,
+                max: config.max,
+                duration: config.duration,
                 identifier: this.identifierFn(i),
             })
             this.buckets.push(bucket);

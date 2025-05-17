@@ -1,8 +1,8 @@
 import logger from "@core/log/logger.ts";
 import { redis } from "@core/db/redis.ts";
-import { sql } from "../../../db/db.ts";
+import { sql } from "@core/db/dbNew.ts";
 import { number, ValidationError } from "yup";
-import { createHandlers } from "../../../src/utils.ts";
+import { createHandlers } from "@/src/utils.ts";
 import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo.ts";
 import { idSchema } from "./snapshots.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
