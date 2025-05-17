@@ -32,7 +32,7 @@ function logStartup(hostname: string, port: number, wasAutoIncremented: boolean,
 	console.log("\nPress Ctrl+C to quit.");
 }
 
-export async function startServer(app: Hono<{Variables: Variables }>) {
+export async function startServer(app: Hono<{ Variables: Variables }>) {
 	const NODE_ENV = process.env.NODE_ENV || "production";
 	const HOST = process.env.HOST ?? (NODE_ENV === "development" ? "0.0.0.0" : "127.0.0.1");
 	const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : undefined;

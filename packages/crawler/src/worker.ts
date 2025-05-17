@@ -14,7 +14,7 @@ import {
 } from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
 import logger from "@core/log/logger.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import { WorkerError } from "mq/schema.ts";
 
 const releaseLockForJob = async (name: string) => {

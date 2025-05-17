@@ -4,7 +4,7 @@ import logger from "@core/log/logger.ts";
 import { ClassifyVideoQueue } from "mq/index.ts";
 import { userExistsInBiliUsers, videoExistsInAllData } from "../../db/bilibili_metadata.ts";
 import { HOUR, SECOND } from "@core/const/time.ts";
-import type { Psql } from "global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 
 export async function insertVideoInfo(sql: Psql, aid: number) {
 	const videoExists = await videoExistsInAllData(sql, aid);

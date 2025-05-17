@@ -1,9 +1,20 @@
-type ErrorCode = "INVALID_QUERY_PARAMS" | "UNKNOWN_ERR" | "INVALID_PAYLOAD" | "INVALID_FORMAT" | "BODY_TOO_LARGE";
+type ErrorCode =
+	| "INVALID_QUERY_PARAMS"
+	| "UNKNOWN_ERROR"
+	| "INVALID_PAYLOAD"
+	| "INVALID_FORMAT"
+	| "INVALID_HEADER"
+	| "BODY_TOO_LARGE"
+	| "UNAUTHORIZED"
+	| "INVALID_CREDENTIALS"
+	| "ENTITY_NOT_FOUND"
+	| "SERVER_ERROR"
+	| "RATE_LIMIT_EXCEEDED";
 
-export interface ErrorResponse<E> {
-	code: ErrorCode
+export interface ErrorResponse<E=string> {
+	code: ErrorCode;
 	message: string;
-	errors: E[];
+	errors?: E[];
 }
 
 export interface StatusResponse {

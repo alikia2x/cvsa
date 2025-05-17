@@ -77,7 +77,7 @@ const defaultFormatter = (params) => {
 		`${methodColor} ${params.method.padEnd(6)}${reset} ${params.path}`
 	);
 };
-type Ctx = Context
+type Ctx = Context;
 export const logger = (config) => {
 	const { formatter = defaultFormatter, output = console, skipPaths = [], skip = null } = config;
 

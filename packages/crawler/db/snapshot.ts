@@ -1,6 +1,6 @@
 import { LatestSnapshotType } from "@core/db/schema";
 import { SnapshotNumber } from "mq/task/getVideoStats.ts";
-import type { Psql } from "global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 
 export async function getVideosNearMilestone(sql: Psql) {
 	const queryResult = await sql<LatestSnapshotType[]>`

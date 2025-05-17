@@ -1,27 +1,44 @@
-import { rateLimiter, Store } from "hono-rate-limiter";
 import type { BlankEnv } from "hono/types";
-import { MINUTE } from "@core/const/time.ts";
 import { getConnInfo } from "hono/bun";
-import type { Context } from "hono";
+import { Context, Next } from "hono";
+import { generateRandomId } from "@core/lib/randomID.ts";
+import { RateLimiter } from "@koshnic/ratelimit";
+import { ErrorResponse } from "@/src/schema";
 import { redis } from "@core/db/redis.ts";
-import { RedisStore } from "rate-limit-redis";
 
-export const registerRateLimiter = rateLimiter<BlankEnv, "/user", {}>({
-	windowMs: 60 * MINUTE,
-	limit: 10,
-	standardHeaders: "draft-6",
-	keyGenerator: (c) => {
-		const info = getConnInfo(c as unknown as Context<BlankEnv, "/user", {}>);
-		if (!info.remote || !info.remote.address) {
-			return crypto.randomUUID();
-		}
-		const addr = info.remote.address;
-		const path = new URL(c.req.url).pathname;
-		const method = c.req.method;
-		return `${method}-${path}@${addr}`;
-	},
-	store: new RedisStore({
-		// @ts-expect-error - Known issue: the `c`all` function is not present in @types/ioredis
-		sendCommand: (...args: string[]) => redis.call(...args)
-	}) as unknown as Store
-});
+export const getIdentifier = (c: Context, includeIP: boolean = true) => {
+	let ipAddr = generateRandomId(6);
+	const info = getConnInfo(c);
+	if (info.remote && info.remote.address) {
+		ipAddr = info.remote.address;
+	}
+	const forwardedFor = c.req.header("X-Forwarded-For");
+	if (forwardedFor) {
+		ipAddr = forwardedFor.split(",")[0];
+	}
+	const path = c.req.path;
+	const method = c.req.method;
+	const ipIdentifier = includeIP ? `@${ipAddr}` : "";
+	return `${method}-${path}${ipIdentifier}`;
+};
+
+export const registerRateLimiter = async (c: Context<BlankEnv, "/user", {}>, next: Next) => {
+	const limiter = new RateLimiter(redis);
+	const identifier = getIdentifier(c, true);
+	const { allowed, retryAfter } = await limiter.allow(identifier, {
+		burst: 5,
+		ratePerPeriod: 5,
+		period: 120,
+		cost: 1
+	});
+
+	if (!allowed) {
+		const response: ErrorResponse = {
+			message: `Too many requests, please retry after ${Math.round(retryAfter)} seconds.`,
+			code: "RATE_LIMIT_EXCEEDED"
+		};
+		return c.json<ErrorResponse>(response, 429);
+	}
+
+	await next();
+};

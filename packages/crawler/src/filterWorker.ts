@@ -3,7 +3,7 @@ import { redis } from "@core/db/redis.ts";
 import logger from "@core/log/logger.ts";
 import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo.ts";
 import { WorkerError } from "mq/schema.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import Akari from "ml/akari.ts";
 
 const shutdown = async (signal: string) => {

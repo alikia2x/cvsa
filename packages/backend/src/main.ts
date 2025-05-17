@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { TimingVariables } from "hono/timing";
 import { startServer } from "./startServer.ts";
-import { configureRoutes } from "routes";
+import { configureRoutes } from "./routing.ts";
 import { configureMiddleWares } from "middleware";
 import { notFoundRoute } from "routes/404.ts";
 

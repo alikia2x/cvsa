@@ -40,3 +40,5 @@ dist/
 build/
 
 docker-compose.yml
+
+ucaptcha-config.yaml

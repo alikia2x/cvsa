@@ -1,13 +1,17 @@
 {
-  "name": "core",
-  "dependencies": {
-    "chalk": "^5.4.1",
-    "ioredis": "^5.6.1",
-    "logform": "^2.7.0",
-    "postgres": "^3.4.5",
-    "winston": "^3.17.0"
-  },
-  "devDependencies": {
-    "@types/ioredis": "^5.0.0"
-  }
+	"name": "core",
+	"scripts": {
+		"test": "bun --env-file=.env.test run vitest"
+	},
+	"dependencies": {
+		"@koshnic/ratelimit": "^1.0.3",
+		"chalk": "^5.4.1",
+		"ioredis": "^5.6.1",
+		"logform": "^2.7.0",
+		"postgres": "^3.4.5",
+		"winston": "^3.17.0"
+	},
+	"devDependencies": {
+		"@types/ioredis": "^5.0.0"
+	}
 }

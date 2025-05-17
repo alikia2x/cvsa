@@ -4,7 +4,7 @@ import { sleep } from "utils/sleep.ts";
 import { SECOND } from "@core/const/time.ts";
 import logger from "@core/log/logger.ts";
 import { LatestVideosQueue } from "mq/index.ts";
-import type { Psql } from "global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 
 export async function queueLatestVideos(
 	sql: Psql,

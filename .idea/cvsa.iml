@@ -28,6 +28,8 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/crawler/logs" />
       <excludeFolder url="file://$MODULE_DIR$/data" />
       <excludeFolder url="file://$MODULE_DIR$/redis" />
+      <excludeFolder url="file://$MODULE_DIR$/ml" />
+      <excludeFolder url="file://$MODULE_DIR$/src" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

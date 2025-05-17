@@ -1,10 +1,10 @@
 import type { Context } from "hono";
-import { createHandlers } from "../src/utils.ts";
+import { createHandlers } from "src/utils.ts";
 import type { BlankEnv, BlankInput } from "hono/types";
-import { getVideoSnapshots, getVideoSnapshotsByBV } from "../db/videoSnapshot.ts";
+import { getVideoSnapshots, getVideoSnapshotsByBV } from "db/snapshots.ts";
 import type { VideoSnapshotType } from "@core/db/schema.d.ts";
 import { boolean, mixed, number, object, ValidationError } from "yup";
-import { ErrorResponse } from "../src/schema";
+import { ErrorResponse } from "src/schema";
 import { startTime, endTime } from "hono/timing";
 
 const SnapshotQueryParamsSchema = object({
@@ -96,7 +96,7 @@ export const getSnapshotsHanlder = createHandlers(async (c: ContextType) => {
 			return c.json<ErrorResponse<string>>(response, 400);
 		} else {
 			const response: ErrorResponse<unknown> = {
-				code: "UNKNOWN_ERR",
+				code: "UNKNOWN_ERROR",
 				message: "Unhandled error",
 				errors: [e]
 			};

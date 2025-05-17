@@ -18,14 +18,6 @@ const databasePassword = getEnvVar("DB_PASSWORD")!;
 const databasePort = getEnvVar("DB_PORT")!;
 
 export const postgresConfig = {
-	hostname: databaseHost,
-	port: parseInt(databasePort),
-	database: databaseName,
-	user: databaseUser,
-	password: databasePassword
-};
-
-export const postgresConfigNpm = {
 	host: databaseHost,
 	port: parseInt(databasePort),
 	database: databaseName,

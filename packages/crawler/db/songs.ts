@@ -1,4 +1,4 @@
-import type { Psql } from "global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 import { parseTimestampFromPsql } from "utils/formatTimestampToPostgre.ts";
 
 export async function getNotCollectedSongs(sql: Psql) {

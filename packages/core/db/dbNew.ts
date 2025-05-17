@@ -1,6 +1,8 @@
 import postgres from "postgres";
-import { postgresConfigNpm } from "./pgConfigNew";
+import { postgresConfigCred, postgresConfig } from "./pgConfigNew";
 
-export const sql = postgres(postgresConfigNpm);
+export const sql = postgres(postgresConfig);
 
-export const sqlTest = postgres(postgresConfigNpm);
+export const sqlCred = postgres(postgresConfigCred);
+
+export const sqlTest = postgres(postgresConfig);

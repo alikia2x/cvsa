@@ -1,3 +1,3 @@
 import type postgres from "postgres";
 
-export type Psql = postgres.Sql<{}>;
+export type Psql = postgres.Sql;

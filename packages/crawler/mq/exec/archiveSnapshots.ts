@@ -1,7 +1,7 @@
 import { Job } from "bullmq";
 import { getAllVideosWithoutActiveSnapshotSchedule, scheduleSnapshot } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import { getLatestVideoSnapshot } from "db/snapshot.ts";
 import { HOUR, MINUTE } from "@core/const/time.ts";
 import { sql } from "@core/db/dbNew";

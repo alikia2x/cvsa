@@ -32,14 +32,20 @@ export class SlidingWindow {
 
 	/*
 	 * Count the number of events in the sliding window
-	 * @param eventName The name of the event
+	 * @param {string} eventName The name of the event
+	 * @param {number} [duration] The duration of the window in seconds
 	 */
-	async count(eventName: string): Promise<number> {
+	async count(eventName: string, duration?: number): Promise<number> {
 		const key = `cvsa:sliding_window:${eventName}`;
 		const now = Date.now();
 
 		// Remove timestamps outside the window
 		await this.redis.zremrangebyscore(key, 0, now - this.windowSize);
+
+		if (duration) {
+			return this.redis.zcount(key, now - duration * 1000, now);
+		}
+
 		// Get the number of timestamps in the window
 		return this.redis.zcard(key);
 	}

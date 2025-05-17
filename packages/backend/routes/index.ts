@@ -1,17 +1,29 @@
-import { rootHandler } from "./root/root.ts";
-import { pingHandler } from "./ping.ts";
-import { getSnapshotsHanlder } from "./snapshots.ts";
-import { registerHandler } from "./user.ts";
-import { videoInfoHandler } from "db/videoInfo.ts";
-import { Hono } from "hono";
-import { Variables } from "hono/types";
+import { getSingerForBirthday, pickSinger, pickSpecialSinger, type Singer } from "lib/const/singers.ts";
+import { VERSION } from "src/main.ts";
+import { createHandlers } from "src/utils.ts";
 
-export function configureRoutes(app: Hono<{Variables: Variables }>) {
-	app.get("/", ...rootHandler);
-	app.all("/ping", ...pingHandler);
-
-	app.get("/video/:id/snapshots", ...getSnapshotsHanlder);
-	app.post("/user", ...registerHandler);
-
-	app.get("/video/:id/info", ...videoInfoHandler);
-}
+export const rootHandler = createHandlers((c) => {
+	let singer: Singer | Singer[];
+	const shouldShowSpecialSinger = Math.random() < 0.016;
+	if (getSingerForBirthday().length !== 0) {
+		singer = JSON.parse(JSON.stringify(getSingerForBirthday())) as Singer[];
+		for (const s of singer) {
+			delete s.birthday;
+			s.message = `祝${s.name}生日快乐~`;
+		}
+	} else if (shouldShowSpecialSinger) {
+		singer = pickSpecialSinger();
+	} else {
+		singer = pickSinger();
+	}
+	return c.json({
+		project: {
+			name: "中V档案馆",
+			motto: "一起唱吧，心中的歌！"
+		},
+		status: 200,
+		version: VERSION,
+		time: Date.now(),
+		singer: singer
+	});
+});

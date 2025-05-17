@@ -4,7 +4,7 @@ import { truncate } from "utils/truncate.ts";
 import { getVideosWithoutActiveSnapshotSchedule, scheduleSnapshot } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
 import { HOUR, MINUTE, WEEK } from "@core/const/time.ts";
-import { lockManager } from "mq/lockManager.ts";
+import { lockManager } from "@core/mq/lockManager.ts";
 import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval.ts";
 import { sql } from "@core/db/dbNew.ts";
 
