@@ -1,4 +1,4 @@
-import type { Psql } from "@core/db/global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 import { AllDataType, BiliUserType } from "@core/db/schema";
 import { AkariModelVersion } from "ml/const";
 

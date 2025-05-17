@@ -4,7 +4,7 @@ import { MINUTE } from "@core/const/time.ts";
 import { redis } from "@core/db/redis.ts";
 import { Redis } from "ioredis";
 import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre.ts";
-import type { Psql } from "@core/db/global.d.ts";
+import type { Psql } from "@core/db/psql.d.ts";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
