@@ -16,8 +16,8 @@ export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
 			if (eta > 144) continue;
 			const now = Date.now();
 			const scheduledNextSnapshotDelay = eta * HOUR;
-			const maxInterval = 1 * HOUR;
-			const minInterval = 1 * SECOND;
+			const maxInterval = 1.2 * HOUR;
+			const minInterval = 2 * SECOND;
 			const delay = truncate(scheduledNextSnapshotDelay, minInterval, maxInterval);
 			const targetTime = now + delay;
 			await scheduleSnapshot(sql, aid, "milestone", targetTime);

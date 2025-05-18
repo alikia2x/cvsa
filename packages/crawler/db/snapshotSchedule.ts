@@ -63,18 +63,6 @@ export async function snapshotScheduleExists(sql: Psql, id: number) {
 	return rows.length > 0;
 }
 
-export async function videoHasActiveSchedule(sql: Psql, aid: number) {
-	const rows = await sql<{ status: string }[]>`
-		SELECT status
-		FROM snapshot_schedule 
-		WHERE aid = ${aid}
-			AND (status = 'pending' 
-				OR status = 'processing'
-			)
-	`
-	return rows.length > 0;
-}
-
 export async function videoHasActiveScheduleWithType(sql: Psql, aid: number, type: string) {
 	const rows = await sql<{ status: string }[]>`
 		SELECT status FROM snapshot_schedule 
@@ -292,23 +280,23 @@ export async function adjustSnapshotTime(
 }
 
 export async function getSnapshotsInNextSecond(sql: Psql) {
-	const rows = await sql<SnapshotScheduleType[]>`
-		SELECT *
-		FROM snapshot_schedule
-		WHERE started_at <= NOW() + INTERVAL '1 seconds' AND status = 'pending' AND type != 'normal'
-		ORDER BY
-			CASE
-				WHEN type = 'milestone' THEN 0
-				ELSE 1
-			END,
-			started_at
-		LIMIT 10;
-	`
-	return rows;
+	return sql<SnapshotScheduleType[]>`
+        SELECT *
+        FROM snapshot_schedule
+        WHERE started_at <= NOW() + INTERVAL '1 seconds'
+          AND status = 'pending'
+          AND type != 'normal'
+        ORDER BY CASE
+                     WHEN type = 'milestone' THEN 0
+                     ELSE 1
+                     END,
+                 started_at
+        LIMIT 10;
+	`;
 }
 
 export async function getBulkSnapshotsInNextSecond(sql: Psql) {
-	const rows = await sql<SnapshotScheduleType[]>`
+	return sql<SnapshotScheduleType[]>`
         SELECT *
         FROM snapshot_schedule
         WHERE (started_at <= NOW() + INTERVAL '15 seconds')
@@ -320,27 +308,33 @@ export async function getBulkSnapshotsInNextSecond(sql: Psql) {
                      END,
                  started_at
         LIMIT 1000;
-	`
-	return rows;
+	`;
 }
 
 export async function setSnapshotStatus(sql: Psql, id: number, status: string) {
-	return await sql`
-		UPDATE snapshot_schedule SET status = ${status} WHERE id = ${id}
+	return sql`
+        UPDATE snapshot_schedule
+        SET status = ${status}
+        WHERE id = ${id}
 	`;
 }
 
 export async function bulkSetSnapshotStatus(sql: Psql, ids: number[], status: string) {
-	return await sql`
-		UPDATE snapshot_schedule SET status = ${status} WHERE id = ANY(${ids})
+	return sql`
+        UPDATE snapshot_schedule
+        SET status = ${status}
+        WHERE id = ANY (${ids})
 	`;
 }
 
-export async function getVideosWithoutActiveSnapshotSchedule(sql: Psql) {
+export async function getVideosWithoutActiveSnapshotScheduleByType(sql: Psql, type: string) {
 	const rows = await sql<{ aid: string }[]>`
 		SELECT s.aid
 		FROM songs s
-		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
+		LEFT JOIN snapshot_schedule ss ON 
+		    s.aid = ss.aid AND
+		    (ss.status = 'pending' OR ss.status = 'processing') AND
+		    ss.type = ${type}
 		WHERE ss.aid IS NULL
 	`;
 	return rows.map((r) => Number(r.aid));

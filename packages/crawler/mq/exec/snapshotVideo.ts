@@ -78,8 +78,9 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`ETA (${etaHoursString}) too long for milestone snapshot. aid: ${aid}.`,
 				"mq",
-				"fn:dispatchRegularSnapshotsWorker",
+				"fn:snapshotVideoWorker",
 			);
+			return;
 		}
 		const now = Date.now();
 		const targetTime = now + eta * HOUR;
@@ -92,7 +93,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`No available proxy for aid ${job.data.aid}.`,
 				"mq",
-				"fn:takeSnapshotForVideoWorker",
+				"fn:snapshotVideoWorker",
 			);
 			await setSnapshotStatus(sql, id, "no_proxy");
 			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval);
@@ -102,16 +103,12 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`Failed to proxy request for aid ${job.data.aid}: ${e.message}`,
 				"mq",
-				"fn:takeSnapshotForVideoWorker",
+				"fn:snapshotVideoWorker",
 			);
 			await setSnapshotStatus(sql, id, "failed");
 			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval);
 		}
-		logger.error(e as Error, "mq", "fn:takeSnapshotForVideoWorker");
+		logger.error(e as Error, "mq", "fn:snapshotVideoWorker");
 		await setSnapshotStatus(sql, id, "failed");
 	}
-	finally {
-		await lockManager.releaseLock("dispatchRegularSnapshots");
-	};
-	return;
 };
