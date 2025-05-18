@@ -34,7 +34,7 @@ export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
 	if (!snapshotsEnough) return 0;
 
 	const currentTimestamp = new Date().getTime();
-	const timeIntervals = [3 * MINUTE, 20 * MINUTE, 1 * HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
+	const timeIntervals = [3 * MINUTE, 20 * MINUTE, HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
 	const DELTA = 0.00001;
 	let minETAHours = Infinity;
 
