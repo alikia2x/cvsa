@@ -10,9 +10,10 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"framer-motion": "^12.12.2",
+		"next": "15.3.2",
 		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
-		"next": "15.3.2"
+		"react-dom": "^19.0.0"
 	},
 	"devDependencies": {
 		"typescript": "^5",
