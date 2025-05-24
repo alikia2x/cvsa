@@ -35,7 +35,7 @@ export const HeaderDestop = () => {
 				className="inline-flex relative gap-6 h-full lg:right-12
     				text-xl font-medium items-center w-[15rem] min-w-[8rem] mr-4 lg:mr-0 lg:w-[305px] justify-end"
 			>
-				<a href="/register">注册</a>
+				<a href="/signup">注册</a>
 				<a href="/about">关于</a>
 			</div>
 		</div>
@@ -71,7 +71,7 @@ export const HeaderMobile = () => {
 							</a>
 						</div>
 						<div className="w-full h-14 flex items-center px-4">
-							<a href="/register" className="flex">
+							<a href="/signup" className="flex">
 								<RegisterIcon className="text-2xl pr-4" />
 								<span>注册</span>
 							</a>

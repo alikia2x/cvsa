@@ -11,7 +11,7 @@ export default function SignupPage() {
 			>
 				<p className="mb-2">
 					<a href="/">
-						<LeftArrow className="inline -translate-y-[0.1rem] scale-90" aria-hidden="true" />
+						<LeftArrow className="inline -translate-y-0.5 scale-90 mr-1" aria-hidden="true" />
 						首页
 					</a>
 				</p>
@@ -30,10 +30,10 @@ export default function SignupPage() {
 					已有账户？
 					<a href="/login">
 						<span>登录</span>
-						<RightArrow className="text-xs inline -translate-y-0.5" aria-hidden="true" />
+						<RightArrow className="text-xs inline -translate-y-0.5 ml-1" aria-hidden="true" />
 					</a>
 				</p>
-				<SignUpForm backendURL={process.env.BACKEND_URL} />
+				<SignUpForm backendURL={process.env.BACKEND_URL ?? ""} />
 			</div>
 		</main>
 	);

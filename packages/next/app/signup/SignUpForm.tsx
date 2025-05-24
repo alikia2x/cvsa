@@ -143,8 +143,8 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			/>
 			<button
 				className="bg-primary dark:bg-dark-primary text-on-primary dark:text-dark-on-primary duration-150
-        rounded-full hover:bg-on-primary-container hover:dark:bg-dark-on-primary-container mt-2
-        flex items-center text-sm leading-5 justify-center h-10 w-full"
+                    rounded-full hover:bg-on-primary-container hover:dark:bg-dark-on-primary-container mt-2
+                    flex items-center text-sm leading-5 justify-center h-10 w-full"
 				type="submit"
 				disabled={loading}
 			>

@@ -9,9 +9,10 @@ interface InputProps extends React.HTMLAttributes<HTMLDivElement> {
 	onInputTextChange?: (value: string) => void;
 	maxChar?: number;
 	supportingText?: string;
+	variant: "filled" | "outlined" | "standard";
 }
 
-const TextField: React.FC<InputProps> = ({
+const OutlineTextField: React.FC<InputProps> = ({
 	labelText = "",
 	type = "text",
 	inputText: initialInputText = "",
@@ -35,23 +36,28 @@ const TextField: React.FC<InputProps> = ({
 				<div className="absolute flex top-0 left-0 h-full w-full">
 					<div
 						className={`w-3 rounded-l-sm border-outline dark:border-dark-outline
-				${focus ? "border-primary dark:border-dark-primary border-l-2 border-y-2" : "border-l-[1px] border-y-[1px] "}
-			`}
+            				${
+								focus
+									? "border-primary dark:border-dark-primary border-l-2 border-y-2"
+									: "border-l-[1px] border-y-[1px] "
+							}
+         			`}
 					></div>
 
 					<div
 						className={`px-1 border-outline dark:border-dark-outline transition-none
-				${!focus && !inputText ? "border-y-[1px]" : ""}
-				${!focus && inputText ? "border-y-[1px] border-t-0" : ""}
-				${focus ? "border-primary dark:border-dark-primary border-y-2 border-t-0" : ""}
-			`}
+							${!focus && !inputText ? "border-y-[1px]" : ""}
+							${!focus && inputText ? "border-y-[1px] border-t-0" : ""}
+							${focus ? "border-primary dark:border-dark-primary border-y-2 border-t-0" : ""}
+						`}
 					>
 						<span
 							className={`
-					relative leading-6 text-base text-on-surface-variant dark:text-dark-on-surface-variant duration-150
-					${focus || inputText ? "-top-3 text-xs leading-4" : "top-4"}
-					${focus ? "text-primary dark:text-dark-primary" : ""}
-				`}
+								relative leading-6 text-base text-on-surface-variant 
+								dark:text-dark-on-surface-variant duration-150
+								${focus || inputText ? "-top-3 text-xs leading-4" : "top-4"}
+								${focus ? "text-primary dark:text-dark-primary" : ""}
+							`}
 						>
 							{labelText}
 						</span>
@@ -59,8 +65,10 @@ const TextField: React.FC<InputProps> = ({
 
 					<div
 						className={`flex-grow rounded-r-sm border-outline dark:border-dark-outline
-					${focus ? "border-primary dark:border-dark-primary border-r-2 border-y-2" : "border-r-[1px] border-y-[1px] "}
-			`}
+							${focus ? 
+							"border-primary dark:border-dark-primary border-r-2 border-y-2" : 
+							"border-r-[1px] border-y-[1px] "}
+						`}
 					></div>
 				</div>
 
@@ -75,12 +83,12 @@ const TextField: React.FC<InputProps> = ({
 			</div>
 			{(supportingText || maxChar) && (
 				<div
-					className="w-full relative mt-1 text-on-surface-variant dark:text-dark-on-surface-variant
-		 	text-xs leading-4 h-4"
+					className="w-full relative mt-1 text-on-surface-variant 
+					dark:text-dark-on-surface-variant text-xs leading-4 h-4"
 				>
 					{supportingText && <span className="absolute left-4">{supportingText}</span>}
 					{maxChar && (
-						<span className="absolute right-4">
+						<span className={`absolute right-4 ${inputText.length > maxChar ? "text-red-500" : ""}`}>
 							{inputText.length}/{maxChar}
 						</span>
 					)}
@@ -88,6 +96,12 @@ const TextField: React.FC<InputProps> = ({
 			)}
 		</div>
 	);
+};
+
+const TextField: React.FC<InputProps> = (props) => {
+	if (!props.variant || props.variant === "outlined") {
+		return <OutlineTextField {...props} />;
+	}
 };
 
 export default TextField;
