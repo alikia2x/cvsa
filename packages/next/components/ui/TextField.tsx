@@ -9,7 +9,7 @@ interface InputProps extends React.HTMLAttributes<HTMLDivElement> {
 	onInputTextChange?: (value: string) => void;
 	maxChar?: number;
 	supportingText?: string;
-	variant: "filled" | "outlined" | "standard";
+	variant?: "filled" | "outlined" | "standard";
 }
 
 const OutlineTextField: React.FC<InputProps> = ({
