@@ -1,20 +1,12 @@
 {
-    "name": "cvsa",
-    "version": "2.13.22",
-    "private": false,
-    "type": "module",
-    "workspaces": [
-        "packages/frontend",
-        "packages/core",
-        "packages/backend",
-        "packages/crawler"
-    ],
-    "dependencies": {
-        "postgres": "^3.4.5"
-    },
-    "devDependencies": {
-        "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "^3.1.2",
-        "vitest-tsconfig-paths": "^3.4.1"
-    }
+	"name": "cvsa",
+	"version": "2.13.22",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"packages/frontend",
+		"packages/core",
+		"packages/backend",
+		"packages/crawler"
+	]
 }
