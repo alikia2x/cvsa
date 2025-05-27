@@ -6,14 +6,17 @@ import LogoMobileLight from "@/public/icons/TitleBar Mobile Light.svg";
 import LogoMobileDark from "@/public/icons/TitleBar Mobile Dark.svg";
 import DarkModeImage from "@/components/utils/DarkModeImage";
 import React, { useState } from "react";
-import { NavigationDrawer } from "@/components/shell/NavigatinDrawer";
+import { NavigationDrawer } from "@/components/ui/NavigatinDrawer";
 import { Portal } from "@/components/utils/Portal";
 import { RegisterIcon } from "@/components/icons/RegisterIcon";
 import { SearchBox } from "@/components/ui/SearchBox";
 import { MenuIcon } from "@/components/icons/MenuIcon";
 import { SearchIcon } from "@/components/icons/SearchIcon";
-import { InfoIcon } from "../icons/InfoIcon";
-import { HomeIcon } from "../icons/HomeIcon";
+import { InfoIcon } from "@/components/icons/InfoIcon";
+import { HomeIcon } from "@/components/icons/HomeIcon";
+import { TextButton } from "@/components/ui/Buttons/TextButton";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export const HeaderDestop = () => {
 	return (
@@ -45,37 +48,46 @@ export const HeaderDestop = () => {
 export const HeaderMobile = () => {
 	const [showDrawer, setShowDrawer] = useState(false);
 	const [showsearchBox, setShowsearchBox] = useState(false);
+
 	return (
 		<>
 			<Portal>
 				<NavigationDrawer show={showDrawer} onClose={() => setShowDrawer(false)}>
-					<div className="flex flex-col w-full">
-						<div className="w-full h-14 flex items-center px-4 mt-1 pl-5">
+					<div className="flex flex-col w-full gap-2">
+						<div className="w-full h-14 flex items-center px-4 mt-3 pl-6">
 							<DarkModeImage
 								lightSrc={LogoMobileLight}
 								darkSrc={LogoMobileDark}
 								alt="Logo"
-								className="w-24 h-8"
+								className="w-30 h-10"
 							/>
 						</div>
-						<div className="w-full h-14 flex items-center px-4">
-							<a href="/" className="flex">
-								<HomeIcon className="text-2xl pr-4" />
-								<span>首页</span>
-							</a>
-						</div>
-						<div className="w-full h-14 flex items-center px-4">
-							<a href="/about" className="flex">
-								<InfoIcon className="text-2xl pr-4" />
-								<span>关于</span>
-							</a>
-						</div>
-						<div className="w-full h-14 flex items-center px-4">
-							<a href="/signup" className="flex">
-								<RegisterIcon className="text-2xl pr-4" />
-								<span>注册</span>
-							</a>
-						</div>
+
+						<Link href="/">
+							<TextButton className="w-full h-14 flex px-4 justify-start" size="m">
+								<div className="flex items-center">
+									<HomeIcon className="text-2xl pr-4" />
+									<span>首页</span>
+								</div>
+							</TextButton>
+						</Link>
+						<Link href="/about">
+							<TextButton className="w-full h-14 flex px-4 justify-start" size="m">
+								<div className="flex items-center">
+									<InfoIcon className="text-2xl pr-4" />
+									<span>关于</span>
+								</div>
+							</TextButton>
+						</Link>
+
+						<Link href="/signup">
+							<TextButton className="w-full h-14 flex px-4 justify-start" size="m">
+								<div className="flex items-center">
+									<RegisterIcon className="text-2xl pr-4" />
+									<span>注册</span>
+								</div>
+							</TextButton>
+						</Link>
 					</div>
 				</NavigationDrawer>
 			</Portal>

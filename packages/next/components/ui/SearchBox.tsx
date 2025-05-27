@@ -42,7 +42,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ close = () => {} }) => {
 		>
 			<div
 				className="w-full h-10 lg:h-12 px-4 rounded-full bg-surface-container-high
-				    dark:bg-zinc-800/70 backdrop-blur-lg flex justify-between md:px-5"
+				    dark:bg-dark-surface-container-high backdrop-blur-lg flex justify-between md:px-5"
 			>
 				<button className="w-6" onClick={() => search(inputValue)}>
 					<SearchIcon

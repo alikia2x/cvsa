@@ -8,11 +8,11 @@ interface DrawerProps {
 }
 
 export const NavigationDrawer = ({ show = false, onClose, children }: DrawerProps) => {
-	const coverRef = useRef<HTMLDivElement>(null);
+	const scrimRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const handleOutsideClick = (event: MouseEvent) => {
-			if (show && coverRef.current && event.target === coverRef.current) {
+			if (show && scrimRef.current && event.target === scrimRef.current) {
 				onClose();
 			}
 		};
@@ -27,9 +27,9 @@ export const NavigationDrawer = ({ show = false, onClose, children }: DrawerProp
 		<AnimatePresence>
 			{show && (
 				<>
-					{/* Backdrop - Fade in/out */}
+					{/* Scrim - Fade in/out */}
 					<motion.div
-						ref={coverRef}
+						ref={scrimRef}
 						className="fixed top-0 left-0 w-full h-full z-40 bg-black/10"
 						aria-hidden="true"
 						initial={{ opacity: 0 }}
@@ -41,12 +41,12 @@ export const NavigationDrawer = ({ show = false, onClose, children }: DrawerProp
 
 					{/* Drawer - Slide from left */}
 					<motion.div
-						className="fixed top-0 left-0 h-full bg-[#fff0ee] dark:bg-[#231918] z-50"
+						className="fixed top-0 left-0 h-full bg-surface-container-low dark:bg-dark-surface-container-low z-50"
 						style={{ width: "min(22.5rem, 70vw)" }}
 						initial={{ x: -500, opacity: 0 }}
 						animate={{ x: 0, opacity: 1 }}
 						exit={{ x: -500, opacity: 0 }}
-						transition={{ type: "spring", stiffness: 438, damping: 46 }}
+						transition={{ duration: 0.25, ease: ["easeOut", "easeOut"] }}
 						role="dialog"
 						aria-modal="true"
 					>

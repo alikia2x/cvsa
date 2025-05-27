@@ -6,6 +6,9 @@ import LoadingSpinner from "@/components/icons/LoadingSpinner";
 import { computeVdfInWorker } from "@/lib/vdf";
 import useSWR from "swr";
 import { ApiRequestError } from "@/lib/net";
+import { Portal } from "@/components/utils/Portal";
+import { Dialog, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
+import { FilledButton } from "@/components/ui/Buttons/FilledButton";
 
 interface CaptchaSessionResponse {
 	g: string;
@@ -38,6 +41,8 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	const [password, setPassword] = useState("");
 	const [nickname, setNickname] = useState("");
 	const [loading, setLoading] = useState(false);
+	const [showDialog, setShowDialog] = useState(false);
+	const [dialogContent, setDialogContent] = useState(<></>);
 
 	const {
 		data: captchaSession,
@@ -83,15 +88,13 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			const registrationResponse = await fetch(registrationUrl.toString(), {
 				method: "POST",
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${captchaResult.token}`
 				},
 				body: JSON.stringify({
 					username,
 					password,
-					nickname,
-					// Include the captcha result if needed by the backend
-					captchaId: captchaSession.id,
-					captchaAnswer: ans.result.toString()
+					nickname
 				})
 			});
 
@@ -141,15 +144,32 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				supportingText="昵称可以重复。"
 				maxChar={30}
 			/>
-			<button
-				className="bg-primary dark:bg-dark-primary text-on-primary dark:text-dark-on-primary duration-150
-                    rounded-full hover:bg-on-primary-container hover:dark:bg-dark-on-primary-container mt-2
-                    flex items-center text-sm leading-5 justify-center h-10 w-full"
-				type="submit"
-				disabled={loading}
+			<FilledButton
+				type="button"
+				onClick={() => {
+					setShowDialog(true);
+					setDialogContent(
+						<>
+							<DialogHeadline>Error</DialogHeadline>
+							<DialogSupportingText>
+								<p>Your operation frequency is too high. Please try again later. (RATE_LIMIT_EXCEED)</p>
+							</DialogSupportingText>
+						</>
+					);
+				}}
+				size="m"
+				shape="square"
 			>
+				Show Dialog
+			</FilledButton>
+			<FilledButton type="submit" disabled={loading}>
 				{!loading ? <span>注册</span> : <LoadingSpinner />}
-			</button>
+			</FilledButton>
+			<Portal>
+				<Dialog show={showDialog} onClose={() => setShowDialog(false)}>
+					{dialogContent}
+				</Dialog>
+			</Portal>
 		</form>
 	);
 };
