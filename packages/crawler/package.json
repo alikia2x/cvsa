@@ -7,7 +7,7 @@
 		"worker:filter": "bun run ./build/filterWorker.js",
 		"adder": "bun run ./src/jobAdder.ts",
 		"bullui": "bun run ./src/bullui.ts",
-		"all": "bun run concurrently --restart-tries -1 'bun run worker:main' 'bun run adder' 'bun run bullui' 'bun run worker:filter'"
+		"all": "bun run concurrently --restart-tries -1 'bun run worker:main' 'bun run adder' 'bun run worker:filter'"
 	},
 	"devDependencies": {
 		"concurrently": "^9.1.2"
