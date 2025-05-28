@@ -15,7 +15,6 @@ import { SearchIcon } from "@/components/icons/SearchIcon";
 import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export const HeaderDestop = () => {

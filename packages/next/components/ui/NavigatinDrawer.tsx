@@ -41,7 +41,8 @@ export const NavigationDrawer = ({ show = false, onClose, children }: DrawerProp
 
 					{/* Drawer - Slide from left */}
 					<motion.div
-						className="fixed top-0 left-0 h-full bg-surface-container-low dark:bg-dark-surface-container-low z-50"
+						className="fixed top-0 left-0 h-full bg-surface-container-low dark:bg-dark-surface-container-low
+					        z-50 rounded-r-2xl"
 						style={{ width: "min(22.5rem, 70vw)" }}
 						initial={{ x: -500, opacity: 0 }}
 						animate={{ x: 0, opacity: 1 }}

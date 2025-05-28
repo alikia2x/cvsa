@@ -7,7 +7,7 @@ import { computeVdfInWorker } from "@/lib/vdf";
 import useSWR from "swr";
 import { ApiRequestError } from "@/lib/net";
 import { Portal } from "@/components/utils/Portal";
-import { Dialog, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
+import { Dialog, DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
 import { FilledButton } from "@/components/ui/Buttons/FilledButton";
 
 interface CaptchaSessionResponse {
@@ -154,6 +154,9 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 							<DialogSupportingText>
 								<p>Your operation frequency is too high. Please try again later. (RATE_LIMIT_EXCEED)</p>
 							</DialogSupportingText>
+							<DialogButtonGroup>
+								<DialogButton onClick={() => setShowDialog(false)}>Close</DialogButton>
+							</DialogButtonGroup>
 						</>
 					);
 				}}
@@ -166,9 +169,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				{!loading ? <span>注册</span> : <LoadingSpinner />}
 			</FilledButton>
 			<Portal>
-				<Dialog show={showDialog} onClose={() => setShowDialog(false)}>
-					{dialogContent}
-				</Dialog>
+				<Dialog show={showDialog}>{dialogContent}</Dialog>
 			</Portal>
 		</form>
 	);
