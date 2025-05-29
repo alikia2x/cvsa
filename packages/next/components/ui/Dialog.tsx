@@ -1,6 +1,17 @@
 import { motion, AnimatePresence } from "framer-motion";
 import React from "react";
 import { TextButton } from "./Buttons/TextButton";
+import { useEffect } from "react";
+
+export const useDisableBodyScroll = (open: boolean) => {
+	useEffect(() => {
+		if (open) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "unset";
+		}
+	}, [open]);
+};
 
 interface DialogProps {
 	show: boolean;
@@ -36,6 +47,7 @@ export const DialogButtonGroup: React.FC<DialogButtonGroupProps> = ({ children }
 };
 
 export const Dialog: React.FC<DialogProps> = ({ show, children }: DialogProps) => {
+	useDisableBodyScroll(show);
 	return (
 		<AnimatePresence>
 			{show && (

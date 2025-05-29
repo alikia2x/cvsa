@@ -165,7 +165,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			>
 				Show Dialog
 			</FilledButton>
-			<FilledButton type="submit" disabled={loading}>
+			<FilledButton type="submit" disabled={loading} tabIndex={1}>
 				{!loading ? <span>注册</span> : <LoadingSpinner />}
 			</FilledButton>
 			<Portal>
