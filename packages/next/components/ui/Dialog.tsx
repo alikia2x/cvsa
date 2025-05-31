@@ -18,32 +18,60 @@ interface DialogProps {
 	children?: React.ReactNode;
 }
 
-interface OptionalChidrenProps {
+type OptionalChidrenProps<T = React.HTMLAttributes<HTMLElement>> = T & {
 	children?: React.ReactNode;
-}
+};
 
-type DialogHeadlineProps = OptionalChidrenProps;
-type DialogSupportingTextProps = OptionalChidrenProps;
-type DialogButtonGroupProps = OptionalChidrenProps;
+type HeadElementAttr = React.HTMLAttributes<HTMLHeadElement>;
+type DivElementAttr = React.HTMLAttributes<HTMLDivElement>;
+type ButtonElementAttr = React.HTMLAttributes<HTMLButtonElement>;
 
-interface DialogButtonProps extends OptionalChidrenProps {
+type DialogHeadlineProps = OptionalChidrenProps<HeadElementAttr>;
+type DialogSupportingTextProps = OptionalChidrenProps<DivElementAttr>;
+type DialogButtonGroupProps = OptionalChidrenProps<DivElementAttr>;
+
+interface DialogButtonProps extends OptionalChidrenProps<ButtonElementAttr> {
 	onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export const DialogHeadline: React.FC<DialogHeadlineProps> = ({ children }: DialogHeadlineProps) => {
-	return <h2 className="text-2xl leading-8 text-on-surface dark:text-dark-on-surface">{children}</h2>;
+export const DialogHeadline: React.FC<DialogHeadlineProps> = ({
+	children,
+	className,
+	...rest
+}: DialogHeadlineProps) => {
+	return (
+		<h2 className={"text-2xl leading-8 text-on-surface dark:text-dark-on-surface " + className || ""} {...rest}>
+			{children}
+		</h2>
+	);
 };
 
-export const DialogSupportingText: React.FC<DialogSupportingTextProps> = ({ children }: DialogHeadlineProps) => {
-	return <div className="mt-4 text-sm leading-5 mb-6">{children}</div>;
+export const DialogSupportingText: React.FC<DialogSupportingTextProps> = ({
+	children,
+	className,
+	...rest
+}: DialogHeadlineProps) => {
+	return (
+		<div className={"mt-4 text-sm leading-5 mb-6 " + className || ""} {...rest}>
+			{children}
+		</div>
+	);
 };
 
-export const DialogButton: React.FC<DialogButtonProps> = ({ children, onClick }: DialogButtonProps) => {
-	return <TextButton onClick={onClick}>{children}</TextButton>;
+export const DialogButton: React.FC<DialogButtonProps> = ({ children, onClick, ...rest }: DialogButtonProps) => {
+	return (
+		<TextButton onClick={onClick} {...rest}>
+			{children}
+		</TextButton>
+	);
 };
 
-export const DialogButtonGroup: React.FC<DialogButtonGroupProps> = ({ children }: DialogButtonGroupProps) => {
-	return <div className="flex justify-end gap-2">{children}</div>;
+export const DialogButtonGroup: React.FC<DialogButtonGroupProps> = ({ children, ...rest }: DialogButtonGroupProps) => {
+	return (
+		<div className="flex justify-end gap-2" {...rest}>
+			{children}
+		</div>
+	);
 };
 
 export const Dialog: React.FC<DialogProps> = ({ show, children }: DialogProps) => {
@@ -67,6 +95,7 @@ export const Dialog: React.FC<DialogProps> = ({ show, children }: DialogProps) =
 						animate={{ opacity: 1, transform: "scale(1)" }}
 						exit={{ opacity: 0 }}
 						transition={{ ease: [0.31, 0.69, 0.3, 1.02], duration: 0.3 }}
+						aria-modal="true"
 					>
 						{children}
 					</motion.div>

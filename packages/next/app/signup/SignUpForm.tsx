@@ -9,6 +9,13 @@ import { ApiRequestError } from "@/lib/net";
 import { Portal } from "@/components/utils/Portal";
 import { Dialog, DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
 import { FilledButton } from "@/components/ui/Buttons/FilledButton";
+import { string, object, ValidationError } from "yup";
+
+const FormSchema = object({
+	username: string().required().max(50),
+	password: string().required().min(4).max(120),
+	nickname: string().optional().max(30)
+});
 
 interface CaptchaSessionResponse {
 	g: string;
@@ -37,9 +44,9 @@ interface RegistrationFormProps {
 }
 
 const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
-	const [username, setUsername] = useState("");
-	const [password, setPassword] = useState("");
-	const [nickname, setNickname] = useState("");
+	const [usernameInput, setUsername] = useState("");
+	const [passwordInput, setPassword] = useState("");
+	const [nicknameInput, setNickname] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [showDialog, setShowDialog] = useState(false);
 	const [dialogContent, setDialogContent] = useState(<></>);
@@ -68,6 +75,44 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	};
 
 	const register = async () => {
+		let username: string | undefined;
+		let password: string | undefined;
+		let nickname: string | undefined;
+		try {
+			const formData = await FormSchema.validate({
+				username: usernameInput,
+				password: passwordInput,
+				nickname: nicknameInput
+			});
+			username = formData.username;
+			password = formData.password;
+			nickname = formData.nickname;
+		} catch (e) {
+			if (!(e instanceof ValidationError)) {
+				return;
+			}
+			setShowDialog(true);
+			setDialogContent(
+				<>
+					<DialogHeadline>错误</DialogHeadline>
+					<DialogSupportingText>
+						<p>注册信息填写有误，请检查后重新提交。</p>
+						<span>错误信息: </span>
+						<br />
+						<ol>
+							{e.errors.map((item, i) => {
+								return <li key={i}>{item}</li>;
+							})}
+						</ol>
+					</DialogSupportingText>
+					<DialogButtonGroup>
+						<DialogButton onClick={() => setShowDialog(false)}>Close</DialogButton>
+					</DialogButtonGroup>
+				</>
+			);
+			return;
+		}
+
 		setLoading(true);
 		try {
 			if (!captchaSession?.g || !captchaSession?.n || !captchaSession?.t || !captchaSession?.id) {
@@ -92,9 +137,9 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 					Authorization: `Bearer ${captchaResult.token}`
 				},
 				body: JSON.stringify({
-					username,
-					password,
-					nickname
+					username: username,
+					password: password,
+					nickname: nickname
 				})
 			});
 
@@ -124,7 +169,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 		>
 			<TextField
 				labelText="用户名"
-				inputText={username}
+				inputText={usernameInput}
 				onInputTextChange={setUsername}
 				maxChar={50}
 				supportingText="*必填。用户名是唯一的，不区分大小写。"
@@ -132,40 +177,19 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			<TextField
 				labelText="密码"
 				type="password"
-				inputText={password}
+				inputText={passwordInput}
 				onInputTextChange={setPassword}
 				supportingText="*必填。密码至少为 4 个字符。"
 				maxChar={120}
 			/>
 			<TextField
 				labelText="昵称"
-				inputText={nickname}
+				inputText={nicknameInput}
 				onInputTextChange={setNickname}
 				supportingText="昵称可以重复。"
 				maxChar={30}
 			/>
-			<FilledButton
-				type="button"
-				onClick={() => {
-					setShowDialog(true);
-					setDialogContent(
-						<>
-							<DialogHeadline>Error</DialogHeadline>
-							<DialogSupportingText>
-								<p>Your operation frequency is too high. Please try again later. (RATE_LIMIT_EXCEED)</p>
-							</DialogSupportingText>
-							<DialogButtonGroup>
-								<DialogButton onClick={() => setShowDialog(false)}>Close</DialogButton>
-							</DialogButtonGroup>
-						</>
-					);
-				}}
-				size="m"
-				shape="square"
-			>
-				Show Dialog
-			</FilledButton>
-			<FilledButton type="submit" disabled={loading} tabIndex={1}>
+			<FilledButton type="submit" disabled={loading}>
 				{!loading ? <span>注册</span> : <LoadingSpinner />}
 			</FilledButton>
 			<Portal>
