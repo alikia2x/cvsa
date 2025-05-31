@@ -6,8 +6,8 @@ import { RateLimiter } from "@koshnic/ratelimit";
 import { ErrorResponse } from "@/src/schema";
 import { redis } from "@core/db/redis.ts";
 
-export const getIdentifier = (c: Context, includeIP: boolean = true) => {
-	let ipAddr = generateRandomId(6);
+export const getUserIP = (c: Context) => {
+	let ipAddr = null;
 	const info = getConnInfo(c);
 	if (info.remote && info.remote.address) {
 		ipAddr = info.remote.address;
@@ -15,6 +15,14 @@ export const getIdentifier = (c: Context, includeIP: boolean = true) => {
 	const forwardedFor = c.req.header("X-Forwarded-For");
 	if (forwardedFor) {
 		ipAddr = forwardedFor.split(",")[0];
+	}
+	return ipAddr;
+};
+
+export const getIdentifier = (c: Context, includeIP: boolean = true) => {
+	let ipAddr = generateRandomId(6);
+	if (getUserIP(c)) {
+		ipAddr = getUserIP(c);
 	}
 	const path = c.req.path;
 	const method = c.req.method;

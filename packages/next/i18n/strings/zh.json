@@ -6,5 +6,12 @@
 	},
 	"username": "用户名",
 	"password": "密码",
-	"nickname": "昵称"
+	"nickname": "昵称",
+	"backend": {
+		"error": {
+			"user_exists": "用户名 “{username}” 已被占用。",
+			"user_not_found_after_register": "我们的服务器出现错误：找不到名为'{username}'的用户。请联系我们的<support>支持团队</support>，反馈此问题。",
+			"captcha_not_found": "无法完成安全验证。你可以刷新页面并重试。如果此问题反复出现，你可以联系我们的<support>支持团队</support>，反馈此问题。"
+		}
+	}
 }

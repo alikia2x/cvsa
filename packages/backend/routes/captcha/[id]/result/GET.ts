@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
 import { createHandlers } from "src/utils.ts";
-import { sign } from 'hono/jwt'
+import { sign } from "hono/jwt";
 import { generateRandomId } from "@core/lib/randomID.ts";
 import { getJWTsecret } from "lib/auth/getJWTsecret.ts";
 
@@ -43,7 +43,10 @@ export const verifyChallengeHandler = createHandlers(
 		if (data.error && res.status === 404) {
 			const response: ErrorResponse = {
 				message: data.error,
-				code: "ENTITY_NOT_FOUND"
+				code: "ENTITY_NOT_FOUND",
+				i18n: {
+					key: "backend.error.captcha_not_found"
+				}
 			};
 			return c.json<ErrorResponse>(response, 401);
 		} else if (data.error && res.status === 400) {
@@ -74,13 +77,16 @@ export const verifyChallengeHandler = createHandlers(
 		const jwtSecret = r as string;
 
 		const tokenID = generateRandomId(6);
-		const NOW = Math.floor(Date.now() / 1000)
+		const NOW = Math.floor(Date.now() / 1000);
 		const FIVE_MINUTES_LATER = NOW + 60 * 5;
-		const jwt = await sign({
-			difficulty: data.difficulty!,
-			id: tokenID,
-			exp: FIVE_MINUTES_LATER
-		}, jwtSecret);
+		const jwt = await sign(
+			{
+				difficulty: data.difficulty!,
+				id: tokenID,
+				exp: FIVE_MINUTES_LATER
+			},
+			jwtSecret
+		);
 		return c.json({
 			token: jwt
 		});
