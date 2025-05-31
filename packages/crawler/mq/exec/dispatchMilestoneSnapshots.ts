@@ -26,4 +26,4 @@ export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:dispatchMilestoneSnapshotsWorker");
 	}
-}
+};

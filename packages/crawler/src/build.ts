@@ -3,9 +3,8 @@ import Bun from "bun";
 await Bun.build({
 	entrypoints: ["./src/filterWorker.ts"],
 	outdir: "./build",
-    target: "node"
+	target: "node"
 });
-
 
 const file = Bun.file("./build/filterWorker.js");
 const code = await file.text();

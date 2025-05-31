@@ -10,4 +10,4 @@ export const getVideoInfoWorker = async (job: Job): Promise<void> => {
 		return;
 	}
 	await insertVideoInfo(sql, aid);
-}
+};

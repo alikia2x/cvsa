@@ -62,8 +62,8 @@ export async function initMQ() {
 	});
 
 	await SnapshotQueue.upsertJobScheduler("dispatchArchiveSnapshots", {
-		every: 6 * HOUR,
-		immediately: true
+		every: 2 * HOUR,
+		immediately: false
 	});
 
 	await SnapshotQueue.upsertJobScheduler("scheduleCleanup", {

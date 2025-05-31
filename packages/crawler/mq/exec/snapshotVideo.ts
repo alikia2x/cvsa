@@ -10,9 +10,9 @@ import { NetSchedulerError } from "@core/net/delegate.ts";
 import { sql } from "@core/db/dbNew.ts";
 
 const snapshotTypeToTaskMap: { [key: string]: string } = {
-	"milestone": "snapshotMilestoneVideo",
-	"normal": "snapshotVideo",
-	"new": "snapshotMilestoneVideo",
+	milestone: "snapshotMilestoneVideo",
+	normal: "snapshotVideo",
+	new: "snapshotMilestoneVideo"
 };
 
 export const snapshotVideoWorker = async (job: Job): Promise<void> => {
@@ -31,7 +31,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`Video ${aid} has status ${status} in the database. Abort snapshoting.`,
 				"mq",
-				"fn:dispatchRegularSnapshotsWorker",
+				"fn:dispatchRegularSnapshotsWorker"
 			);
 			return;
 		}
@@ -43,7 +43,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`Bilibili return status ${status} when snapshoting for ${aid}.`,
 				"mq",
-				"fn:dispatchRegularSnapshotsWorker",
+				"fn:dispatchRegularSnapshotsWorker"
 			);
 			return;
 		}
@@ -51,7 +51,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		if (type === "new") {
 			const publihsedAt = await getSongsPublihsedAt(sql, aid);
 			const timeSincePublished = stat.time - publihsedAt!;
-			const viewsPerHour = stat.views / timeSincePublished * HOUR;
+			const viewsPerHour = (stat.views / timeSincePublished) * HOUR;
 			if (timeSincePublished > 48 * HOUR) {
 				return;
 			}
@@ -77,7 +77,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			logger.warn(
 				`ETA (${etaHoursString}) too long for milestone snapshot. aid: ${aid}.`,
 				"mq",
-				"fn:snapshotVideoWorker",
+				"fn:snapshotVideoWorker"
 			);
 			return;
 		}
@@ -86,23 +86,17 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		await scheduleSnapshot(sql, aid, type, targetTime);
 		await setSnapshotStatus(sql, id, "completed");
 		return;
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
-			logger.warn(
-				`No available proxy for aid ${job.data.aid}.`,
-				"mq",
-				"fn:snapshotVideoWorker",
-			);
+			logger.warn(`No available proxy for aid ${job.data.aid}.`, "mq", "fn:snapshotVideoWorker");
 			await setSnapshotStatus(sql, id, "no_proxy");
 			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval);
 			return;
-		}
-		else if (e instanceof NetSchedulerError && e.code === "ALICLOUD_PROXY_ERR") {
+		} else if (e instanceof NetSchedulerError && e.code === "ALICLOUD_PROXY_ERR") {
 			logger.warn(
 				`Failed to proxy request for aid ${job.data.aid}: ${e.message}`,
 				"mq",
-				"fn:snapshotVideoWorker",
+				"fn:snapshotVideoWorker"
 			);
 			await setSnapshotStatus(sql, id, "failed");
 			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval);

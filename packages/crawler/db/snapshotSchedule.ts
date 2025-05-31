@@ -79,7 +79,7 @@ export async function videoHasProcessingSchedule(sql: Psql, aid: number) {
 		FROM snapshot_schedule 
 		WHERE aid = ${aid}
 			AND status = 'processing'
-	`
+	`;
 	return rows.length > 0;
 }
 
@@ -90,7 +90,7 @@ export async function bulkGetVideosWithoutProcessingSchedules(sql: Psql, aids: n
 		WHERE aid = ANY(${aids})
 			AND status != 'processing' 
 		GROUP BY aid
-	`
+	`;
 	return rows.map((row) => Number(row.aid));
 }
 
@@ -346,6 +346,6 @@ export async function getAllVideosWithoutActiveSnapshotSchedule(psql: Psql) {
 		FROM bilibili_metadata s
 		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
 		WHERE ss.aid IS NULL
-	`
+	`;
 	return rows.map((r) => Number(r.aid));
 }

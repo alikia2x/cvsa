@@ -12,13 +12,12 @@ const getFactor = (x: number) => {
 	const c = 100;
 	const u = 0.601;
 	const g = 455;
-	if (x>g) {
-		return log(b/log(x+1),a);
+	if (x > g) {
+		return log(b / log(x + 1), a);
+	} else {
+		return log(b / log(x + c), a) + u;
 	}
-	else {
-		return log(b/log(x+c),a)+u;
-	}
-}
+};
 
 /*
  * Returns the minimum ETA in hours for the next snapshot

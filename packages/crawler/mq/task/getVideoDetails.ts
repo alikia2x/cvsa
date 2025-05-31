@@ -18,9 +18,9 @@ export async function insertVideoInfo(sql: Psql, aid: number) {
 	const bvid = data.View.bvid;
 	const desc = data.View.desc;
 	const uid = data.View.owner.mid;
-	const tags = data.Tags
-		.filter((tag) => !["old_channel", "topic"].indexOf(tag.tag_type))
-		.map((tag) => tag.tag_name).join(",");
+	const tags = data.Tags.filter((tag) => !["old_channel", "topic"].indexOf(tag.tag_type))
+		.map((tag) => tag.tag_name)
+		.join(",");
 	const title = data.View.title;
 	const published_at = formatTimestampToPsql(data.View.pubdate * SECOND + 8 * HOUR);
 	const duration = data.View.duration;
@@ -55,7 +55,7 @@ export async function insertVideoInfo(sql: Psql, aid: number) {
 			${stat.share}, 
 			${stat.favorite}
 		)
-	`
+	`;
 
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
 	await ClassifyVideoQueue.add("classifyVideo", { aid });

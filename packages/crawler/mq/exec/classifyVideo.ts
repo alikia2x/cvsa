@@ -34,7 +34,7 @@ export const classifyVideoWorker = async (job: Job) => {
 
 	await job.updateData({
 		...job.data,
-		label: label,
+		label: label
 	});
 
 	return 0;
@@ -46,7 +46,7 @@ export const classifyVideosWorker = async () => {
 		return;
 	}
 
-	await lockManager.acquireLock("classifyVideos");
+	await lockManager.acquireLock("classifyVideos", 5 * 60);
 
 	const videos = await getUnlabelledVideos(sql);
 	logger.log(`Found ${videos.length} unlabelled videos`);

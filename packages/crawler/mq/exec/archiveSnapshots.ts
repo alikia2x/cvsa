@@ -3,8 +3,25 @@ import { getAllVideosWithoutActiveSnapshotSchedule, scheduleSnapshot } from "db/
 import logger from "@core/log/logger.ts";
 import { lockManager } from "@core/mq/lockManager.ts";
 import { getLatestVideoSnapshot } from "db/snapshot.ts";
-import { HOUR, MINUTE } from "@core/const/time.ts";
+import { MINUTE } from "@core/const/time.ts";
 import { sql } from "@core/db/dbNew";
+
+function getNextSaturdayMidnightTimestamp(): number {
+	const now = new Date();
+	const currentDay = now.getDay();
+
+	let daysUntilNextSaturday = (6 - currentDay + 7) % 7;
+
+	if (daysUntilNextSaturday === 0) {
+		daysUntilNextSaturday = 7;
+	}
+
+	const nextSaturday = new Date(now);
+	nextSaturday.setDate(nextSaturday.getDate() + daysUntilNextSaturday);
+	nextSaturday.setHours(0, 0, 0, 0);
+
+	return nextSaturday.getTime();
+}
 
 export const archiveSnapshotsWorker = async (_job: Job) => {
 	try {
@@ -20,15 +37,16 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const latestSnapshot = await getLatestVideoSnapshot(sql, aid);
 			const now = Date.now();
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const interval = 168;
+			const nextSatMidnight = getNextSaturdayMidnightTimestamp();
+			const interval = nextSatMidnight - now;
 			logger.log(
 				`Scheduled archive snapshot for aid ${aid} in ${interval} hours.`,
 				"mq",
 				"fn:archiveSnapshotsWorker"
 			);
-			const targetTime = lastSnapshotedAt + interval * HOUR;
+			const targetTime = lastSnapshotedAt + interval;
 			await scheduleSnapshot(sql, aid, "archive", targetTime);
-			if (now - startedAt > 250 * MINUTE) {
+			if (now - startedAt > 30 * MINUTE) {
 				return;
 			}
 		}
