@@ -10,8 +10,28 @@ import { Portal } from "@/components/utils/Portal";
 import { Dialog, DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
 import { FilledButton } from "@/components/ui/Buttons/FilledButton";
 import { string, object, ValidationError } from "yup";
+import { setLocale } from "yup";
+import { useTranslations } from "next-intl";
 
-const FormSchema = object({
+setLocale({
+	mixed: {
+		default: "field_invalid",
+		required: () => ({ key: "field_required" })
+	},
+	string: {
+		min: ({ min }) => ({ key: "field_too_short", values: { min } }),
+		max: ({ max }) => ({ key: "field_too_big", values: { max } })
+	}
+});
+
+interface LocalizedMessage {
+	key: string;
+	values: {
+		[key: string]: number | string;
+	};
+}
+
+const FormSchema = object().shape({
 	username: string().required().max(50),
 	password: string().required().min(4).max(120),
 	nickname: string().optional().max(30)
@@ -50,6 +70,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	const [loading, setLoading] = useState(false);
 	const [showDialog, setShowDialog] = useState(false);
 	const [dialogContent, setDialogContent] = useState(<></>);
+	const t = useTranslations("");
 
 	const {
 		data: captchaSession,
@@ -74,16 +95,26 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 		return fetcher<CaptchaResultResponse>(url.toString());
 	};
 
+	const translateErrorMessage = (item: LocalizedMessage | string, path?: string) => {
+		if (typeof item === "string") {
+			return item;
+		}
+		return t(`yup_errors.${item.key}`, { ...item.values, field: path ? t(path) : "" });
+	};
+
 	const register = async () => {
 		let username: string | undefined;
 		let password: string | undefined;
 		let nickname: string | undefined;
 		try {
-			const formData = await FormSchema.validate({
-				username: usernameInput,
-				password: passwordInput,
-				nickname: nicknameInput
-			});
+			const formData = await FormSchema.validate(
+				{
+					username: usernameInput,
+					password: passwordInput,
+					nickname: nicknameInput
+				},
+				{ abortEarly: false }
+			);
 			username = formData.username;
 			password = formData.password;
 			nickname = formData.nickname;
@@ -91,6 +122,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			if (!(e instanceof ValidationError)) {
 				return;
 			}
+			console.log(JSON.parse(JSON.stringify(e)));
 			setShowDialog(true);
 			setDialogContent(
 				<>
@@ -99,14 +131,14 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 						<p>注册信息填写有误，请检查后重新提交。</p>
 						<span>错误信息: </span>
 						<br />
-						<ol>
+						<ol className="list-decimal list-inside">
 							{e.errors.map((item, i) => {
-								return <li key={i}>{item}</li>;
+								return <li key={i}>{translateErrorMessage(item, e.inner[i].path)}</li>;
 							})}
 						</ol>
 					</DialogSupportingText>
 					<DialogButtonGroup>
-						<DialogButton onClick={() => setShowDialog(false)}>Close</DialogButton>
+						<DialogButton onClick={() => setShowDialog(false)}>关闭</DialogButton>
 					</DialogButtonGroup>
 				</>
 			);

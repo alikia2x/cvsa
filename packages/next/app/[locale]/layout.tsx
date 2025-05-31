@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import React from "react";
+import { routing } from "@/i18n/routing";
+import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
 	title: "中V档案馆"
 };
 
-export default function RootLayout({
-	children
+export default async function RootLayout({
+	children,
+	params
 }: Readonly<{
 	children: React.ReactNode;
+	params: Promise<{ locale: string }>;
 }>) {
+	const { locale } = await params;
+	if (!hasLocale(routing.locales, locale)) {
+		notFound();
+	}
 	return (
 		<html lang="zh-CN">
 			<head>
@@ -19,8 +28,10 @@ export default function RootLayout({
 				<title>中V档案馆</title>
 			</head>
 			<body className="min-h-screen flex flex-col">
-				{children}
-				<div id="portal-root"></div>
+				<NextIntlClientProvider>
+					{children}
+					<div id="portal-root"></div>
+				</NextIntlClientProvider>
 			</body>
 		</html>
 	);

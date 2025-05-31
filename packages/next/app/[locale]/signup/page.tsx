@@ -4,10 +4,10 @@ import SignUpForm from "./SignUpForm";
 
 export default function SignupPage() {
 	return (
-		<main className="relative flex-grow pt-8 md:pt-0 px-4 md:w-full md:h-full md:flex md:items-center md:justify-center">
+		<main className="relative flex-grow pt-8 px-4 md:w-full md:h-full md:flex md:items-center md:justify-center">
 			<div
 				className="md:w-[40rem] rounded-md md:p-8 md:-translate-y-6
-			md:bg-surface-container md:dark:bg-dark-surface-container"
+				        md:bg-surface-container md:dark:bg-dark-surface-container"
 			>
 				<p className="mb-2">
 					<a href="/">

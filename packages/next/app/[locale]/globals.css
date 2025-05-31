@@ -79,8 +79,6 @@
 	--color-dark-on-error: #690005;
 	--color-dark-error-container: #93000a;
 	--color-dark-on-error-container: #ffdad6;
-
-	--font-zh: "InterVariable", "MiSans VF", sans-serif;
 }
 
 a {
@@ -88,7 +86,7 @@ a {
 }
 
 :root {
-	font-family: "MiSans", "Inter", sans-serif;
+	font-family: "Inter", "MiSans", sans-serif;
 	font-weight: 400;
 	@apply bg-surface dark:bg-dark-surface text-on-surface dark:text-dark-on-surface;
 }
@@ -101,7 +99,7 @@ a {
 
 @supports (font-variation-settings: normal) {
 	:root {
-		font-family: "InterVariable", "MiSans VF", sans-serif;
+		font-family: "Inter Variable", "MiSans VF", sans-serif;
 		font-optical-sizing: auto;
 		font-weight: 330;
 	}

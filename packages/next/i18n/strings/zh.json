@@ -1,0 +1,10 @@
+{
+	"yup_errors": {
+		"field_too_short": "{field}至少需要 {min} 个字符。",
+		"field_too_big": "{field}不能多于 {max} 个字符。",
+		"field_required": "请填写{field}。"
+	},
+	"username": "用户名",
+	"password": "密码",
+	"nickname": "昵称"
+}

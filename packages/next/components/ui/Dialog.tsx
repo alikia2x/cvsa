@@ -13,11 +13,6 @@ export const useDisableBodyScroll = (open: boolean) => {
 	}, [open]);
 };
 
-interface DialogProps {
-	show: boolean;
-	children?: React.ReactNode;
-}
-
 type OptionalChidrenProps<T = React.HTMLAttributes<HTMLElement>> = T & {
 	children?: React.ReactNode;
 };
@@ -32,6 +27,10 @@ type DialogButtonGroupProps = OptionalChidrenProps<DivElementAttr>;
 
 interface DialogButtonProps extends OptionalChidrenProps<ButtonElementAttr> {
 	onClick?: React.MouseEventHandler<HTMLButtonElement>;
+}
+interface DialogProps extends OptionalChidrenProps<DivElementAttr> {
+	show: boolean;
+	children?: React.ReactNode;
 }
 
 export const DialogHeadline: React.FC<DialogHeadlineProps> = ({
@@ -52,7 +51,13 @@ export const DialogSupportingText: React.FC<DialogSupportingTextProps> = ({
 	...rest
 }: DialogHeadlineProps) => {
 	return (
-		<div className={"mt-4 text-sm leading-5 mb-6 " + className || ""} {...rest}>
+		<div
+			className={
+				"mt-4 text-sm leading-5 mb-6 text-on-surface-variant dark:text-dark-on-surface-variant " + className ||
+				""
+			}
+			{...rest}
+		>
 			{children}
 		</div>
 	);
@@ -74,7 +79,7 @@ export const DialogButtonGroup: React.FC<DialogButtonGroupProps> = ({ children, 
 	);
 };
 
-export const Dialog: React.FC<DialogProps> = ({ show, children }: DialogProps) => {
+export const Dialog: React.FC<DialogProps> = ({ show, children, className }: DialogProps) => {
 	useDisableBodyScroll(show);
 	return (
 		<AnimatePresence>
@@ -89,8 +94,8 @@ export const Dialog: React.FC<DialogProps> = ({ show, children }: DialogProps) =
 						transition={{ duration: 0.3 }}
 					/>
 					<motion.div
-						className="fixed min-w-[17.5rem] sm:max-w-[35rem] h-auto z-50 bg-surface-container-high
-					    shadow-2xl shadow-shadow/15 rounded-[1.75rem] p-6 dark:bg-dark-surface-container-high mx-2"
+						className={`fixed min-w-[17.5rem] sm:max-w-[35rem] h-auto z-50 bg-surface-container-high
+				            shadow-2xl shadow-shadow/15 rounded-[1.75rem] p-6 dark:bg-dark-surface-container-high mx-2 ${className}`}
 						initial={{ opacity: 0.5, transform: "scale(1.1)" }}
 						animate={{ opacity: 1, transform: "scale(1)" }}
 						exit={{ opacity: 0 }}
