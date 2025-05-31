@@ -15,7 +15,7 @@ import { SearchIcon } from "@/components/icons/SearchIcon";
 import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export const HeaderDestop = () => {
 	return (
@@ -101,14 +101,14 @@ export const HeaderMobile = () => {
 				)}
 				{!showsearchBox && (
 					<div className="absolute left-1/2 -translate-x-1/2 -translate-y-0.5 inline-flex h-full items-center">
-						<a href="/">
+						<Link href="/">
 							<DarkModeImage
 								lightSrc={LogoMobileLight}
 								darkSrc={LogoMobileDark}
 								alt="Logo"
 								className="w-24 h-8 translate-y-[2px]"
 							/>
-						</a>
+						</Link>
 					</div>
 				)}
 				{showsearchBox && <SearchBox close={() => setShowsearchBox(false)} />}
