@@ -9,6 +9,7 @@
 		"build": "bun build ./src/main.ts --target bun --outdir ./dist"
 	},
 	"dependencies": {
+		"@koshnic/ratelimit": "^1.0.3",
 		"@rabbit-company/argon2id": "^2.1.0",
 		"hono": "^4.7.8",
 		"hono-rate-limiter": "^0.4.2",
