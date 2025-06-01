@@ -1,14 +1,16 @@
 const requiredEnvVars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_PORT", "DB_NAME_CRED"];
 
 const getEnvVar = (key: string) => {
-    return process.env[key] || import.meta.env[key];
-}
+	return process.env[key] || import.meta.env[key];
+};
 
 const unsetVars = requiredEnvVars.filter((key) => getEnvVar(key) === undefined);
 
 if (unsetVars.length > 0) {
 	throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
 }
+
+console.log(process.env);
 
 const databaseHost = getEnvVar("DB_HOST")!;
 const databaseName = getEnvVar("DB_NAME");

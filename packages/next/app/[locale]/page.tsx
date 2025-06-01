@@ -1,5 +1,5 @@
 import { Header } from "@/components/shell/Header";
-import { fetcher } from "@/lib/net";
+import { getUserBySession } from "@/lib/db/user";
 import { UserResponse } from "@backend/src/schema";
 import { cookies } from "next/headers";
 
@@ -8,10 +8,7 @@ export default async function Home() {
 	const sessionID = cookieStore.get("session_id");
 	let user: undefined | UserResponse = undefined;
 	if (sessionID) {
-		try {
-			user = await fetcher<UserResponse>(`${process.env.BACKEND_URL}/user/session/${sessionID.value}`);
-		} finally {
-		}
+		user = await getUserBySession(sessionID.value);
 	}
 	return (
 		<>

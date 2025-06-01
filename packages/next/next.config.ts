@@ -5,8 +5,7 @@ const nextConfig: NextConfig = {
 	devIndicators: false,
 	experimental: {
 		externalDir: true
-	},
-	transpilePackages: ["@cvsa/backend"]
+	}
 };
 
 const withNextIntl = createNextIntlPlugin();

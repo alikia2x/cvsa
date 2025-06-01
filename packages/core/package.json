@@ -1,7 +1,10 @@
 {
-	"name": "core",
+	"name": "@cvsa/core",
+	"private": false,
+	"version": "0.0.1",
 	"scripts": {
-		"test": "bun --env-file=.env.test run vitest"
+		"test": "bun --env-file=.env.test run vitest",
+		"build": "bun build ./index.ts --target node --outdir ./dist"
 	},
 	"dependencies": {
 		"@koshnic/ratelimit": "^1.0.3",
@@ -13,5 +16,7 @@
 	},
 	"devDependencies": {
 		"@types/ioredis": "^5.0.0"
-	}
+	},
+	"main": "./dist/index.js",
+	"types": "./types.d.ts"
 }
