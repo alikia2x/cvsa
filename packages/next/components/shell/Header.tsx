@@ -16,7 +16,7 @@ import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
 import { Link } from "@/i18n/navigation";
-import { UserResponse } from "@backend/src/schema";
+import type { UserResponse } from "@cvsa/backend";
 
 interface HeaderProps {
 	user: UserResponse | null;

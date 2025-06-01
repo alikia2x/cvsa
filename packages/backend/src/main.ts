@@ -15,4 +15,4 @@ configureRoutes(app);
 
 await startServer(app);
 
-export const VERSION = "0.4.6";
+export const VERSION = "0.5.2";

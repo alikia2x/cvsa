@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getUserBySession } from "@/lib/db/user";
-import { UserResponse } from "@backend/src/schema";
+import type { UserResponse } from "@cvsa/backend";
 
 export async function getCurrentUser(): Promise<UserResponse | null> {
 	const cookieStore = await cookies();

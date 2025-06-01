@@ -33,7 +33,7 @@ export default function SignupPage() {
 						<RightArrow className="text-xs inline -translate-y-0.5 ml-1" aria-hidden="true" />
 					</a>
 				</p>
-				<SignUpForm backendURL={process.env.BACKEND_URL ?? ""} />
+				<SignUpForm backendURL={process.env.NEXT_PUBLIC_BACKEND_URL ?? ""} />
 			</div>
 		</main>
 	);

@@ -1,5 +1,5 @@
 import { DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
-import { ErrorCode as ResponseErrorCode } from "@backend/src/schema";
+import type { ErrorCode as ResponseErrorCode } from "@cvsa/backend";
 import { useTranslations } from "next-intl";
 
 interface ErrorDialogProps {

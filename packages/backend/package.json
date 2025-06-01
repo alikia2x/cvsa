@@ -1,9 +1,12 @@
 {
-	"name": "backend",
+	"name": "@cvsa/backend",
+	"private": false,
+	"version": "0.5.3",
 	"scripts": {
 		"format": "prettier --write .",
 		"dev": "NODE_ENV=development bun run --hot src/main.ts",
-		"start": "NODE_ENV=production bun run src/main.ts"
+		"start": "NODE_ENV=production bun run src/main.ts",
+		"build": "bun build ./src/main.ts --target bun --outdir ./dist"
 	},
 	"dependencies": {
 		"@rabbit-company/argon2id": "^2.1.0",
@@ -19,5 +22,7 @@
 	"devDependencies": {
 		"@types/bun": "^1.2.11",
 		"prettier": "^3.5.3"
-	}
+	},
+	"main": "./dist/main.js",
+	"types": "./src/types.d.ts"
 }

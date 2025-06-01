@@ -1,6 +1,6 @@
 import useSWRMutation from "swr/mutation";
 import { useState } from "react";
-import type { CaptchaVerificationRawResponse, CaptchaSessionRawResponse } from "@backend/src/schema";
+import type { CaptchaVerificationRawResponse, CaptchaSessionRawResponse } from "@cvsa/backend";
 import { fetcher } from "@/lib/net";
 import { computeVdfInWorker } from "@/lib/vdf";
 
