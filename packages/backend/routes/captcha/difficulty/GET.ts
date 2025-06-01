@@ -16,12 +16,13 @@ export const getCaptchaDifficultyHandler = createHandlers(async (c) => {
 		if (!difficulty) {
 			const response: ErrorResponse<unknown> = {
 				code: "ENTITY_NOT_FOUND",
-				message: "No difficulty configs found for this route."
+				message: "No difficulty configs found for this route.",
+				errors: []
 			};
 			return c.json<ErrorResponse<unknown>>(response, 404);
 		}
 		return c.json({
-			"difficulty": difficulty
+			difficulty: difficulty
 		});
 	} catch (e: unknown) {
 		if (e instanceof ValidationError) {

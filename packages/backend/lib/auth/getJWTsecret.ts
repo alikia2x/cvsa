@@ -5,9 +5,10 @@ export const getJWTsecret = () => {
 	if (!secret) {
 		const response: ErrorResponse = {
 			message: "JWT_SECRET is not set",
-			code: "SERVER_ERROR"
+			code: "SERVER_ERROR",
+			errors: []
 		};
 		return [response, true];
 	}
 	return [secret, null];
-}
+};

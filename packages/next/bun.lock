@@ -4,7 +4,7 @@
     "": {
       "name": "next",
       "dependencies": {
-        "@cvsa/core": "^0.0.1",
+        "@cvsa/core": "^0.0.2",
         "axios": "^1.9.0",
         "framer-motion": "^12.15.0",
         "i18next": "^25.2.1",
@@ -34,7 +34,7 @@
 
     "@colors/colors": ["@colors/colors@1.6.0", "", {}, "sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA=="],
 
-    "@cvsa/core": ["@cvsa/core@0.0.1", "", { "dependencies": { "@koshnic/ratelimit": "^1.0.3", "chalk": "^5.4.1", "ioredis": "^5.6.1", "logform": "^2.7.0", "postgres": "^3.4.5", "winston": "^3.17.0" } }, "sha512-h7p2AHcvdIA7GCJq4k1sOSGGbs/qjdHa4WlcCh6p1rVgpkpXp6v1Q9lvXca3uqAkInwzXctDSGwKiQp65K5XOg=="],
+    "@cvsa/core": ["@cvsa/core@0.0.2", "", { "dependencies": { "@koshnic/ratelimit": "^1.0.3", "chalk": "^5.4.1", "ioredis": "^5.6.1", "logform": "^2.7.0", "postgres": "^3.4.5", "winston": "^3.17.0" } }, "sha512-SKiFZYk3+DUCx31R+yFlcMb9S6tbdQdSSV2H+cPNgmCoOcEbBcZvB99iG4vy7wpKOcPy1bDVvUEmIMo3nIxCbQ=="],
 
     "@dabh/diagnostics": ["@dabh/diagnostics@2.0.3", "", { "dependencies": { "colorspace": "1.1.x", "enabled": "2.0.x", "kuler": "^2.0.0" } }, "sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA=="],
 

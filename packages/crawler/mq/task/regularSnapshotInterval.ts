@@ -1,6 +1,6 @@
 import { findClosestSnapshot, findSnapshotBefore, getLatestSnapshot } from "db/snapshotSchedule.ts";
 import { HOUR } from "@core/const/time.ts";
-import type { Psql } from "@core/db/global.d.ts";
+import type { Psql } from "@core/db/psql";
 
 export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	const now = Date.now();
@@ -14,7 +14,7 @@ export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	if (hoursDiff < 8) return 24;
 	const viewsDiff = latestSnapshot.views - oldSnapshot.views;
 	if (viewsDiff === 0) return 72;
-	const speedPerDay = viewsDiff / (hoursDiff + 0.001) * 24;
+	const speedPerDay = (viewsDiff / (hoursDiff + 0.001)) * 24;
 	if (speedPerDay < 6) return 36;
 	if (speedPerDay < 120) return 24;
 	if (speedPerDay < 320) return 12;

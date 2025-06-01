@@ -43,7 +43,8 @@ export const registerRateLimiter = async (c: Context<BlankEnv, "/user", {}>, nex
 	if (!allowed) {
 		const response: ErrorResponse = {
 			message: `Too many requests, please retry after ${Math.round(retryAfter)} seconds.`,
-			code: "RATE_LIMIT_EXCEEDED"
+			code: "RATE_LIMIT_EXCEEDED",
+			errors: []
 		};
 		return c.json<ErrorResponse>(response, 429);
 	}

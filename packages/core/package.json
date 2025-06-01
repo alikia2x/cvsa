@@ -1,7 +1,7 @@
 {
 	"name": "@cvsa/core",
 	"private": false,
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"scripts": {
 		"test": "bun --env-file=.env.test run vitest",
 		"build": "bun build ./index.ts --target node --outdir ./dist"
