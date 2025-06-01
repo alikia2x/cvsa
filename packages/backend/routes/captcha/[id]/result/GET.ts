@@ -34,7 +34,8 @@ export const verifyChallengeHandler = createHandlers(
 		if (!ans) {
 			const response: ErrorResponse = {
 				message: "Missing required query parameter: ans",
-				code: "INVALID_QUERY_PARAMS"
+				code: "INVALID_QUERY_PARAMS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 400);
 		}
@@ -46,26 +47,30 @@ export const verifyChallengeHandler = createHandlers(
 				code: "ENTITY_NOT_FOUND",
 				i18n: {
 					key: "backend.error.captcha_not_found"
-				}
+				},
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 401);
 		} else if (data.error && res.status === 400) {
 			const response: ErrorResponse = {
 				message: data.error,
-				code: "INVALID_QUERY_PARAMS"
+				code: "INVALID_QUERY_PARAMS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 400);
 		} else if (data.error) {
 			const response: ErrorResponse = {
 				message: data.error,
-				code: "UNKNOWN_ERROR"
+				code: "UNKNOWN_ERROR",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 500);
 		}
 		if (!data.success) {
 			const response: ErrorResponse = {
 				message: "Incorrect answer",
-				code: "INVALID_CREDENTIALS"
+				code: "INVALID_CREDENTIALS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 401);
 		}

@@ -16,8 +16,13 @@ import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
 import { Link } from "@/i18n/navigation";
+import { UserResponse } from "@backend/src/schema";
 
-export const HeaderDestop = () => {
+interface HeaderProps {
+	user?: UserResponse;
+}
+
+export const HeaderDestop = ({ user }: HeaderProps) => {
 	return (
 		<div className="hidden md:flex relative top-0 left-0 w-full h-28 z-20 justify-between">
 			<div className="w-[305px] xl:ml-8 inline-flex items-center">
@@ -37,14 +42,19 @@ export const HeaderDestop = () => {
 				className="inline-flex relative gap-6 h-full lg:right-12
     				text-xl font-medium items-center w-[15rem] min-w-[8rem] mr-4 lg:mr-0 lg:w-[305px] justify-end"
 			>
-				<a href="/signup">注册</a>
+				{user ? (
+					<Link href="/my/profile">{user.nickname || user.username}</Link>
+				) : (
+					<Link href="/signup">注册</Link>
+				)}
+
 				<a href="/about">关于</a>
 			</div>
 		</div>
 	);
 };
 
-export const HeaderMobile = () => {
+export const HeaderMobile = ({ user }: HeaderProps) => {
 	const [showDrawer, setShowDrawer] = useState(false);
 	const [showsearchBox, setShowsearchBox] = useState(false);
 
@@ -125,11 +135,11 @@ export const HeaderMobile = () => {
 	);
 };
 
-export const Header = () => {
+export const Header = (props: HeaderProps) => {
 	return (
 		<>
-			<HeaderDestop />
-			<HeaderMobile />
+			<HeaderDestop {...props} />
+			<HeaderMobile {...props} />
 		</>
 	);
 };

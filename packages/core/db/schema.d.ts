@@ -53,3 +53,12 @@ export interface SnapshotScheduleType {
 	finished_at?: string;
 	status: string;
 }
+
+export interface DatabaseUserType {
+	id: number;
+	username: string;
+	nickname: string | null;
+	password: string;
+	unq_id: string;
+	role: string;
+}

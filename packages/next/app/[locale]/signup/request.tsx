@@ -1,7 +1,7 @@
 import { Dispatch, JSX, SetStateAction } from "react";
 import { ApiRequestError, fetcher } from "@/lib/net";
 import type { CaptchaVerificationRawResponse, ErrorResponse, SignUpResponse } from "@backend/src/schema";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { LocalizedMessage } from "./SignUpForm";
 import { ErrorDialog } from "./ErrorDialog";
 import { string, object, ValidationError } from "yup";

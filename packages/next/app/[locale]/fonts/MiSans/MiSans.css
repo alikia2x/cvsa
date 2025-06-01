@@ -2,7 +2,7 @@
 	font-family: "MiSans VF";
 	font-style: normal;
 	font-weight: 150 700;
-	font-display: swap;
+	font-display: optional;
 	src: url("MiSans VF.woff2") format("woff2");
 }
 

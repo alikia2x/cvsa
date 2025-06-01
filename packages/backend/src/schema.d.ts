@@ -43,6 +43,12 @@ export interface SignUpResponse {
     token: string;
 }
 
+export interface UserResponse {
+    username: string;
+    nickname: string | null;
+    role: string;
+}
+
 export type CaptchaVerificationRawResponse = {
 	token: string;
 }

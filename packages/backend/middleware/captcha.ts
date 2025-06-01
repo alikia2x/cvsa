@@ -4,7 +4,7 @@ import { SlidingWindow } from "@core/mq/slidingWindow.ts";
 import { getCaptchaConfigMaxDuration, getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty.ts";
 import { sqlCred } from "@core/db/dbNew.ts";
 import { redis } from "@core/db/redis.ts";
-import { verify } from 'hono/jwt';
+import { verify } from "hono/jwt";
 import { JwtTokenInvalid, JwtTokenExpired } from "hono/utils/jwt/types";
 import { getJWTsecret } from "@/lib/auth/getJWTsecret.ts";
 import { lockManager } from "@core/mq/lockManager.ts";
@@ -23,7 +23,8 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 	if (!authHeader) {
 		const response: ErrorResponse = {
 			message: "'Authorization' header is missing.",
-			code: "UNAUTHORIZED"
+			code: "UNAUTHORIZED",
+			errors: []
 		};
 		return c.json<ErrorResponse>(response, 401);
 	}
@@ -32,7 +33,8 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 	if (!authIsBearer || authHeader.length < 8) {
 		const response: ErrorResponse = {
 			message: "'Authorization' header is invalid.",
-			code: "INVALID_HEADER"
+			code: "INVALID_HEADER",
+			errors: []
 		};
 		return c.json<ErrorResponse>(response, 400);
 	}
@@ -60,47 +62,48 @@ export const captchaMiddleware = async (c: Context, next: Next) => {
 		if (consumed) {
 			const response: ErrorResponse = {
 				message: "Token has already been used.",
-				code: "INVALID_CREDENTIALS"
+				code: "INVALID_CREDENTIALS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 401);
 		}
 		if (difficulty < requiredDifficulty) {
 			const response: ErrorResponse = {
 				message: "Token too weak.",
-				code: "UNAUTHORIZED"
+				code: "UNAUTHORIZED",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 401);
 		}
 		const EXPIRE_FIVE_MINUTES = 300;
 		await lockManager.acquireLock(tokenID, EXPIRE_FIVE_MINUTES);
-	}
-	catch (e) {
+	} catch (e) {
 		if (e instanceof JwtTokenInvalid) {
 			const response: ErrorResponse = {
 				message: "Failed to verify the token.",
-				code: "INVALID_CREDENTIALS"
+				code: "INVALID_CREDENTIALS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 400);
-		}
-		else if (e instanceof JwtTokenExpired) {
+		} else if (e instanceof JwtTokenExpired) {
 			const response: ErrorResponse = {
 				message: "Token expired.",
-				code: "INVALID_CREDENTIALS"
+				code: "INVALID_CREDENTIALS",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 400);
-		}
-		else if (e instanceof ValidationError) {
+		} else if (e instanceof ValidationError) {
 			const response: ErrorResponse = {
 				code: "INVALID_QUERY_PARAMS",
 				message: "Invalid query parameters",
 				errors: e.errors
 			};
 			return c.json<ErrorResponse>(response, 400);
-		}
-		else {
+		} else {
 			const response: ErrorResponse = {
 				message: "Unknown error.",
-				code: "UNKNOWN_ERROR"
+				code: "UNKNOWN_ERROR",
+				errors: []
 			};
 			return c.json<ErrorResponse>(response, 500);
 		}
