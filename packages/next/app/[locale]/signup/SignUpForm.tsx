@@ -3,16 +3,16 @@
 import { useEffect, useState } from "react";
 import TextField from "@/components/ui/TextField";
 import LoadingSpinner from "@/components/icons/LoadingSpinner";
-import { ApiRequestError } from "@/lib/net";
 import { Portal } from "@/components/utils/Portal";
-import { Dialog, DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
-import { FilledButton } from "@/components/ui/Buttons/FilledButton";
-import { string, object, ValidationError } from "yup";
+import { Dialog } from "@/components/ui/Dialog";
 import { setLocale } from "yup";
 import { useTranslations } from "next-intl";
-import type { ErrorResponse } from "@backend/src/schema";
-import Link from "next/link";
 import { useCaptcha } from "@/components/hooks/useCaptcha";
+import useSWRMutation from "swr/mutation";
+import { requestSignUp } from "./request";
+import { FilledButton } from "@/components/ui/Buttons/FilledButton";
+import { ErrorDialog } from "./ErrorDialog";
+import { ApiRequestError } from "@/lib/net";
 
 setLocale({
 	mixed: {
@@ -25,52 +25,30 @@ setLocale({
 	}
 });
 
-interface LocalizedMessage {
+export interface LocalizedMessage {
 	key: string;
 	values: {
 		[key: string]: number | string;
 	};
 }
 
-const FormSchema = object().shape({
-	username: string().required().max(50),
-	password: string().required().min(4).max(120),
-	nickname: string().optional().max(30)
-});
-
 interface RegistrationFormProps {
 	backendURL: string;
 }
-
-interface ErrorDialogProps {
-	children: React.ReactNode;
-	closeDialog: () => void;
-}
-
-const ErrorDialog: React.FC<ErrorDialogProps> = ({ children, closeDialog }) => {
-	return (
-		<>
-			<DialogHeadline>错误</DialogHeadline>
-			<DialogSupportingText>{children}</DialogSupportingText>
-			<DialogButtonGroup>
-				<DialogButton onClick={closeDialog}>关闭</DialogButton>
-			</DialogButtonGroup>
-		</>
-	);
-};
 
 const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	const [usernameInput, setUsername] = useState("");
 	const [passwordInput, setPassword] = useState("");
 	const [nicknameInput, setNickname] = useState("");
-	const [loading, setLoading] = useState(false);
 	const [showDialog, setShowDialog] = useState(false);
 	const [dialogContent, setDialogContent] = useState(<></>);
+	const [isLoading, setLoading] = useState(false);
 	const t = useTranslations("");
-	const { startCaptcha, captchaResult } = useCaptcha({
+	const { startCaptcha, captchaResult, captchaUsed, setCaptchaUsedState, captchaError } = useCaptcha({
 		backendURL,
 		route: "POST-/user"
 	});
+	const { trigger } = useSWRMutation(`${backendURL}/user`, requestSignUp);
 
 	const translateErrorMessage = (item: LocalizedMessage | string, path?: string) => {
 		if (typeof item === "string") {
@@ -80,115 +58,51 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	};
 
 	const register = async () => {
-		let username: string | undefined;
-		let password: string | undefined;
-		let nickname: string | undefined;
 		try {
-			const formData = await FormSchema.validate(
-				{
+			if (captchaUsed || !captchaResult) {
+				await startCaptcha();
+			}
+
+			trigger({
+				data: {
 					username: usernameInput,
 					password: passwordInput,
 					nickname: nicknameInput
 				},
-				{ abortEarly: false }
-			);
-			username = formData.username;
-			password = formData.password;
-			nickname = formData.nickname;
-		} catch (e) {
-			if (!(e instanceof ValidationError)) {
-				return;
-			}
-			console.log(JSON.parse(JSON.stringify(e)));
-			setShowDialog(true);
-			setDialogContent(
-				<ErrorDialog closeDialog={() => setShowDialog(false)}>
-					<p>注册信息填写有误，请检查后重新提交。</p>
-					<span>错误信息: </span>
-					<br />
-					<ol className="list-decimal list-inside">
-						{e.errors.map((item, i) => {
-							return <li key={i}>{translateErrorMessage(item, e.inner[i].path)}</li>;
-						})}
-					</ol>
-				</ErrorDialog>
-			);
-			return;
-		}
-
-		setLoading(true);
-		try {
-			if (!captchaResult || !captchaResult.token) {
-				await startCaptcha();
-			}
-			// Proceed with user registration using username, password, and nickname
-			const registrationUrl = new URL(`${backendURL}/user`);
-			const registrationResponse = await fetch(registrationUrl.toString(), {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${captchaResult!.token}`
-				},
-				body: JSON.stringify({
-					username: username,
-					password: password,
-					nickname: nickname
-				})
+				setShowDialog,
+				captchaResult,
+				setCaptchaUsedState,
+				translateErrorMessage,
+				setDialogContent,
+				t
 			});
-
-			if (registrationResponse.ok) {
-				console.log("Registration successful!");
-				// Optionally redirect the user or show a success message
-				//router.push("/login"); // Example redirection
-			} else {
-				const res: ErrorResponse = await registrationResponse.json();
-				setShowDialog(true);
-				setDialogContent(
-					<ErrorDialog closeDialog={() => setShowDialog(false)}>
-						<p>无法为你注册账户。</p>
-						<p>错误码: {res.code}</p>
-						<p>
-							错误信息: <br />
-							{res.i18n ? t(res.i18n.key, { ...res.i18n.values }) : res.message}
-						</p>
-					</ErrorDialog>
-				);
-			}
-		} catch (error) {
-			if (error instanceof ApiRequestError) {
-				const res = error.response as ErrorResponse;
-				setShowDialog(true);
-				setDialogContent(
-					<ErrorDialog closeDialog={() => setShowDialog(false)}>
-						<p>无法为你注册账户。</p>
-						<p>错误码: {res.code}</p>
-						<p>
-							错误信息: <br />
-							{res.i18n
-								? t.rich(res.i18n.key, {
-										...res.i18n.values,
-										support: (chunks) => <Link href="/support">{chunks}</Link>
-									})
-								: res.message}
-						</p>
-					</ErrorDialog>
-				);
-			}
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	useEffect(() => {
-		if (startCaptcha) {
-			startCaptcha();
+		if (!captchaError || captchaError === undefined) return;
+		const err = captchaError as ApiRequestError;
+		setShowDialog(true);
+		if (err.code && err.code == -1) {
+			setDialogContent(
+				<ErrorDialog closeDialog={() => setShowDialog(false)}>
+					<p>无法连接到服务器，请检查你的网络连接后重试。</p>
+				</ErrorDialog>
+			);
 		}
-	}, [startCaptcha]);
+	}, [captchaError]);
+
+	useEffect(() => {
+		startCaptcha();
+	}, []);
 
 	return (
 		<form
 			className="w-full flex flex-col gap-6"
 			onSubmit={async (e) => {
+				setLoading(true);
 				e.preventDefault();
 				await register();
 			}}
@@ -215,8 +129,8 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				supportingText="昵称可以重复。"
 				maxChar={30}
 			/>
-			<FilledButton type="submit" disabled={loading}>
-				{!loading ? <span>注册</span> : <LoadingSpinner />}
+			<FilledButton type="submit" disabled={isLoading}>
+				{isLoading ? <LoadingSpinner /> : <span>注册</span>}
 			</FilledButton>
 			<Portal>
 				<Dialog show={showDialog}>{dialogContent}</Dialog>

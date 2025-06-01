@@ -9,9 +9,24 @@
 	"nickname": "昵称",
 	"backend": {
 		"error": {
+			"captcha_failed": "无法完成安全验证。",
 			"user_exists": "用户名 “{username}” 已被占用。",
 			"user_not_found_after_register": "我们的服务器出现错误：找不到名为'{username}'的用户。请联系我们的<support>支持团队</support>，反馈此问题。",
 			"captcha_not_found": "无法完成安全验证。你可以刷新页面并重试。如果此问题反复出现，你可以联系我们的<support>支持团队</support>，反馈此问题。"
+		},
+		"error_code": {
+			"INVALID_QUERY_PARAMS": "查询无效",
+			"UNKNOWN_ERROR": "未知错误",
+			"INVALID_PAYLOAD": "请求格式错误",
+			"INVALID_FORMAT": "数据格式错误",
+			"INVALID_HEADER": "请求头无效",
+			"BODY_TOO_LARGE": "请求体过大",
+			"UNAUTHORIZED": "未授权",
+			"INVALID_CREDENTIALS": "凭证无效",
+			"ENTITY_NOT_FOUND": "实体不存在",
+			"SERVER_ERROR": "服务器错误",
+			"RATE_LIMIT_EXCEEDED": "请求过于频繁",
+			"ENTITY_EXISTS": "实体已存在"
 		}
 	}
 }

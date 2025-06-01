@@ -1,4 +1,4 @@
-type ErrorCode =
+export type ErrorCode =
 	| "INVALID_QUERY_PARAMS"
 	| "UNKNOWN_ERROR"
 	| "INVALID_PAYLOAD"

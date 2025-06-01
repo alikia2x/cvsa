@@ -1,5 +1,6 @@
 import useSWRMutation from "swr/mutation";
-import type { ErrorResponse, CaptchaSessionResponse, CaptchaVerificationRawResponse } from "@backend/src/schema";
+import { useState } from "react";
+import type { CaptchaVerificationRawResponse, CaptchaSessionRawResponse } from "@backend/src/schema";
 import { fetcher } from "@/lib/net";
 import { computeVdfInWorker } from "@/lib/vdf";
 
@@ -8,27 +9,22 @@ interface UseCaptchaOptions {
 	route: string;
 }
 
-function isErrResponse(res: ErrorResponse | object): res is ErrorResponse {
-	return (res as ErrorResponse).errors !== undefined;
-}
-
 export function useCaptcha({ backendURL, route }: UseCaptchaOptions) {
 	const fullUrl = `${backendURL}/captcha/session`;
+	const [isUsed, setIsUsed] = useState(false);
 
 	const { trigger, data, isMutating, error } = useSWRMutation<CaptchaVerificationRawResponse, Error>(
 		fullUrl,
 		async (url: string) => {
-			const sessionRes = await fetcher<CaptchaSessionResponse>(url, {
+			setIsUsed(false);
+
+			const sessionRes = await fetcher<CaptchaSessionRawResponse>(url, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json"
 				},
 				data: { route }
 			});
-
-			if (isErrResponse(sessionRes)) {
-				throw new Error(sessionRes.message || "Failed to get captcha session");
-			}
 
 			const { g, n, t, id } = sessionRes;
 			if (!g || !n || !t || !id) {
@@ -41,6 +37,7 @@ export function useCaptcha({ backendURL, route }: UseCaptchaOptions) {
 			resultUrl.searchParams.set("ans", ans.result.toString());
 
 			const result = await fetcher<CaptchaVerificationRawResponse>(resultUrl.toString());
+
 			return result;
 		}
 	);
@@ -49,6 +46,8 @@ export function useCaptcha({ backendURL, route }: UseCaptchaOptions) {
 		startCaptcha: trigger,
 		captchaResult: data,
 		isLoadingCaptcha: isMutating,
-		captchaError: error
+		captchaError: error,
+		captchaUsed: isUsed,
+		setCaptchaUsedState: setIsUsed
 	};
 }

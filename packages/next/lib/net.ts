@@ -49,7 +49,7 @@ export async function fetcher<JSON = unknown>(
 			const { status, data } = axiosError.response;
 			throw new ApiRequestError(`HTTP error! status: ${status}`, data, status);
 		} else if (axiosError.request) {
-			throw new ApiRequestError("No response received.");
+			throw new ApiRequestError("No response received", undefined, -1);
 		} else {
 			throw new ApiRequestError(axiosError.message || "Unknown error");
 		}
