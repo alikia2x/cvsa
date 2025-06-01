@@ -10,8 +10,6 @@ if (unsetVars.length > 0) {
 	throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
 }
 
-console.log(process.env);
-
 const databaseHost = getEnvVar("DB_HOST")!;
 const databaseName = getEnvVar("DB_NAME");
 const databaseNameCred = getEnvVar("DB_NAME_CRED")!;
