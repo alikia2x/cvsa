@@ -1,6 +1,6 @@
 import { Dispatch, JSX, SetStateAction } from "react";
 import { ApiRequestError, fetcher } from "@/lib/net";
-import type { CaptchaVerificationRawResponse, ErrorResponse } from "@backend/src/schema";
+import type { CaptchaVerificationRawResponse, ErrorResponse, SignUpResponse } from "@backend/src/schema";
 import Link from "next/link";
 import { LocalizedMessage } from "./SignUpForm";
 import { ErrorDialog } from "./ErrorDialog";
@@ -91,8 +91,9 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 			throw err;
 		}
 		setCaptchaUsedState(true);
-		const registrationResponse = await fetcher(url, {
+		const registrationResponse = await fetcher<SignUpResponse>(url, {
 			method: "POST",
+			withCredentials: true,
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer ${captchaResult!.token}`
@@ -105,7 +106,7 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 		});
 		return registrationResponse;
 	} catch (error) {
-		if (error instanceof ApiRequestError) {
+		if (error instanceof ApiRequestError && error.response) {
 			const res = error.response as ErrorResponse;
 			setShowDialog(true);
 			setDialogContent(
@@ -131,6 +132,17 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 						错误信息：
 						<br />
 						{error.message}
+					</p>
+				</ErrorDialog>
+			);
+		} else {
+			setShowDialog(true);
+			setDialogContent(
+				<ErrorDialog closeDialog={() => setShowDialog(false)} errorCode="UNKNOWN_ERROR">
+					<p>无法为你注册账户。</p>
+					<p>
+						错误信息： <br />
+						<pre className="break-all">{JSON.stringify(error)}</pre>
 					</p>
 				</ErrorDialog>
 			);

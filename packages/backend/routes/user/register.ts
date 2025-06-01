@@ -4,9 +4,10 @@ import { object, string, ValidationError } from "yup";
 import type { Context } from "hono";
 import type { Bindings, BlankEnv, BlankInput } from "hono/types";
 import { sqlCred } from "@core/db/dbNew.ts";
-import { ErrorResponse, StatusResponse } from "src/schema";
+import { ErrorResponse, SignUpResponse } from "src/schema";
 import { generateRandomId } from "@core/lib/randomID";
 import { getUserIP } from "@/middleware/rateLimiters";
+import { setCookie } from "hono/cookie";
 
 const RegistrationBodySchema = object({
 	username: string().trim().required("Username is required").max(50, "Username cannot exceed 50 characters"),
@@ -25,14 +26,15 @@ export const userExists = async (username: string) => {
 	return result.length > 0;
 };
 
-const createLoginSession = async (uid: number, ua?: string, ip?: string) => {
+const createLoginSession = async (uid: number, ua?: string, ip?: string): Promise<string> => {
 	const ip_address = ip || null;
 	const user_agent = ua || null;
-	const id = generateRandomId(16);
+	const id = generateRandomId(24);
 	await sqlCred`
         INSERT INTO login_sessions (id, uid, expire_at, ip_address, user_agent)
         VALUES (${id}, ${uid}, CURRENT_TIMESTAMP + INTERVAL '1 year', ${ip_address}, ${user_agent})
     `;
+	return id;
 };
 
 const getUserIDByName = async (username: string) => {
@@ -91,13 +93,25 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			return c.json<ErrorResponse<string>>(response, 500);
 		}
 
-		createLoginSession(uid, c.req.header("User-Agent"), getUserIP(c));
+		const sessionID = await createLoginSession(uid, c.req.header("User-Agent"), getUserIP(c));
 
-		const response: StatusResponse = {
-			message: `User '${username}' registered successfully.`
+		const response: SignUpResponse = {
+			username: username,
+			token: sessionID
 		};
 
-		return c.json<StatusResponse>(response, 201);
+		const A_YEAR = 365 * 86400;
+		const isDev = process.env.NODE_ENV === "development";
+
+		setCookie(c, "session_id", sessionID, {
+			path: "/",
+			maxAge: A_YEAR,
+			domain: process.env.DOMAIN,
+			secure: isDev ? false : true,
+			sameSite: "Lax"
+		});
+
+		return c.json<SignUpResponse>(response, 201);
 	} catch (e) {
 		if (e instanceof ValidationError) {
 			const response: ErrorResponse<string> = {

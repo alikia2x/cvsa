@@ -13,6 +13,7 @@ import { requestSignUp } from "./request";
 import { FilledButton } from "@/components/ui/Buttons/FilledButton";
 import { ErrorDialog } from "./ErrorDialog";
 import { ApiRequestError } from "@/lib/net";
+import { useRouter } from "next/navigation";
 
 setLocale({
 	mixed: {
@@ -49,6 +50,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 		route: "POST-/user"
 	});
 	const { trigger } = useSWRMutation(`${backendURL}/user`, requestSignUp);
+	const router = useRouter();
 
 	const translateErrorMessage = (item: LocalizedMessage | string, path?: string) => {
 		if (typeof item === "string") {
@@ -63,7 +65,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				await startCaptcha();
 			}
 
-			trigger({
+			await trigger({
 				data: {
 					username: usernameInput,
 					password: passwordInput,
@@ -76,6 +78,8 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				setDialogContent,
 				t
 			});
+
+			router.push("/");
 		} finally {
 			setLoading(false);
 		}

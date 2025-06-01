@@ -16,8 +16,6 @@ export function useCaptcha({ backendURL, route }: UseCaptchaOptions) {
 	const { trigger, data, isMutating, error } = useSWRMutation<CaptchaVerificationRawResponse, Error>(
 		fullUrl,
 		async (url: string) => {
-			setIsUsed(false);
-
 			const sessionRes = await fetcher<CaptchaSessionRawResponse>(url, {
 				method: "POST",
 				headers: {
@@ -37,7 +35,7 @@ export function useCaptcha({ backendURL, route }: UseCaptchaOptions) {
 			resultUrl.searchParams.set("ans", ans.result.toString());
 
 			const result = await fetcher<CaptchaVerificationRawResponse>(resultUrl.toString());
-
+			setIsUsed(false);
 			return result;
 		}
 	);

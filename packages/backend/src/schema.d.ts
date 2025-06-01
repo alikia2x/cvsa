@@ -38,6 +38,11 @@ interface CaptchaSessionRawResponse {
 	t: number;
 }
 
+export interface SignUpResponse {
+    username: string;
+    token: string;
+}
+
 export type CaptchaVerificationRawResponse = {
 	token: string;
 }
