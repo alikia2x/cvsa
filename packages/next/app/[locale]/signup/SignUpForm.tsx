@@ -65,7 +65,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				await startCaptcha();
 			}
 
-			await trigger({
+			const result = await trigger({
 				data: {
 					username: usernameInput,
 					password: passwordInput,
@@ -78,8 +78,9 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				setDialogContent,
 				t
 			});
-
-			router.push("/");
+			if (result) {
+				router.push("/");
+			}
 		} finally {
 			setLoading(false);
 		}

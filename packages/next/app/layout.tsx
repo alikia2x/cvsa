@@ -1,25 +1,17 @@
 import type { Metadata } from "next";
-import "./global.css";
+import "./[locale]/global.css";
 import React from "react";
-import { routing } from "@/i18n/routing";
-import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
+import { NextIntlClientProvider } from "next-intl";
 
 export const metadata: Metadata = {
 	title: "中V档案馆"
 };
 
 export default async function RootLayout({
-	children,
-	params
+	children
 }: Readonly<{
 	children: React.ReactNode;
-	params: Promise<{ locale: string }>;
 }>) {
-	const { locale } = await params;
-	if (!hasLocale(routing.locales, locale)) {
-		notFound();
-	}
 	return (
 		<html lang="zh-CN">
 			<head>

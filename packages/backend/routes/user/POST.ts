@@ -108,7 +108,8 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			maxAge: A_YEAR,
 			domain: process.env.DOMAIN,
 			secure: isDev ? false : true,
-			sameSite: "Lax"
+			sameSite: "Lax",
+			httpOnly: true
 		});
 
 		return c.json<SignUpResponse>(response, 201);

@@ -19,7 +19,7 @@ import { Link } from "@/i18n/navigation";
 import { UserResponse } from "@backend/src/schema";
 
 interface HeaderProps {
-	user?: UserResponse;
+	user: UserResponse | null;
 }
 
 export const HeaderDestop = ({ user }: HeaderProps) => {

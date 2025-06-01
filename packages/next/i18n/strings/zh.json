@@ -28,5 +28,9 @@
 			"RATE_LIMIT_EXCEEDED": "请求过于频繁",
 			"ENTITY_EXISTS": "实体已存在"
 		}
+	},
+	"not_found": {
+		"title": "咦……页面去哪里了(ﾟДﾟ≡ﾟдﾟ)!?",
+		"back_to_home": "带我回首页！"
 	}
 }

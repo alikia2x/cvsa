@@ -3,12 +3,12 @@ import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
 import { createHandlers } from "src/utils.ts";
 import { sqlCred } from "@core/db/dbNew";
-import { DatabaseUserType } from "@core/db/schema";
+import { UserType } from "@core/db/schema";
 
 export const getUserByLoginSessionHandler = createHandlers(
 	async (c: Context<BlankEnv & { Bindings: Bindings }, "/user/session/:id">) => {
 		const id = c.req.param("id");
-		const users = await sqlCred<DatabaseUserType[]>`
+		const users = await sqlCred<UserType[]>`
     		SELECT u.*
             FROM users u
             JOIN login_sessions ls ON u.id = ls.uid

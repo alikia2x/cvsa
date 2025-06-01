@@ -1,6 +1,6 @@
 {
-	"yup_errors": {
-		"field_too_short": "{field}至少需要{min}个字符。",
-		"field_too_long": "{field}不能多于{max}个字符。"
+	"not_found": {
+		"title": "The page you requested cannot be found.",
+		"back_to_home": "Back to Home"
 	}
 }

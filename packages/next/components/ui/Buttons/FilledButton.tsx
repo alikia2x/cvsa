@@ -16,7 +16,7 @@ export const FilledButton = ({
 	...rest
 }: FilledButtonProps) => {
 	let sizeClasses = "text-sm leading-5 h-10 px-4";
-	let shapeClasses = "rounded-full";
+	let shapeClasses = shape === "round" ? "rounded-full" : "rounded-xl";
 
 	if (size === "m") {
 		sizeClasses = "text-base leading-6 h-14 px-6";

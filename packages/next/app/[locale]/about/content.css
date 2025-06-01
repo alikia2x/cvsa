@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+.content {
+	h1 {
+		@apply text-3xl;
+	}
+
+	h2 {
+		@apply text-2xl;
+	}
+
+	h3 {
+		@apply text-xl;
+	}
+
+	h4 {
+		@apply text-lg;
+	}
+
+	p {
+		@apply my-4;
+	}
+
+	ul {
+		@apply list-disc list-inside my-4;
+	}
+
+	ol {
+		@apply list-decimal list-inside my-4;
+	}
+
+	li {
+		@apply my-2;
+	}
+
+	th {
+		@apply bg-gray-200 font-medium;
+	}
+	ul li p,
+	ol li p {
+		@apply inline;
+	}
+}
