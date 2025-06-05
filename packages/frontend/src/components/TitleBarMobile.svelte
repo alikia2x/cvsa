@@ -9,6 +9,7 @@
 	import HomeIcon from "@components/icon/HomeIcon.svelte";
 	import InfoIcon from "@components/icon/InfoIcon.svelte";
 	import RegisterIcon from "@components/icon/RegisterIcon.svelte";
+	import Portal from "@components/Portal.svelte";
 
 	let searchBox: SearchBox | null = null;
 	let showSearchBox = false;
@@ -19,22 +20,24 @@
 	}
 </script>
 
-<NavigationDrawer show={showDrawer} onClose={() => showDrawer = false}>
-	<div class="flex flex-col w-full">
-		<div class="w-full h-14 flex items-center px-4">
-			<HomeIcon className="text-2xl pr-4"/>
-			<a href="/">首页</a>
+<Portal>
+	<NavigationDrawer show={showDrawer} onClose={() => showDrawer = false}>
+		<div class="flex flex-col w-full">
+			<div class="w-full h-14 flex items-center px-4">
+				<HomeIcon className="text-2xl pr-4"/>
+				<a href="/">首页</a>
+			</div>
+			<div class="w-full h-14 flex items-center px-4">
+				<InfoIcon className="text-2xl pr-4"/>
+				<a href="/about">关于</a>
+			</div>
+			<div class="w-full h-14 flex items-center px-4">
+				<RegisterIcon className="text-2xl pr-4"/>
+				<a href="/register">注册</a>
+			</div>
 		</div>
-		<div class="w-full h-14 flex items-center px-4">
-			<InfoIcon className="text-2xl pr-4"/>
-			<a href="/about">关于</a>
-		</div>
-		<div class="w-full h-14 flex items-center px-4">
-			<RegisterIcon className="text-2xl pr-4"/>
-			<a href="/register">注册</a>
-		</div>
-	</div>
-</NavigationDrawer>
+	</NavigationDrawer>
+</Portal>
 
 <div class="md:hidden relative top-0 left-0 w-full h-16 z-20">
 	{#if !showSearchBox}

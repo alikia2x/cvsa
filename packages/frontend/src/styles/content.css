@@ -1,14 +1,6 @@
 @import "tailwindcss";
 
 .content {
-	@apply text-gray-800 dark:text-zinc-100;
-
-	h1,
-	h2,
-	h3,
-	h4 {
-		@apply font-medium text-gray-900 dark:text-white my-4;
-	}
 
 	h1 {
 		@apply text-3xl;
@@ -30,10 +22,6 @@
 		@apply my-4;
 	}
 
-	a {
-		@apply text-slate-800 dark:text-sky-300 hover:underline;
-	}
-
 	ul {
 		@apply list-disc list-inside my-4;
 	}
@@ -44,27 +32,6 @@
 
 	li {
 		@apply my-2;
-	}
-
-	blockquote {
-		@apply border-l-4 border-gray-300 pl-4 italic my-4;
-	}
-
-	code {
-		@apply bg-gray-100 text-gray-800 rounded px-1 duration-300;
-	}
-
-	pre {
-		@apply bg-gray-100 p-4 rounded overflow-x-auto my-4 duration-300 h-0;
-	}
-
-	table {
-		@apply w-full border-collapse my-4;
-	}
-
-	th,
-	td {
-		@apply border border-gray-300 p-2;
 	}
 
 	th {

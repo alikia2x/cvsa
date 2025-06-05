@@ -1,5 +1,5 @@
 import type { Psql } from "@core/db/psql.d.ts";
-import { AllDataType, BiliUserType } from "@core/db/schema";
+import { BiliVideoMetadataType, BiliUserType } from "@core/db/schema";
 import { AkariModelVersion } from "ml/const";
 
 export async function videoExistsInAllData(sql: Psql, aid: number) {
@@ -32,7 +32,7 @@ export async function insertVideoLabel(sql: Psql, aid: number, label: number) {
 export async function getVideoInfoFromAllData(sql: Psql, aid: number) {
 	const rows = await sql<AllDataType[]>`
         SELECT * FROM bilibili_metadata WHERE aid = ${aid}
-    `;
+  `;
 	const row = rows[0];
 	let authorInfo = "";
 	if (row.uid && (await userExistsInBiliUsers(sql, row.uid))) {

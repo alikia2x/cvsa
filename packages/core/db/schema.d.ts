@@ -1,16 +1,3 @@
-export interface AllDataType {
-	id: number;
-	aid: number;
-	bvid: string | null;
-	description: string | null;
-	uid: number | null;
-	tags: string | null;
-	title: string | null;
-	published_at: string | null;
-	duration: number;
-	created_at: string | null;
-}
-
 export interface BiliUserType {
 	id: number;
 	uid: number;
@@ -52,4 +39,28 @@ export interface SnapshotScheduleType {
 	started_at?: string;
 	finished_at?: string;
 	status: string;
+}
+
+export interface UserType {
+	id: number;
+	username: string;
+	nickname: string | null;
+	password: string;
+	unq_id: string;
+	role: string;
+}
+
+export interface BiliVideoMetadataType {
+	id: number;
+	aid: number;
+	bvid: string | null;
+	description: string | null;
+	uid: number | null;
+	tags: string | null;
+	title: string | null;
+	published_at: Date | null;
+	duration: number | null;
+	created_at: Date;
+	status: number;
+	cover_url: string | null;
 }

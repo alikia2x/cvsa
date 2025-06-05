@@ -1,0 +1,111 @@
+import { motion, AnimatePresence } from "framer-motion";
+import React from "react";
+import { TextButton } from "./Buttons/TextButton";
+import { useEffect } from "react";
+
+export const useDisableBodyScroll = (open: boolean) => {
+	useEffect(() => {
+		if (open) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "unset";
+		}
+	}, [open]);
+};
+
+type OptionalChidrenProps<T = React.HTMLAttributes<HTMLElement>> = T & {
+	children?: React.ReactNode;
+};
+
+type HeadElementAttr = React.HTMLAttributes<HTMLHeadElement>;
+type DivElementAttr = React.HTMLAttributes<HTMLDivElement>;
+type ButtonElementAttr = React.HTMLAttributes<HTMLButtonElement>;
+
+type DialogHeadlineProps = OptionalChidrenProps<HeadElementAttr>;
+type DialogSupportingTextProps = OptionalChidrenProps<DivElementAttr>;
+type DialogButtonGroupProps = OptionalChidrenProps<DivElementAttr>;
+
+interface DialogButtonProps extends OptionalChidrenProps<ButtonElementAttr> {
+	onClick?: React.MouseEventHandler<HTMLButtonElement>;
+}
+interface DialogProps extends OptionalChidrenProps<DivElementAttr> {
+	show: boolean;
+	children?: React.ReactNode;
+}
+
+export const DialogHeadline: React.FC<DialogHeadlineProps> = ({
+	children,
+	className,
+	...rest
+}: DialogHeadlineProps) => {
+	return (
+		<h2 className={"text-2xl leading-8 text-on-surface dark:text-dark-on-surface " + className || ""} {...rest}>
+			{children}
+		</h2>
+	);
+};
+
+export const DialogSupportingText: React.FC<DialogSupportingTextProps> = ({
+	children,
+	className,
+	...rest
+}: DialogHeadlineProps) => {
+	return (
+		<div
+			className={
+				"mt-4 text-sm leading-5 mb-6 text-on-surface-variant dark:text-dark-on-surface-variant " + className ||
+				""
+			}
+			{...rest}
+		>
+			{children}
+		</div>
+	);
+};
+
+export const DialogButton: React.FC<DialogButtonProps> = ({ children, onClick, ...rest }: DialogButtonProps) => {
+	return (
+		<TextButton onClick={onClick} {...rest}>
+			{children}
+		</TextButton>
+	);
+};
+
+export const DialogButtonGroup: React.FC<DialogButtonGroupProps> = ({ children, ...rest }: DialogButtonGroupProps) => {
+	return (
+		<div className="flex justify-end gap-2" {...rest}>
+			{children}
+		</div>
+	);
+};
+
+export const Dialog: React.FC<DialogProps> = ({ show, children, className }: DialogProps) => {
+	useDisableBodyScroll(show);
+	return (
+		<AnimatePresence>
+			{show && (
+				<div className="w-full h-full top-0 left-0 absolute flex items-center justify-center">
+					<motion.div
+						className="fixed top-0 left-0 w-full h-full z-40 bg-black/20 pointer-none"
+						aria-hidden="true"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.3 }}
+					/>
+					<motion.div
+						className={`fixed min-w-[17.5rem] sm:max-w-[35rem] h-auto z-50 bg-surface-container-high
+				            shadow-2xl shadow-shadow/15 rounded-[1.75rem] p-6 dark:bg-dark-surface-container-high mx-2 ${className}`}
+						initial={{ opacity: 0.5, transform: "scale(1.1)" }}
+						animate={{ opacity: 1, transform: "scale(1)" }}
+						exit={{ opacity: 0 }}
+						transition={{ ease: [0.31, 0.69, 0.3, 1.02], duration: 0.3 }}
+						aria-modal="true"
+					>
+						{children}
+					</motion.div>
+				</div>
+			)}
+		</AnimatePresence>
+	);
+};

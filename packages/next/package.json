@@ -1,0 +1,40 @@
+{
+	"name": "next",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "next dev --turbopack -p 7400",
+		"build": "next build",
+		"start": "next start -p 7400",
+		"lint": "next lint",
+		"format": "prettier --write ."
+	},
+	"dependencies": {
+		"@cvsa/backend": "^0.5.3",
+		"@cvsa/core": "^0.0.5",
+		"@mdx-js/loader": "^3.1.0",
+		"@mdx-js/react": "^3.1.0",
+		"@next/mdx": "^15.3.3",
+		"@types/mdx": "^2.0.13",
+		"axios": "^1.9.0",
+		"date-fns": "^4.1.0",
+		"framer-motion": "^12.15.0",
+		"fumadocs-mdx": "^11.6.6",
+		"i18next": "^25.2.1",
+		"next": "^15.3.3",
+		"next-intl": "^4.1.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"swr": "^2.3.3",
+		"ua-parser-js": "^2.0.3",
+		"yup": "^1.6.1"
+	},
+	"devDependencies": {
+		"typescript": "^5.8.3",
+		"@types/node": "^20.17.57",
+		"@types/react": "^19.1.6",
+		"@types/react-dom": "^19.1.5",
+		"@tailwindcss/postcss": "^4.1.8",
+		"tailwindcss": "^4.1.8"
+	}
+}

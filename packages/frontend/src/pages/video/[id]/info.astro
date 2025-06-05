@@ -1,13 +1,7 @@
 ---
 import Layout from "@layouts/Layout.astro";
 import TitleBar from "@components/TitleBar.astro";
-import MetadataRow from "@components/InfoPage/MetadataRow.astro";
 import { format } from "date-fns";
-import { zhCN } from "date-fns/locale";
-import { getAllSnapshots } from "src/db/snapshots/getAllSnapshots";
-import { getAidFromBV } from "src/db/bilibili_metadata/getAidFromBV";
-import { getVideoMetadata } from "src/db/bilibili_metadata/getVideoMetadata";
-import { aidExists as idExists } from "src/db/bilibili_metadata/aidExists";
 import StatRow from "@components/VideoInfoPage/StatRow.astro";
 
 const { id } = Astro.params;

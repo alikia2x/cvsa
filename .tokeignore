@@ -6,3 +6,6 @@ data
 *config*
 Inter.css
 MiSans.css
+*.yaml
+*.yml
+*.mdx

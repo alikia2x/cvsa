@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+.border-middle-idle-empty {
+	@apply border-y-[1px];
+}
+
+.border-middle-idle {
+	@apply border-y-[1px] border-t-0;
+}
+
+.border-middle-focus {
+	@apply border-primary dark:border-dark-primary border-y-2 border-t-0;
+}

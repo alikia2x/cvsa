@@ -7,10 +7,10 @@
 		"paths": {
 			"@components/*": ["src/components/*"],
 			"@layouts/*": ["src/layouts/*"],
-			"@utils/*": ["src/utils/*"],
+			"@lib/*": ["src/lib/*"],
 			"@assets/*": ["src/assets/*"],
 			"@styles": ["src/styles/*"],
-			"@core/*": ["../core/*"]
+			"@core/*": ["../core/*"],
 		},
 		"verbatimModuleSyntax": true
 	}
