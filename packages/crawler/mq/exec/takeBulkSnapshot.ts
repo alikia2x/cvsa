@@ -3,7 +3,7 @@ import {
 	bulkScheduleSnapshot,
 	bulkSetSnapshotStatus,
 	scheduleSnapshot,
-	snapshotScheduleExists,
+	snapshotScheduleExists
 } from "db/snapshotSchedule.ts";
 import { bulkGetVideoStats } from "net/bulkGetVideoStats.ts";
 import logger from "@core/log/logger.ts";
@@ -55,7 +55,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 					${shares}, 
 					${favorites}
 				)
-			`
+			`;
 
 			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
 		}
@@ -72,11 +72,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		return `DONE`;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
-			logger.warn(
-				`No available proxy for bulk request now.`,
-				"mq",
-				"fn:takeBulkSnapshotForVideosWorker",
-			);
+			logger.warn(`No available proxy for bulk request now.`, "mq", "fn:takeBulkSnapshotForVideosWorker");
 			await bulkSetSnapshotStatus(sql, ids, "no_proxy");
 			await bulkScheduleSnapshot(sql, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
 			return;

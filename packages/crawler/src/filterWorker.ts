@@ -7,13 +7,13 @@ import { lockManager } from "@core/mq/lockManager.ts";
 import Akari from "ml/akari.ts";
 
 const shutdown = async (signal: string) => {
-    logger.log(`${signal} Received: Shutting down workers...`, "mq");
-    await filterWorker.close(true);
-    process.exit(0);
+	logger.log(`${signal} Received: Shutting down workers...`, "mq");
+	await filterWorker.close(true);
+	process.exit(0);
 };
 
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 await Akari.init();
 
@@ -29,7 +29,7 @@ const filterWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 2, removeOnComplete: { count: 1000 } },
+	{ connection: redis as ConnectionOptions, concurrency: 2, removeOnComplete: { count: 1000 } }
 );
 
 filterWorker.on("active", () => {

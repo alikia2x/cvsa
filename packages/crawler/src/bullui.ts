@@ -11,9 +11,9 @@ createBullBoard({
 	queues: [
 		new BullMQAdapter(LatestVideosQueue),
 		new BullMQAdapter(ClassifyVideoQueue),
-		new BullMQAdapter(SnapshotQueue),
+		new BullMQAdapter(SnapshotQueue)
 	],
-	serverAdapter: serverAdapter,
+	serverAdapter: serverAdapter
 });
 
 const app = express();

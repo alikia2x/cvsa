@@ -10,7 +10,7 @@ import {
 	scheduleCleanupWorker,
 	snapshotTickWorker,
 	snapshotVideoWorker,
-	takeBulkSnapshotForVideosWorker,
+	takeBulkSnapshotForVideosWorker
 } from "mq/exec/executors.ts";
 import { redis } from "@core/db/redis.ts";
 import logger from "@core/log/logger.ts";
@@ -30,15 +30,15 @@ const releaseAllLocks = async () => {
 };
 
 const shutdown = async (signal: string) => {
-    logger.log(`${signal} Received: Shutting down workers...`, "mq");
-    await releaseAllLocks();
+	logger.log(`${signal} Received: Shutting down workers...`, "mq");
+	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
-    process.exit(0);
+	process.exit(0);
 };
 
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 const latestVideoWorker = new Worker(
 	"latestVideos",
@@ -58,8 +58,8 @@ const latestVideoWorker = new Worker(
 		connection: redis as ConnectionOptions,
 		concurrency: 6,
 		removeOnComplete: { count: 1440 },
-		removeOnFail: { count: 0 },
-	},
+		removeOnFail: { count: 0 }
+	}
 );
 
 latestVideoWorker.on("active", () => {
@@ -95,7 +95,7 @@ const snapshotWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 50, removeOnComplete: { count: 2000 } },
+	{ connection: redis as ConnectionOptions, concurrency: 50, removeOnComplete: { count: 2000 } }
 );
 
 snapshotWorker.on("error", (err) => {

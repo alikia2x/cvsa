@@ -25,5 +25,5 @@ export async function insertIntoSongs(sql: Psql, aid: number) {
 			(SELECT duration FROM bilibili_metadata WHERE aid = ${aid})
 		)
 		ON CONFLICT DO NOTHING
-	`
+	`;
 }

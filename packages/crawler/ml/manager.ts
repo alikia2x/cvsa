@@ -6,8 +6,7 @@ export class AIManager {
 	public sessions: { [key: string]: ort.InferenceSession } = {};
 	public models: { [key: string]: string } = {};
 
-	constructor() {
-	}
+	constructor() {}
 
 	public async init() {
 		const modelKeys = Object.keys(this.models);

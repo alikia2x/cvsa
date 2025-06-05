@@ -22,7 +22,7 @@ export async function getVideosNearMilestone(sql: Psql) {
 	return queryResult.map((row) => {
 		return {
 			...row,
-			aid: Number(row.aid),
+			aid: Number(row.aid)
 		};
 	});
 }
@@ -40,7 +40,7 @@ export async function getLatestVideoSnapshot(sql: Psql, aid: number): Promise<nu
 		return {
 			...row,
 			aid: Number(row.aid),
-			time: new Date(row.time).getTime(),
+			time: new Date(row.time).getTime()
 		};
 	})[0];
 }

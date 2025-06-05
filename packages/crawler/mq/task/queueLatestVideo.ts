@@ -6,9 +6,7 @@ import logger from "@core/log/logger.ts";
 import { LatestVideosQueue } from "mq/index.ts";
 import type { Psql } from "@core/db/psql.d.ts";
 
-export async function queueLatestVideos(
-	sql: Psql,
-): Promise<number | null> {
+export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 	let page = 1;
 	let i = 0;
 	const videosFound = new Set();
@@ -26,14 +24,18 @@ export async function queueLatestVideos(
 			if (videoExists) {
 				continue;
 			}
-			await LatestVideosQueue.add("getVideoInfo", { aid }, {
-				delay,
-				attempts: 100,
-				backoff: {
-					type: "fixed",
-					delay: SECOND * 5,
-				},
-			});
+			await LatestVideosQueue.add(
+				"getVideoInfo",
+				{ aid },
+				{
+					delay,
+					attempts: 100,
+					backoff: {
+						type: "fixed",
+						delay: SECOND * 5
+					}
+				}
+			);
 			videosFound.add(aid);
 			allExists = false;
 			delay += Math.random() * SECOND * 1.5;
@@ -42,7 +44,7 @@ export async function queueLatestVideos(
 		logger.log(
 			`Page ${page} crawled, total: ${videosFound.size}/${i} videos added/observed.`,
 			"net",
-			"fn:queueLatestVideos()",
+			"fn:queueLatestVideos()"
 		);
 		if (allExists) {
 			return 0;

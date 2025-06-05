@@ -5,15 +5,15 @@ import {
 	getBulkSnapshotsInNextSecond,
 	getSnapshotsInNextSecond,
 	setSnapshotStatus,
-	videoHasProcessingSchedule,
+	videoHasProcessingSchedule
 } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
 import { SnapshotQueue } from "mq/index.ts";
 import { sql } from "@core/db/dbNew";
 
 const priorityMap: { [key: string]: number } = {
-	"milestone": 1,
-	"normal": 3,
+	milestone: 1,
+	normal: 3
 };
 
 export const bulkSnapshotTickWorker = async (_job: Job) => {
@@ -35,12 +35,16 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 					created_at: schedule.created_at,
 					started_at: schedule.started_at,
 					finished_at: schedule.finished_at,
-					status: schedule.status,
+					status: schedule.status
 				};
 			});
-			await SnapshotQueue.add("bulkSnapshotVideo", {
-				schedules: schedulesData,
-			}, { priority: 3 });
+			await SnapshotQueue.add(
+				"bulkSnapshotVideo",
+				{
+					schedules: schedulesData
+				},
+				{ priority: 3 }
+			);
 		}
 		return `OK`;
 	} catch (e) {
@@ -61,11 +65,15 @@ export const snapshotTickWorker = async (_job: Job) => {
 			}
 			const aid = Number(schedule.aid);
 			await setSnapshotStatus(sql, schedule.id, "processing");
-			await SnapshotQueue.add("snapshotVideo", {
-				aid: Number(aid),
-				id: Number(schedule.id),
-				type: schedule.type ?? "normal",
-			}, { priority });
+			await SnapshotQueue.add(
+				"snapshotVideo",
+				{
+					aid: Number(aid),
+					id: Number(schedule.id),
+					type: schedule.type ?? "normal"
+				},
+				{ priority }
+			);
 		}
 		return `OK`;
 	} catch (e) {

@@ -16,8 +16,8 @@ class AkariProto extends AIManager {
 	constructor() {
 		super();
 		this.models = {
-			"classifier": onnxClassifierPath,
-			"embedding": onnxEmbeddingPath,
+			classifier: onnxClassifierPath,
+			embedding: onnxEmbeddingPath
 		};
 	}
 
@@ -55,7 +55,7 @@ class AkariProto extends AIManager {
 
 		const { input_ids } = await tokenizer(texts, {
 			add_special_tokens: false,
-			return_tensor: false,
+			return_tensor: false
 		});
 
 		const cumsum = (arr: number[]): number[] =>
@@ -66,9 +66,9 @@ class AkariProto extends AIManager {
 
 		const inputs = {
 			input_ids: new ort.Tensor("int64", new BigInt64Array(flattened_input_ids.map(BigInt)), [
-				flattened_input_ids.length,
+				flattened_input_ids.length
 			]),
-			offsets: new ort.Tensor("int64", new BigInt64Array(offsets.map(BigInt)), [offsets.length]),
+			offsets: new ort.Tensor("int64", new BigInt64Array(offsets.map(BigInt)), [offsets.length])
 		};
 
 		const { embeddings } = await session.run(inputs);
@@ -77,21 +77,14 @@ class AkariProto extends AIManager {
 
 	private async runClassification(embeddings: number[]): Promise<number[]> {
 		const session = this.getModelSession("classifier");
-		const inputTensor = new ort.Tensor(
-			Float32Array.from(embeddings),
-			[1, 3, 1024],
-		);
+		const inputTensor = new ort.Tensor(Float32Array.from(embeddings), [1, 3, 1024]);
 
 		const { logits } = await session.run({ channel_features: inputTensor });
 		return this.softmax(logits.data as Float32Array);
 	}
 
 	public async classifyVideo(title: string, description: string, tags: string, aid?: number): Promise<number> {
-		const embeddings = await this.getJinaEmbeddings1024([
-			title,
-			description,
-			tags,
-		]);
+		const embeddings = await this.getJinaEmbeddings1024([title, description, tags]);
 		const probabilities = await this.runClassification(embeddings);
 		if (aid) {
 			logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml");

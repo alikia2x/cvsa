@@ -34,7 +34,7 @@ export const classifyVideoWorker = async (job: Job) => {
 
 	await job.updateData({
 		...job.data,
-		label: label,
+		label: label
 	});
 
 	return 0;
@@ -46,19 +46,19 @@ export const classifyVideosWorker = async () => {
 		return;
 	}
 
-	await lockManager.acquireLock("classifyVideos");
+	await lockManager.acquireLock("classifyVideos", 5 * 60);
 
 	const videos = await getUnlabelledVideos(sql);
 	logger.log(`Found ${videos.length} unlabelled videos`);
 
-	let i = 0;
+	const startTime = new Date().getTime();
 	for (const aid of videos) {
-		if (i > 200) {
+		const now = new Date().getTime();
+		if (now - startTime > 4.2 * MINUTE) {
 			await lockManager.releaseLock("classifyVideos");
-			return 10000 + i;
+			return 1;
 		}
 		await ClassifyVideoQueue.add("classifyVideo", { aid: Number(aid) });
-		i++;
 	}
 	await lockManager.releaseLock("classifyVideos");
 	return 0;

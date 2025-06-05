@@ -56,65 +56,65 @@ const databasePreparationQuery = `
     CREATE INDEX idx_snapshot_schedule_status ON snapshot_schedule USING btree (status);
     CREATE INDEX idx_snapshot_schedule_type ON snapshot_schedule USING btree (type);
     CREATE UNIQUE INDEX snapshot_schedule_pkey ON snapshot_schedule USING btree (id);
-`
+`;
 
 const cleanUpQuery = `
     DROP SEQUENCE IF EXISTS "snapshot_schedule_id_seq" CASCADE;
     DROP TABLE IF EXISTS "snapshot_schedule" CASCADE;
-`
+`;
 
 async function testMocking() {
-	await sql.begin(async tx => {
-        await tx.unsafe(cleanUpQuery).simple();
+	await sql.begin(async (tx) => {
+		await tx.unsafe(cleanUpQuery).simple();
 		await tx.unsafe(databasePreparationQuery).simple();
-        
-        await tx`
+
+		await tx`
             INSERT INTO snapshot_schedule 
-            ${sql(mockSnapshotSchedules, 'aid', 'created_at', 'finished_at', 'id', 'started_at', 'status', 'type')}
+            ${sql(mockSnapshotSchedules, "aid", "created_at", "finished_at", "id", "started_at", "status", "type")}
         `;
 
-        await tx`
+		await tx`
             ROLLBACK;
-        `
+        `;
 
-        await tx.unsafe(cleanUpQuery).simple();
-        return;
+		await tx.unsafe(cleanUpQuery).simple();
+		return;
 	});
 }
 
 async function testBulkSetSnapshotStatus() {
-    return await sql.begin(async tx => {
-        await tx.unsafe(cleanUpQuery).simple();
-        await tx.unsafe(databasePreparationQuery).simple();
+	return await sql.begin(async (tx) => {
+		await tx.unsafe(cleanUpQuery).simple();
+		await tx.unsafe(databasePreparationQuery).simple();
 
-        await tx`
+		await tx`
             INSERT INTO snapshot_schedule 
-            ${sql(mockSnapshotSchedules, 'aid', 'created_at', 'finished_at', 'id', 'started_at', 'status', 'type')}
+            ${sql(mockSnapshotSchedules, "aid", "created_at", "finished_at", "id", "started_at", "status", "type")}
         `;
 
 		const ids = [1, 2, 3];
-		
-        await bulkSetSnapshotStatus(tx, ids, 'pending')
 
-        const rows = tx<{status: string}[]>`
+		await bulkSetSnapshotStatus(tx, ids, "pending");
+
+		const rows = tx<{ status: string }[]>`
             SELECT status FROM snapshot_schedule WHERE id = 1;
         `.execute();
 
-        await tx`
+		await tx`
             ROLLBACK;
-        `
+        `;
 
-        await tx.unsafe(cleanUpQuery).simple();
-        return rows;
+		await tx.unsafe(cleanUpQuery).simple();
+		return rows;
 	});
 }
 
 test("data mocking works", async () => {
-    await testMocking();
+	await testMocking();
 	expect(() => {}).not.toThrowError();
 });
 
 test("bulkSetSnapshotStatus core logic works smoothly", async () => {
-    const rows = await testBulkSetSnapshotStatus();
-	expect(rows.every(item => item.status === 'pending')).toBe(true);
+	const rows = await testBulkSetSnapshotStatus();
+	expect(rows.every((item) => item.status === "pending")).toBe(true);
 });
