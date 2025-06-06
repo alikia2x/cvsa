@@ -1,5 +1,6 @@
 {
 	"name": "crawler",
+	"version": "1.2.26",
 	"scripts": {
 		"test": "bun --env-file=.env.test run vitest",
 		"worker:main": "bun run ./src/worker.ts",
