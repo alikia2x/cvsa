@@ -182,7 +182,8 @@ export async function scheduleSnapshot(
 	aid: number,
 	type: string,
 	targetTime: number,
-	force: boolean = false
+	force: boolean = false,
+	adjustTime: boolean = true
 ) {
 	let adjustedTime = new Date(targetTime);
 	const hashActiveSchedule = await videoHasActiveScheduleWithType(sql, aid, type);
@@ -204,7 +205,7 @@ export async function scheduleSnapshot(
 		}
 	}
 	if (hashActiveSchedule && !force) return;
-	if (type !== "milestone" && type !== "new") {
+	if (type !== "milestone" && type !== "new" && adjustTime) {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
 	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
@@ -224,10 +225,11 @@ export async function bulkScheduleSnapshot(
 	aids: number[],
 	type: string,
 	targetTime: number,
-	force: boolean = false
+	force: boolean = false,
+	adjustTime: boolean = true
 ) {
 	for (const aid of aids) {
-		await scheduleSnapshot(sql, aid, type, targetTime, force);
+		await scheduleSnapshot(sql, aid, type, targetTime, force, adjustTime);
 	}
 }
 

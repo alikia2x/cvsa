@@ -90,7 +90,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
 			logger.warn(`No available proxy for aid ${job.data.aid}.`, "mq", "fn:snapshotVideoWorker");
 			await setSnapshotStatus(sql, id, "no_proxy");
-			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval);
+			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval, false, true);
 			return;
 		} else if (e instanceof NetSchedulerError && e.code === "ALICLOUD_PROXY_ERR") {
 			logger.warn(

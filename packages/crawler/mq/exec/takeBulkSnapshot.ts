@@ -46,13 +46,13 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			await sql`
                 INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
                 VALUES (
-					${aid}, 
-					${views}, 
-					${danmakus}, 
-					${replies}, 
-					${likes}, 
-					${coins}, 
-					${shares}, 
+					${aid},
+					${views},
+					${danmakus},
+					${replies},
+					${likes},
+					${coins},
+					${shares},
 					${favorites}
 				)
 			`;
@@ -74,7 +74,14 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
 			logger.warn(`No available proxy for bulk request now.`, "mq", "fn:takeBulkSnapshotForVideosWorker");
 			await bulkSetSnapshotStatus(sql, ids, "no_proxy");
-			await bulkScheduleSnapshot(sql, aidsToFetch, "normal", Date.now() + 20 * MINUTE * Math.random());
+			await bulkScheduleSnapshot(
+				sql,
+				aidsToFetch,
+				"normal",
+				Date.now() + 20 * MINUTE * Math.random(),
+				false,
+				true
+			);
 			return;
 		}
 		logger.error(e as Error, "mq", "fn:takeBulkSnapshotForVideosWorker");
