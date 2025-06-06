@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { getAllVideosWithoutActiveSnapshotSchedule, scheduleSnapshot } from "db/snapshotSchedule.ts";
+import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
 import { lockManager } from "@core/mq/lockManager.ts";
 import { getLatestVideoSnapshot } from "db/snapshot.ts";
@@ -31,7 +31,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			return;
 		}
 		await lockManager.acquireLock("dispatchArchiveSnapshots", 30 * 60);
-		const aids = await getAllVideosWithoutActiveSnapshotSchedule(sql);
+		const aids = await getVideosWithoutActiveSnapshotScheduleByType(sql, "archive");
 		for (const rawAid of aids) {
 			const aid = Number(rawAid);
 			const latestSnapshot = await getLatestVideoSnapshot(sql, aid);

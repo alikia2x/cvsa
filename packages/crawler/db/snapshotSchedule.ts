@@ -19,8 +19,8 @@ export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis)
 	const startTime = now.getTime();
 
 	const result = await sql<{ window_start: Date; count: number }[]>`
-		SELECT 
-		date_trunc('hour', started_at) + 
+		SELECT
+		date_trunc('hour', started_at) +
 		(EXTRACT(minute FROM started_at)::int / 5 * INTERVAL '5 minutes') AS window_start,
 		COUNT(*) AS count
 		FROM snapshot_schedule
@@ -56,8 +56,8 @@ async function getWindowCount(redisClient: Redis, offset: number): Promise<numbe
 
 export async function snapshotScheduleExists(sql: Psql, id: number) {
 	const rows = await sql<{ id: number }[]>`
-		SELECT id 
-		FROM snapshot_schedule 
+		SELECT id
+		FROM snapshot_schedule
 		WHERE id = ${id}
 	`;
 	return rows.length > 0;
@@ -65,9 +65,9 @@ export async function snapshotScheduleExists(sql: Psql, id: number) {
 
 export async function videoHasActiveScheduleWithType(sql: Psql, aid: number, type: string) {
 	const rows = await sql<{ status: string }[]>`
-		SELECT status FROM snapshot_schedule 
+		SELECT status FROM snapshot_schedule
 		WHERE aid = ${aid}
-			AND (status = 'pending' OR status = 'processing') 
+			AND (status = 'pending' OR status = 'processing')
 			AND type = ${type}
 	`;
 	return rows.length > 0;
@@ -76,7 +76,7 @@ export async function videoHasActiveScheduleWithType(sql: Psql, aid: number, typ
 export async function videoHasProcessingSchedule(sql: Psql, aid: number) {
 	const rows = await sql<{ status: string }[]>`
 		SELECT status
-		FROM snapshot_schedule 
+		FROM snapshot_schedule
 		WHERE aid = ${aid}
 			AND status = 'processing'
 	`;
@@ -88,7 +88,7 @@ export async function bulkGetVideosWithoutProcessingSchedules(sql: Psql, aids: n
 		SELECT aid
 		FROM snapshot_schedule
 		WHERE aid = ANY(${aids})
-			AND status != 'processing' 
+			AND status != 'processing'
 		GROUP BY aid
 	`;
 	return rows.map((row) => Number(row.aid));
@@ -134,8 +134,8 @@ export async function findSnapshotBefore(sql: Psql, aid: number, targetTime: Dat
 
 export async function hasAtLeast2Snapshots(sql: Psql, aid: number) {
 	const res = await sql<{ count: number }[]>`
-		SELECT COUNT(*) 
-		FROM video_snapshot 
+		SELECT COUNT(*)
+		FROM video_snapshot
 		WHERE aid = ${aid}
 	`;
 	return res[0].count >= 2;
@@ -143,10 +143,10 @@ export async function hasAtLeast2Snapshots(sql: Psql, aid: number) {
 
 export async function getLatestSnapshot(sql: Psql, aid: number): Promise<Snapshot | null> {
 	const res = await sql<{ created_at: string; views: number }[]>`
-		SELECT created_at, views 
-		FROM video_snapshot 
+		SELECT created_at, views
+		FROM video_snapshot
 		WHERE aid = ${aid}
-		ORDER BY created_at DESC 
+		ORDER BY created_at DESC
 		LIMIT 1
 	`;
 	if (res.length === 0) return null;
@@ -209,11 +209,11 @@ export async function scheduleSnapshot(
 	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return sql`
-		INSERT INTO snapshot_schedule 
-			(aid, type, started_at) 
+		INSERT INTO snapshot_schedule
+			(aid, type, started_at)
 			VALUES (
-				${aid}, 
-				${type}, 
+				${aid},
+				${type},
 				${adjustedTime.toISOString()}
 			)
 	`;
@@ -331,20 +331,10 @@ export async function getVideosWithoutActiveSnapshotScheduleByType(sql: Psql, ty
 	const rows = await sql<{ aid: string }[]>`
 		SELECT s.aid
 		FROM songs s
-		LEFT JOIN snapshot_schedule ss ON 
+		LEFT JOIN snapshot_schedule ss ON
 		    s.aid = ss.aid AND
 		    (ss.status = 'pending' OR ss.status = 'processing') AND
 		    ss.type = ${type}
-		WHERE ss.aid IS NULL
-	`;
-	return rows.map((r) => Number(r.aid));
-}
-
-export async function getAllVideosWithoutActiveSnapshotSchedule(psql: Psql) {
-	const rows = await psql<{ aid: number }[]>`
-		SELECT s.aid
-		FROM bilibili_metadata s
-		LEFT JOIN snapshot_schedule ss ON s.aid = ss.aid AND (ss.status = 'pending' OR ss.status = 'processing')
 		WHERE ss.aid IS NULL
 	`;
 	return rows.map((r) => Number(r.aid));
