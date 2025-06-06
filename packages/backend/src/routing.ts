@@ -6,10 +6,13 @@ import { Hono } from "hono";
 import { Variables } from "hono/types";
 import { createCaptchaSessionHandler, verifyChallengeHandler } from "routes/captcha";
 import { getCaptchaDifficultyHandler } from "routes/captcha/difficulty/GET.ts";
+import { getVideosHanlder } from "@/routes/videos";
 
 export function configureRoutes(app: Hono<{ Variables: Variables }>) {
 	app.get("/", ...rootHandler);
 	app.all("/ping", ...pingHandler);
+
+	app.get("/videos", ...getVideosHanlder);
 
 	app.get("/video/:id/snapshots", ...getSnapshotsHanlder);
 	app.get("/video/:id/info", ...videoInfoHandler);

@@ -1,4 +1,4 @@
-import { Context, Hono } from "hono";
+import { Hono } from "hono";
 import { Variables } from "hono/types";
 import { bodyLimitForPing } from "./bodyLimits.ts";
 import { pingHandler } from "routes/ping";
