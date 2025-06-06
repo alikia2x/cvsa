@@ -84,5 +84,5 @@ export const snapshotTickWorker = async (_job: Job) => {
 export const closetMilestone = (views: number) => {
 	if (views < 100000) return 100000;
 	if (views < 1000000) return 1000000;
-	return 10000000;
+	return Math.ceil(views / 1000000) * 1000000;
 };

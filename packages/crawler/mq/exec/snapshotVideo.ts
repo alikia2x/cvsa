@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { scheduleSnapshot, setSnapshotStatus, snapshotScheduleExists } from "db/snapshotSchedule.ts";
+import { getLatestSnapshot, scheduleSnapshot, setSnapshotStatus, snapshotScheduleExists } from "db/snapshotSchedule.ts";
 import logger from "@core/log/logger.ts";
 import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
 import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata.ts";
@@ -8,6 +8,7 @@ import { getSongsPublihsedAt } from "db/songs.ts";
 import { getAdjustedShortTermETA } from "mq/scheduling.ts";
 import { NetSchedulerError } from "@core/net/delegate.ts";
 import { sql } from "@core/db/dbNew.ts";
+import { closetMilestone } from "./snapshotTick.ts";
 
 const snapshotTypeToTaskMap: { [key: string]: string } = {
 	milestone: "snapshotMilestoneVideo",
@@ -21,6 +22,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 	const type = job.data.type;
 	const task = snapshotTypeToTaskMap[type] ?? "snapshotVideo";
 	const retryInterval = type === "milestone" ? 5 * SECOND : 2 * MINUTE;
+	const latestSnapshot = await getLatestSnapshot(sql, aid);
 	try {
 		const exists = await snapshotScheduleExists(sql, id);
 		if (!exists) {
@@ -71,6 +73,10 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			await scheduleSnapshot(sql, aid, type, Date.now() + intervalMins * MINUTE, true);
 		}
 		if (type !== "milestone") return;
+		const alreadyAchievedMilestone = stat.views > closetMilestone(latestSnapshot.views);
+		if (alreadyAchievedMilestone) {
+			return;
+		}
 		const eta = await getAdjustedShortTermETA(sql, aid);
 		if (eta > 144) {
 			const etaHoursString = eta.toFixed(2) + " hrs";

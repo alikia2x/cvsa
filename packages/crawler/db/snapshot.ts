@@ -4,20 +4,20 @@ import type { Psql } from "@core/db/psql.d.ts";
 
 export async function getVideosNearMilestone(sql: Psql) {
 	const queryResult = await sql<LatestSnapshotType[]>`
-        SELECT ls.*
+    	SELECT ls.*
         FROM latest_video_snapshot ls
-                 RIGHT JOIN songs ON songs.aid = ls.aid
+                RIGHT JOIN songs ON songs.aid = ls.aid
         WHERE
             (views >= 50000 AND views < 100000) OR
             (views >= 900000 AND views < 1000000) OR
-            (views >= 9900000 AND views < 10000000)
+            (views >= CEIL(views::float/1000000::float)*1000000-100000 AND views < CEIL(views::float/1000000::float)*1000000)
         UNION
         SELECT ls.*
         FROM latest_video_snapshot ls
         WHERE
             (views >= 90000 AND views < 100000) OR
             (views >= 900000 AND views < 1000000) OR
-            (views >= 9900000 AND views < 10000000)
+            (views >= CEIL(views::float/1000000::float)*1000000-100000 AND views < CEIL(views::float/1000000::float)*1000000)
     `;
 	return queryResult.map((row) => {
 		return {
