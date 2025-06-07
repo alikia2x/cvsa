@@ -2,7 +2,7 @@ import { Dispatch, JSX, SetStateAction } from "react";
 import { ApiRequestError, fetcher } from "@/lib/net";
 import type { CaptchaVerificationRawResponse, ErrorResponse, SignUpResponse } from "@cvsa/backend";
 import { Link } from "@/i18n/navigation";
-import { LocalizedMessage } from "./SignUpForm";
+import { LocalizedMessage } from "./LoginForm";
 import { ErrorDialog } from "@/components/utils/ErrorDialog";
 import { string, object, ValidationError, setLocale } from "yup";
 
@@ -17,38 +17,31 @@ setLocale({
 	}
 });
 
-interface SignUpFormData {
+interface LoginFormData {
 	username: string;
 	password: string;
-	nickname?: string;
 }
 
 const FormSchema = object().shape({
 	username: string().required().max(50),
-	password: string().required().min(4).max(120),
-	nickname: string().optional().max(30)
+	password: string().required().min(4).max(120)
 });
 
 const validateForm = async (
-	data: SignUpFormData,
+	data: LoginFormData,
 	setShowDialog: Dispatch<SetStateAction<boolean>>,
 	setDialogContent: Dispatch<SetStateAction<JSX.Element>>,
 	translateErrorMessage: (item: LocalizedMessage | string, path?: string) => string
-): Promise<SignUpFormData | null> => {
-	const { username: usernameInput, password: passwordInput, nickname: nicknameInput } = data;
+): Promise<LoginFormData | null> => {
+	const { username: usernameInput, password: passwordInput } = data;
 	try {
-		const formData = await FormSchema.validate(
-			{
-				username: usernameInput,
-				password: passwordInput,
-				nickname: nicknameInput
-			},
-			{ abortEarly: false }
-		);
+		const formData = await FormSchema.validate({
+			username: usernameInput,
+			password: passwordInput
+		});
 		return {
 			username: formData.username,
-			password: formData.password,
-			nickname: formData.nickname
+			password: formData.password
 		};
 	} catch (e) {
 		if (!(e instanceof ValidationError)) {
@@ -57,14 +50,7 @@ const validateForm = async (
 		setShowDialog(true);
 		setDialogContent(
 			<ErrorDialog closeDialog={() => setShowDialog(false)}>
-				<p>注册信息填写有误，请检查后重新提交。</p>
-				<span>错误信息: </span>
-				<br />
-				<ol className="list-decimal list-inside">
-					{e.errors.map((item, i) => {
-						return <li key={i}>{translateErrorMessage(item, e.inner[i].path)}</li>;
-					})}
-				</ol>
+				<p>{translateErrorMessage(e.errors[0], e.path)}</p>
 			</ErrorDialog>
 		);
 		return null;
@@ -72,7 +58,7 @@ const validateForm = async (
 };
 
 interface RequestSignUpArgs {
-	data: SignUpFormData;
+	data: LoginFormData;
 	setShowDialog: Dispatch<SetStateAction<boolean>>;
 	setDialogContent: Dispatch<SetStateAction<JSX.Element>>;
 	translateErrorMessage: (item: LocalizedMessage | string, path?: string) => string;
@@ -81,13 +67,13 @@ interface RequestSignUpArgs {
 	t: any;
 }
 
-export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpArgs }) => {
+export const requestLogin = async (url: string, { arg }: { arg: RequestSignUpArgs }) => {
 	const { data, setShowDialog, setDialogContent, translateErrorMessage, setCaptchaUsedState, captchaResult, t } = arg;
 	const res = await validateForm(data, setShowDialog, setDialogContent, translateErrorMessage);
 	if (!res) {
 		return;
 	}
-	const { username, nickname, password } = res;
+	const { username, password } = res;
 
 	try {
 		if (!captchaResult) {
@@ -111,8 +97,7 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 			},
 			data: {
 				username: username,
-				password: password,
-				nickname: nickname
+				password: password
 			}
 		});
 		return registrationResponse;
@@ -122,15 +107,16 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 			setShowDialog(true);
 			setDialogContent(
 				<ErrorDialog closeDialog={() => setShowDialog(false)} errorCode={res.code}>
-					<p>无法为你注册账户。</p>
 					<p>
-						错误信息: <br />
-						{res.i18n
-							? t.rich(res.i18n.key, {
-									...res.i18n.values,
-									support: (chunks: string) => <Link href="/support">{chunks}</Link>
-								})
-							: res.message}
+						无法登录：
+						<span>
+							{res.i18n
+								? t.rich(res.i18n.key, {
+										...res.i18n.values,
+										support: (chunks: string) => <Link href="/support">{chunks}</Link>
+									})
+								: res.message}
+						</span>
 					</p>
 				</ErrorDialog>
 			);
@@ -138,7 +124,7 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 			setShowDialog(true);
 			setDialogContent(
 				<ErrorDialog closeDialog={() => setShowDialog(false)}>
-					<p>无法为你注册账户。</p>
+					<p>无法登录。</p>
 					<p>
 						错误信息：
 						<br />
@@ -150,7 +136,7 @@ export const requestSignUp = async (url: string, { arg }: { arg: RequestSignUpAr
 			setShowDialog(true);
 			setDialogContent(
 				<ErrorDialog closeDialog={() => setShowDialog(false)} errorCode="UNKNOWN_ERROR">
-					<p>无法为你注册账户。</p>
+					<p>无法登录。</p>
 					<p>
 						错误信息： <br />
 						<pre className="break-all">{JSON.stringify(error)}</pre>

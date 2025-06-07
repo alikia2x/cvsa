@@ -2,6 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import type { VideoInfoData } from "@cvsa/core";
 
 const StatRow = ({ title, description }: { title: string; description?: number }) => {
 	return (
@@ -12,6 +14,21 @@ const StatRow = ({ title, description }: { title: string; description?: number }
 	);
 };
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+	const backendURL = process.env.BACKEND_URL;
+	const { id } = await params;
+	const res = await fetch(`${backendURL}/video/${id}/info`);
+	if (!res.ok) {
+		return {
+			title: "页面未找到 - 中 V 档案馆"
+		};
+	}
+	const data = await res.json();
+	return {
+		title: `${data.title} - 视频信息 - 中 V 档案馆`
+	};
+}
+
 const VideoInfo = async ({ id }: { id: string }) => {
 	const backendURL = process.env.BACKEND_URL;
 
@@ -21,7 +38,7 @@ const VideoInfo = async ({ id }: { id: string }) => {
 		return notFound();
 	}
 
-	const data = await res.json();
+	const data: VideoInfoData = await res.json();
 
 	return (
 		<div className="w-full lg:max-w-4xl lg:mx-auto lg:p-6 px-4">

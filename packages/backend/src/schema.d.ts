@@ -38,6 +38,14 @@ interface CaptchaSessionRawResponse {
 	t: number;
 }
 
+export interface LoginResponse {
+    uid: number;
+    username: string;
+    nickname: string | null;
+    role: string;
+    token: string;
+}
+
 export interface SignUpResponse {
     username: string;
     token: string;

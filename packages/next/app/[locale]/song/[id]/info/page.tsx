@@ -6,6 +6,7 @@ import { getVideoMetadata } from "@/lib/db/bilibili_metadata/getVideoMetadata";
 import { aidExists as idExists } from "@/lib/db/bilibili_metadata/aidExists";
 import { notFound } from "next/navigation";
 import { BiliVideoMetadataType, VideoSnapshotType } from "@cvsa/core";
+import { Metadata } from "next";
 
 const MetadataRow = ({ title, desc }: { title: string; desc: string | number | undefined | null }) => {
 	if (!desc) return <></>;
@@ -18,6 +19,21 @@ const MetadataRow = ({ title, desc }: { title: string; desc: string | number | u
 		</tr>
 	);
 };
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+	const backendURL = process.env.BACKEND_URL;
+	const { id } = await params;
+	const res = await fetch(`${backendURL}/video/${id}/info`);
+	if (!res.ok) {
+		return {
+			title: "页面未找到 - 中 V 档案馆"
+		};
+	}
+	const data = await res.json();
+	return {
+		title: `${data.title} - 歌曲信息 - 中 V 档案馆`
+	};
+}
 
 export default async function VideoInfoPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;

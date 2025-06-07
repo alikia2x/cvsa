@@ -12,8 +12,12 @@ export const getUserBySession = async (sessionID: string) => {
 	}
 	const user = users[0];
 	return {
+		uid: user.id,
 		username: user.username,
 		nickname: user.nickname,
-		role: user.role
+		role: user.role,
+		createdAt: user.created_at
 	};
 };
+
+export const getUserSessions = async (sessionID: string) => {};

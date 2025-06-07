@@ -9,20 +9,20 @@ import { setLocale } from "yup";
 import { useTranslations } from "next-intl";
 import { useCaptcha } from "@/components/hooks/useCaptcha";
 import useSWRMutation from "swr/mutation";
-import { requestSignUp } from "./request";
 import { FilledButton } from "@/components/ui/Buttons/FilledButton";
-import { ErrorDialog } from "@/components/utils/ErrorDialog";
 import { ApiRequestError } from "@/lib/net";
 import { useRouter } from "next/navigation";
+import { requestLogin } from "./request";
+import { ErrorDialog } from "@/components/utils/ErrorDialog";
 
 setLocale({
 	mixed: {
-		default: "field_invalid",
-		required: () => ({ key: "field_required" })
+		default: "yup_errors.field_invalid",
+		required: () => ({ key: "yup_errors.field_required" })
 	},
 	string: {
-		min: ({ min }) => ({ key: "field_too_short", values: { min } }),
-		max: ({ max }) => ({ key: "field_too_big", values: { max } })
+		min: ({ min }) => ({ key: "yup_errors.field_too_short", values: { min } }),
+		max: ({ max }) => ({ key: "yup_errors.field_too_big", values: { max } })
 	}
 });
 
@@ -40,7 +40,6 @@ interface RegistrationFormProps {
 const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 	const [usernameInput, setUsername] = useState("");
 	const [passwordInput, setPassword] = useState("");
-	const [nicknameInput, setNickname] = useState("");
 	const [showDialog, setShowDialog] = useState(false);
 	const [dialogContent, setDialogContent] = useState(<></>);
 	const [isLoading, setLoading] = useState(false);
@@ -49,7 +48,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 		backendURL,
 		route: "POST-/user"
 	});
-	const { trigger } = useSWRMutation(`${backendURL}/user`, requestSignUp);
+	const { trigger } = useSWRMutation(`${backendURL}/login/session`, requestLogin);
 	const router = useRouter();
 
 	const translateErrorMessage = (item: LocalizedMessage | string, path?: string) => {
@@ -68,8 +67,7 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 			const result = await trigger({
 				data: {
 					username: usernameInput,
-					password: passwordInput,
-					nickname: nicknameInput
+					password: passwordInput
 				},
 				setShowDialog,
 				captchaResult,
@@ -112,30 +110,10 @@ const SignUpForm: React.FC<RegistrationFormProps> = ({ backendURL }) => {
 				await register();
 			}}
 		>
-			<TextField
-				labelText="用户名"
-				inputText={usernameInput}
-				onInputTextChange={setUsername}
-				maxChar={50}
-				supportingText="*必填。用户名是唯一的，不区分大小写。"
-			/>
-			<TextField
-				labelText="密码"
-				type="password"
-				inputText={passwordInput}
-				onInputTextChange={setPassword}
-				supportingText="*必填。密码至少为 4 个字符。"
-				maxChar={120}
-			/>
-			<TextField
-				labelText="昵称"
-				inputText={nicknameInput}
-				onInputTextChange={setNickname}
-				supportingText="昵称可以重复。"
-				maxChar={30}
-			/>
+			<TextField labelText="用户名" inputText={usernameInput} onInputTextChange={setUsername} />
+			<TextField labelText="密码" type="password" inputText={passwordInput} onInputTextChange={setPassword} />
 			<FilledButton type="submit" disabled={isLoading}>
-				{isLoading ? <LoadingSpinner /> : <span>注册</span>}
+				{isLoading ? <LoadingSpinner /> : <span>登录</span>}
 			</FilledButton>
 			<Portal>
 				<Dialog show={showDialog}>{dialogContent}</Dialog>

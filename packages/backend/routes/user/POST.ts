@@ -26,13 +26,13 @@ export const userExists = async (username: string) => {
 	return result.length > 0;
 };
 
-const createLoginSession = async (uid: number, ua?: string, ip?: string): Promise<string> => {
-	const ip_address = ip || null;
-	const user_agent = ua || null;
+export const createLoginSession = async (uid: number, c: Context): Promise<string> => {
+	const ipAddress = getUserIP(c) || null;
+	const userAgent = c.req.header("User-Agent") || null;
 	const id = generateRandomId(24);
 	await sqlCred`
         INSERT INTO login_sessions (id, uid, expire_at, ip_address, user_agent)
-        VALUES (${id}, ${uid}, CURRENT_TIMESTAMP + INTERVAL '1 year', ${ip_address}, ${user_agent})
+        VALUES (${id}, ${uid}, CURRENT_TIMESTAMP + INTERVAL '1 year', ${ipAddress}, ${userAgent})
     `;
 	return id;
 };
@@ -93,7 +93,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 			return c.json<ErrorResponse<string>>(response, 500);
 		}
 
-		const sessionID = await createLoginSession(uid, c.req.header("User-Agent"), getUserIP(c));
+		const sessionID = await createLoginSession(uid, c);
 
 		const response: SignUpResponse = {
 			username: username,

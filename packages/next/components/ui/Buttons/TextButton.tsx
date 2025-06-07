@@ -34,7 +34,7 @@ export const TextButton = ({
 			onMouseDown={onMouseDown}
 			onTouchStart={onTouchStart}
 		>
-			<div className="absolute w-full h-full hover:bg-primary/10"></div>
+			<div className="absolute w-full h-full hover:bg-primary/10 left-0 top-0"></div>
 			{children}
 		</button>
 	);

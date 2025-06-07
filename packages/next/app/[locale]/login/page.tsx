@@ -1,6 +1,6 @@
 import { LeftArrow } from "@/components/icons/LeftArrow";
 import { RightArrow } from "@/components/icons/RightArrow";
-import SignUpForm from "./SignUpForm";
+import LoginForm from "./LoginForm";
 import { Link } from "@/i18n/navigation";
 
 export default function SignupPage() {
@@ -16,25 +16,15 @@ export default function SignupPage() {
 						首页
 					</Link>
 				</p>
-				<h1 className="text-5xl leading-[4rem] font-extralight">欢迎</h1>
-				<p className="mt-2 md:mt-3">
-					欢迎来到中 V 档案馆。
-					<br />
-					这里是中文虚拟歌手相关信息的收集站与档案馆。
-				</p>
-				<p className="my-2">
-					注册一个账号，
-					<br />
-					让我们一起见证中 V 的历史，现在，与未来。
-				</p>
-				<p className="mt-4 mb-7">
-					已有账户？
-					<Link href="/login">
-						<span>登录</span>
+				<h1 className="text-5xl leading-[4rem] font-extralight">登录</h1>
+				<p className="mt-4 mb-6">
+					没有账户？
+					<Link href="/singup">
+						<span>注册</span>
 						<RightArrow className="text-xs inline -translate-y-0.5 ml-1" aria-hidden="true" />
 					</Link>
 				</p>
-				<SignUpForm backendURL={process.env.NEXT_PUBLIC_BACKEND_URL ?? ""} />
+				<LoginForm backendURL={process.env.NEXT_PUBLIC_BACKEND_URL ?? ""} />
 			</div>
 		</main>
 	);
