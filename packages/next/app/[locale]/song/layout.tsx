@@ -1,5 +1,4 @@
-import { Header } from "@/components/shell/Header";
-import { getCurrentUser } from "@/lib/userAuth";
+import HeaderServer from "@/components/shell/HeaderServer";
 import React from "react";
 
 export default async function RootLayout({
@@ -7,10 +6,9 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const user = await getCurrentUser();
 	return (
 		<>
-			<Header user={user} />
+			<HeaderServer />
 			{children}
 		</>
 	);

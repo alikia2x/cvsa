@@ -15,12 +15,12 @@ import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
 import { Link } from "@/i18n/navigation";
-import type { UserResponse } from "@cvsa/backend";
 import { LoginIcon } from "../icons/LoginIcon";
 import { AccountIcon } from "../icons/AccountIcon";
+import { User } from "@/lib/userAuth";
 
 interface HeaderProps {
-	user: UserResponse | null;
+	user: User | null;
 }
 
 export const HeaderDestop = ({ user }: HeaderProps) => {
@@ -44,7 +44,7 @@ export const HeaderDestop = ({ user }: HeaderProps) => {
     				text-xl font-medium items-center w-[15rem] min-w-[8rem] mr-4 lg:mr-0 lg:w-[305px] justify-end"
 			>
 				{user ? (
-					<Link href="/my/profile">{user.nickname || user.username}</Link>
+					<Link href={`/user/${user.uid}/profile`}>{user.nickname || user.username}</Link>
 				) : (
 					<Link href="/login">登录</Link>
 				)}
@@ -91,7 +91,7 @@ export const HeaderMobile = ({ user }: HeaderProps) => {
 						</Link>
 
 						{user ? (
-							<Link href="/my/profile">
+							<Link href={`/user/${user.uid}/profile`}>
 								<TextButton className="w-full h-14 flex justify-start" size="m">
 									<div className="flex items-center w-72">
 										<AccountIcon className="text-2xl pr-4" />

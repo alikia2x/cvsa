@@ -1,3 +1,5 @@
+"use client";
+
 import useRipple from "@/components/utils/useRipple";
 
 interface FilledButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

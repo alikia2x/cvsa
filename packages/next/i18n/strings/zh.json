@@ -7,6 +7,13 @@
 	"username": "用户名",
 	"password": "密码",
 	"nickname": "昵称",
+	"profile_page": {
+		"role": {
+			"ADMIN": "管理员",
+			"USER": "普通用户",
+			"OWNER": "所有者"
+		}
+	},
 	"backend": {
 		"error": {
 			"incorrect_password": "密码错误。",

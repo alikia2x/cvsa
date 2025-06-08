@@ -1,9 +1,20 @@
 import { LeftArrow } from "@/components/icons/LeftArrow";
 import { RightArrow } from "@/components/icons/RightArrow";
 import LoginForm from "./LoginForm";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
+import { getLocale } from "next-intl/server";
+import { getCurrentUser } from "@/lib/userAuth";
 
-export default function SignupPage() {
+export default async function LoginPage() {
+	const user = await getCurrentUser();
+	const locale = await getLocale();
+
+	if (user) {
+		redirect({
+			href: `/user/${user.uid}/profile`,
+			locale: locale
+		});
+	}
 	return (
 		<main className="relative flex-grow pt-8 px-4 md:w-full md:h-full md:flex md:items-center md:justify-center">
 			<div

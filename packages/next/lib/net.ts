@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosError, Method } from "axios";
+import axios, { AxiosRequestConfig, AxiosError, Method, AxiosResponse } from "axios";
 
 export class ApiRequestError extends Error {
 	public code: number | undefined;
@@ -21,10 +21,20 @@ const httpMethods = {
 	patch: axios.patch
 };
 
+export function fetcher(url: string): Promise<unknown>;
+export function fetcher<JSON = unknown>(
+	url: string,
+	init?: Omit<AxiosRequestConfig, "method"> & { method?: Exclude<HttpMethod, "DELETE"> }
+): Promise<JSON>;
+export function fetcher(
+	url: string,
+	init: Omit<AxiosRequestConfig, "method"> & { method: "DELETE" }
+): Promise<AxiosResponse>;
+
 export async function fetcher<JSON = unknown>(
 	url: string,
 	init?: Omit<AxiosRequestConfig, "method"> & { method?: HttpMethod }
-): Promise<JSON> {
+): Promise<JSON | AxiosResponse<any, any>> {
 	const { method = "get", data, ...config } = init || {};
 
 	const fullConfig: AxiosRequestConfig = {
@@ -38,6 +48,9 @@ export async function fetcher<JSON = unknown>(
 		if (["post", "patch", "put"].includes(m)) {
 			const response = await httpMethods[m](url, data, fullConfig);
 			return response.data;
+		} else if (m === "delete") {
+			const response = await axios.delete(url, fullConfig);
+			return response;
 		} else {
 			const response = await httpMethods[m](url, fullConfig);
 			return response.data;
