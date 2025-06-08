@@ -8,7 +8,6 @@ import DarkModeImage from "@/components/utils/DarkModeImage";
 import React, { useState } from "react";
 import { NavigationDrawer } from "@/components/ui/NavigatinDrawer";
 import { Portal } from "@/components/utils/Portal";
-import { RegisterIcon } from "@/components/icons/RegisterIcon";
 import { SearchBox } from "@/components/ui/SearchBox";
 import { MenuIcon } from "@/components/icons/MenuIcon";
 import { SearchIcon } from "@/components/icons/SearchIcon";
@@ -16,24 +15,26 @@ import { InfoIcon } from "@/components/icons/InfoIcon";
 import { HomeIcon } from "@/components/icons/HomeIcon";
 import { TextButton } from "@/components/ui/Buttons/TextButton";
 import { Link } from "@/i18n/navigation";
-import type { UserResponse } from "@cvsa/backend";
+import { LoginIcon } from "../icons/LoginIcon";
+import { AccountIcon } from "../icons/AccountIcon";
+import { User } from "@/lib/userAuth";
 
 interface HeaderProps {
-	user: UserResponse | null;
+	user: User | null;
 }
 
 export const HeaderDestop = ({ user }: HeaderProps) => {
 	return (
 		<div className="hidden md:flex relative top-0 left-0 w-full h-28 z-20 justify-between">
 			<div className="w-[305px] xl:ml-8 inline-flex items-center">
-				<a href="/">
+				<Link href="/">
 					<DarkModeImage
 						lightSrc={TitleLight}
 						darkSrc={TitleDark}
 						alt="logo"
 						className="w-[305px] h-24 inline-block max-w-[15rem] lg:max-w-[305px]"
 					/>
-				</a>
+				</Link>
 			</div>
 
 			<SearchBox />
@@ -43,12 +44,12 @@ export const HeaderDestop = ({ user }: HeaderProps) => {
     				text-xl font-medium items-center w-[15rem] min-w-[8rem] mr-4 lg:mr-0 lg:w-[305px] justify-end"
 			>
 				{user ? (
-					<Link href="/my/profile">{user.nickname || user.username}</Link>
+					<Link href={`/user/${user.uid}/profile`}>{user.nickname || user.username}</Link>
 				) : (
-					<Link href="/signup">注册</Link>
+					<Link href="/login">登录</Link>
 				)}
 
-				<a href="/about">关于</a>
+				<Link href="/about">关于</Link>
 			</div>
 		</div>
 	);
@@ -89,14 +90,25 @@ export const HeaderMobile = ({ user }: HeaderProps) => {
 							</TextButton>
 						</Link>
 
-						<Link href="/signup">
-							<TextButton className="w-full h-14 flex px-4 justify-start" size="m">
-								<div className="flex items-center">
-									<RegisterIcon className="text-2xl pr-4" />
-									<span>注册</span>
-								</div>
-							</TextButton>
-						</Link>
+						{user ? (
+							<Link href={`/user/${user.uid}/profile`}>
+								<TextButton className="w-full h-14 flex justify-start" size="m">
+									<div className="flex items-center w-72">
+										<AccountIcon className="text-2xl pr-4" />
+										<span>{user.nickname || user.username}</span>
+									</div>
+								</TextButton>
+							</Link>
+						) : (
+							<Link href="/login">
+								<TextButton className="w-full h-14 flex px-4 justify-start" size="m">
+									<div className="flex items-center w-72">
+										<LoginIcon className="text-2xl pr-4" />
+										<span>登录</span>
+									</div>
+								</TextButton>
+							</Link>
+						)}
 					</div>
 				</NavigationDrawer>
 			</Portal>

@@ -38,6 +38,10 @@ interface VideoInfoData {
 	ctime: number;
 	desc: string;
 	desc_v2: string;
+	tname: string;
+	tid: number;
+	tid_v2: number;
+	tname_v2: string;
 	state: number;
 	duration: number;
 	owner: {

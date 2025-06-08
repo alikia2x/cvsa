@@ -1,13 +1,10 @@
-import { Header } from "@/components/shell/Header";
-import { getCurrentUser } from "@/lib/userAuth";
 import { VDFtestCard } from "./TestCard";
+import HeaderServer from "@/components/shell/HeaderServer";
 
 export default async function VdfBenchmarkPage() {
-	const user = await getCurrentUser();
-
 	return (
 		<>
-			<Header user={user} />
+			<HeaderServer />
 			<div className="md:w-2/3 lg:w-1/2 xl:w-[37%] md:mx-auto mx-6 mb-12">
 				<VDFtestCard />
 				<div>

@@ -58,7 +58,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ close = () => {} }) => {
 						type="search"
 						placeholder="搜索"
 						autoComplete="off"
-						autoCapitalize="off"
+						autoCapitalize="none"
 						autoCorrect="off"
 						className="bg-transparent h-full w-full focus:outline-none"
 						onKeyDown={handleKeyDown}
@@ -73,7 +73,7 @@ export const SearchBox: React.FC<SearchBoxProps> = ({ close = () => {} }) => {
 						type="search"
 						placeholder="搜索"
 						autoComplete="off"
-						autoCapitalize="off"
+						autoCapitalize="none"
 						autoCorrect="off"
 						className="bg-transparent h-full w-full focus:outline-none"
 						onKeyDown={handleKeyDown}

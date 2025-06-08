@@ -7,6 +7,21 @@ const nextConfig: NextConfig = {
 	experimental: {
 		externalDir: true
 	},
+	turbopack: {
+		rules: {
+			"*.txt": {
+				loaders: ["raw-loader"],
+				as: "*.js"
+			}
+		}
+	},
+	webpack(config: import("webpack").Configuration) {
+		config.module?.rules?.push({
+			test: /\.txt/i,
+			use: "raw-loader"
+		});
+		return config;
+	},
 	pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"]
 };
 
