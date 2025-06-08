@@ -14,7 +14,7 @@ export const ErrorDialog: React.FC<ErrorDialogProps> = ({ children, closeDialog,
 		<>
 			<DialogHeadline>{errorCode ? t(errorCode) : "错误"}</DialogHeadline>
 			<DialogSupportingText>{children}</DialogSupportingText>
-			<DialogButtonGroup>
+			<DialogButtonGroup close={closeDialog}>
 				<DialogButton onClick={closeDialog}>关闭</DialogButton>
 			</DialogButtonGroup>
 		</>
