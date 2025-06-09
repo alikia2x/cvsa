@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
-import { createMDX } from "fumadocs-mdx/next";
 
 const nextConfig: NextConfig = {
 	devIndicators: false,
@@ -22,11 +21,9 @@ const nextConfig: NextConfig = {
 		});
 		return config;
 	},
-	pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"]
+	transpilePackages: ["next-mdx-remote"]
 };
 
 const withNextIntl = createNextIntlPlugin();
 
-const withMDX = createMDX();
-
-export default withNextIntl(withMDX(nextConfig));
+export default withNextIntl(nextConfig);

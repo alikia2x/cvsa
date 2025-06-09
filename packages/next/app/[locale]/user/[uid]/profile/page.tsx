@@ -6,6 +6,8 @@ import { LogoutButton } from "./LogoutButton";
 import { numeric } from "yup-numeric";
 import { getTranslations } from "next-intl/server";
 import HeaderServer from "@/components/shell/HeaderServer";
+import { Content } from "@/components/shell/Content";
+import { ContentClient } from "@/components/shell/ContentClient";
 
 const uidSchema = numeric().integer().min(0);
 
@@ -49,16 +51,19 @@ export default async function ProfilePage({ params }: { params: Promise<{ uid: s
 	return (
 		<>
 			<HeaderServer />
-			<main className="md:w-xl lg:w-2xl xl:w-3xl md:mx-auto pt-6">
-				<h1>
+			<main className="px-4 md:w-xl lg:w-3xl xl:w-4xl md:mx-auto pt-6 content-box mb-8">
+				<h1 className="relative w-full">
 					<span className="text-4xl font-extralight">{displayName}</span>
 					<span className="ml-2 text-on-surface-variant dark:text-dark-on-surface-variant">
 						UID{user.uid}
 					</span>
+					<div className="absolute right-0 top-0">{loggedIn && <LogoutButton />}</div>
 				</h1>
 				<SignupTime user={user} />
-				<p className="mt-4">权限组：{t(`role.${user.role}`)}</p>
-				{loggedIn && <LogoutButton />}
+				<p>权限组：{t(`role.${user.role}`)}</p>
+
+				<h2 className="mt-4 text-2xl">个人简介</h2>
+				<Content pageID={`user-profile:${uid}`} />
 			</main>
 		</>
 	);

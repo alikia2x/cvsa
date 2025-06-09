@@ -18,7 +18,7 @@ export const useDisableBodyScroll = (open: boolean) => {
 	}, [open]);
 };
 
-type OptionalChidrenProps<T = React.HTMLAttributes<HTMLElement>> = T & {
+export type OptionalChidrenProps<T = React.HTMLAttributes<HTMLElement>> = T & {
 	children?: React.ReactNode;
 };
 

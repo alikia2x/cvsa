@@ -1,6 +1,6 @@
 "use client";
 
-import { FilledButton } from "@/components/ui/Buttons/FilledButton";
+import { TextButton } from "@/components/ui/Buttons/TextButton";
 import { Dialog, DialogButton, DialogButtonGroup, DialogHeadline, DialogSupportingText } from "@/components/ui/Dialog";
 import { Portal } from "@/components/utils/Portal";
 import { useRouter } from "@/i18n/navigation";
@@ -11,13 +11,9 @@ export const LogoutButton: React.FC = () => {
 	const router = useRouter();
 	return (
 		<>
-			<FilledButton
-				shape="square"
-				className="mt-5 !text-on-error dark:!text-dark-on-error !bg-error dark:!bg-dark-error font-medium"
-				onClick={() => setShowDialog(true)}
-			>
+			<TextButton className="font-medium" onClick={() => setShowDialog(true)}>
 				登出
-			</FilledButton>
+			</TextButton>
 			<Portal>
 				<Dialog show={showDialog}>
 					<DialogHeadline>确认登出</DialogHeadline>

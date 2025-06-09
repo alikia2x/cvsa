@@ -41,3 +41,7 @@
 		@apply inline;
 	}
 }
+
+.footnote-li {
+	@apply list-outside ml-6;
+}

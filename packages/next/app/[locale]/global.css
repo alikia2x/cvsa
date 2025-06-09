@@ -101,6 +101,10 @@ a {
 	:root {
 		font-family: "Inter Variable", "MiSans VF", sans-serif;
 		font-optical-sizing: auto;
-		font-weight: 330;
+		font-weight: 280;
 	}
+}
+
+.content-box {
+	@apply bg-background/80 dark:bg-dark-background/80 rounded-lg;
 }
