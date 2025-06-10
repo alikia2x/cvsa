@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import type { VideoInfoData } from "@cvsa/core";
+import { DateTime } from "luxon";
 
 const StatRow = ({ title, description }: { title: string; description?: number }) => {
 	return (
@@ -51,7 +51,7 @@ const VideoInfo = async ({ id }: { id: string }) => {
 					{data.bvid} · av{data.aid}
 				</span>
 				<br />
-				<span>发布于 {format(new Date(data.pubdate * 1000), "yyyy-MM-dd HH:mm:ss")}</span>
+				<span>发布于 {DateTime.fromSeconds(data.pubdate).toFormat("yyyy-MM-dd HH:mm:ss")}</span>
 				<br />
 				<span>播放：{(data.stat?.view ?? 0).toLocaleString()}</span> ·{" "}
 				<span>弹幕：{(data.stat?.danmaku ?? 0).toLocaleString()}</span>

@@ -7,6 +7,7 @@ import { aidExists as idExists } from "@/lib/db/bilibili_metadata/aidExists";
 import { notFound } from "next/navigation";
 import { BiliVideoMetadataType, VideoSnapshotType } from "@cvsa/core";
 import { Metadata } from "next";
+import { DateTime } from "luxon";
 
 const MetadataRow = ({ title, desc }: { title: string; desc: string | number | undefined | null }) => {
 	if (!desc) return <></>;
@@ -104,18 +105,16 @@ export default async function VideoInfoPage({ params }: { params: Promise<{ id: 
 									title="发布时间"
 									desc={
 										videoInfo.published_at
-											? format(new Date(videoInfo.published_at), "yyyy-MM-dd HH:mm:ss", {
-													locale: zhCN
-												})
+											? DateTime.fromJSDate(videoInfo.published_at).toFormat(
+													"yyyy-MM-dd HH:mm:ss"
+												)
 											: null
 									}
 								/>
 								<MetadataRow title="时长 (秒)" desc={videoInfo.duration} />
 								<MetadataRow
 									title="创建时间"
-									desc={format(new Date(videoInfo.created_at), "yyyy-MM-dd HH:mm:ss", {
-										locale: zhCN
-									})}
+									desc={DateTime.fromJSDate(videoInfo.created_at).toFormat("yyyy-MM-dd HH:mm:ss")}
 								/>
 								<MetadataRow title="封面" desc={videoInfo?.cover_url} />
 							</tbody>
@@ -142,11 +141,11 @@ export default async function VideoInfoPage({ params }: { params: Promise<{ id: 
 								</thead>
 								<tbody>
 									{snapshots.map((snapshot) => (
-										<tr key={snapshot.created_at}>
+										<tr key={snapshot.id}>
 											<td className="border dark:border-zinc-500 px-4 py-2">
-												{format(new Date(snapshot.created_at), "yyyy-MM-dd HH:mm:ss", {
-													locale: zhCN
-												})}
+												{DateTime.fromJSDate(snapshot.created_at).toFormat(
+													"yyyy-MM-dd HH:mm:ss"
+												)}
 											</td>
 											<td className="border dark:border-zinc-500 px-4 py-2">{snapshot.views}</td>
 											<td className="border dark:border-zinc-500 px-4 py-2">{snapshot.coins}</td>
