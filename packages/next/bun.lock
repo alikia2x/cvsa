@@ -5,7 +5,7 @@
       "name": "next",
       "dependencies": {
         "@cvsa/backend": "^0.5.3",
-        "@cvsa/core": "^0.0.7",
+        "@cvsa/core": "^0.0.8",
         "@mdx-js/loader": "^3.1.0",
         "@mdx-js/react": "^3.1.0",
         "@next/mdx": "^15.3.3",
@@ -49,7 +49,7 @@
 
     "@cvsa/backend": ["@cvsa/backend@0.5.3", "", { "dependencies": { "@rabbit-company/argon2id": "^2.1.0", "hono": "^4.7.8", "hono-rate-limiter": "^0.4.2", "ioredis": "^5.6.1", "limiter": "^3.0.0", "postgres": "^3.4.5", "rate-limit-redis": "^4.2.0", "yup": "^1.6.1", "zod": "^3.24.3" } }, "sha512-RzGjarU2TOzD6/d6qikE4xd/ZqNQl3jOYtgfJg5kbWFuiXnOgEC9QBTi+adzjmaWFrcpuYck6ooWpg4eT3s43g=="],
 
-    "@cvsa/core": ["@cvsa/core@0.0.7", "", { "dependencies": { "@koshnic/ratelimit": "^1.0.3", "chalk": "^5.4.1", "ioredis": "^5.6.1", "logform": "^2.7.0", "postgres": "^3.4.5", "winston": "^3.17.0" } }, "sha512-j2Ksg+ZquHqKPew1JZxw0Q9yckFnzdd8y+DnmVT+OW18j+pKcduB9j0qqBywQGHxGuDYVOGLiPlf+IBXfqQWTg=="],
+    "@cvsa/core": ["@cvsa/core@0.0.8", "", { "dependencies": { "@koshnic/ratelimit": "^1.0.3", "chalk": "^5.4.1", "ioredis": "^5.6.1", "logform": "^2.7.0", "postgres": "^3.4.5", "winston": "^3.17.0" } }, "sha512-mnYKilaNnXFBw/8w9q55n5+UtA2aAXZfiy30qmmbgwiL2fJkDxjL2WLe8rt5SrLD4Tj7DYLZXc/TMAJULdGqjg=="],
 
     "@dabh/diagnostics": ["@dabh/diagnostics@2.0.3", "", { "dependencies": { "colorspace": "1.1.x", "enabled": "2.0.x", "kuler": "^2.0.0" } }, "sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA=="],
 

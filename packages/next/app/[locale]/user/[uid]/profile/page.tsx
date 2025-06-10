@@ -6,6 +6,7 @@ import { LogoutButton } from "./LogoutButton";
 import { numeric } from "yup-numeric";
 import { getTranslations } from "next-intl/server";
 import HeaderServer from "@/components/shell/HeaderServer";
+import { DateTime } from "luxon";
 
 const uidSchema = numeric().integer().min(0);
 
@@ -17,9 +18,7 @@ const SignupTime: React.FC<SignupTimeProps> = ({ user }: SignupTimeProps) => {
 	return (
 		<p className="mt-4">
 			于&nbsp;
-			{format(new Date(user.createdAt), "yyyy-MM-dd HH:mm:ss", {
-				locale: zhCN
-			})}
+			{DateTime.fromJSDate(user.createdAt).toFormat("yyyy-MM-dd HH:mm:ss")}
 			&nbsp;注册。
 		</p>
 	);

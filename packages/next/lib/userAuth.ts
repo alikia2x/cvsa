@@ -6,7 +6,7 @@ export interface User {
 	username: string;
 	nickname: string | null;
 	role: string;
-	createdAt: string;
+	createdAt: Date;
 }
 
 export interface UserProfile extends User {

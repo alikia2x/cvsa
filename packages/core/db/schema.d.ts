@@ -8,7 +8,7 @@ export interface BiliUserType {
 
 export interface VideoSnapshotType {
 	id: number;
-	created_at: string;
+	created_at: Date;
 	views: number;
 	coins: number;
 	likes: number;
@@ -35,9 +35,9 @@ export interface SnapshotScheduleType {
 	id: number;
 	aid: number;
 	type?: string;
-	created_at: string;
-	started_at?: string;
-	finished_at?: string;
+	created_at: Date;
+	started_at?: Date;
+	finished_at?: Date;
 	status: string;
 }
 
