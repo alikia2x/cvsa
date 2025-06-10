@@ -48,6 +48,7 @@ export interface UserType {
 	password: string;
 	unq_id: string;
 	role: string;
+	created_at: Date;
 }
 
 export interface BiliVideoMetadataType {
