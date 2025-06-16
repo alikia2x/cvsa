@@ -26,6 +26,7 @@ scripts
 model/
 
 .astro
+.source
 
 # Database
 *.dump

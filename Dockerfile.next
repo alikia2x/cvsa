@@ -1,11 +1,21 @@
+FROM oven/bun AS builder
+
+WORKDIR /app
+
+COPY ./packages/next .
+
+RUN bun i
+
+RUN bun run build
+
 FROM node:lts-slim AS production
 
 WORKDIR /app
 
-COPY ./packages/next/.next ./.next
-COPY ./packages/next/public ./public
-COPY ./packages/next/package.json ./package.json
-COPY ./packages/next/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
 
 ENV NODE_ENV production
 
