@@ -1,14 +1,36 @@
-import { getAllSnapshots } from "~/lib/db/snapshots/getAllSnapshots";
-import { getAidFromBV } from "~/lib/db/bilibili_metadata/getAidFromBV";
-import { getVideoMetadata } from "~/lib/db/bilibili_metadata/getVideoMetadata";
-import { aidExists as idExists } from "~/lib/db/bilibili_metadata/aidExists";
-import { BiliVideoMetadataType, VideoSnapshotType } from "@cvsa/core";
 import { DateTime } from "luxon";
 import { useParams } from "@solidjs/router";
 import { createResource } from "solid-js";
 import { Title } from "@solidjs/meta";
 import { Suspense } from "solid-js";
 import { For } from "solid-js";
+import { useCachedFetch } from "~/lib/dbCache";
+import { dbMain } from "~/drizzle";
+import { bilibiliMetadata, videoSnapshot } from "~db/main/schema";
+import { desc, eq } from "drizzle-orm";
+import { BilibiliMetadataType, VideoSnapshotType } from "~db/outerSchema";
+import { Context, useRequestContext } from "~/components/requestContext";
+
+async function getAllSnapshots (aid: number, context: Context) {
+	"use server";
+	return useCachedFetch(async () => {
+		return dbMain.select().from(videoSnapshot).where(eq(videoSnapshot.aid,aid)).orderBy(desc(videoSnapshot.createdAt));
+	}, "all-snapshots", context, [aid]);
+}
+
+async function getVideoMetadata(avORbv: number | string, context: Context) {
+	"use server";
+	if (typeof avORbv === "number") {
+		return useCachedFetch(async () => {
+			return dbMain.select().from(bilibiliMetadata).where(eq(bilibiliMetadata.aid, avORbv)).limit(1);
+		}, "bili-metadata", context, [avORbv]);
+	}
+	else {
+		return useCachedFetch(async () => {
+			return dbMain.select().from(bilibiliMetadata).where(eq(bilibiliMetadata.bvid, avORbv)).limit(1);
+		}, "bili-metadata", context, [avORbv]);
+	}
+}
 
 const MetadataRow = ({ title, desc }: { title: string; desc: string | number | undefined | null }) => {
 	if (!desc) return <></>;
@@ -22,45 +44,21 @@ const MetadataRow = ({ title, desc }: { title: string; desc: string | number | u
 	);
 };
 
-function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export default function VideoInfoPage() {
 	const params = useParams();
 	const { id } = params;
+	const context = useRequestContext();
 	const [data] = createResource(async () => {
-		let videoInfo: BiliVideoMetadataType | null = null;
+		let videoInfo: BilibiliMetadataType | null = null;
 		let snapshots: VideoSnapshotType[] = [];
-		await sleep(1000);
-
-		async function getVideoAid(videoId: string | string[] | undefined) {
-			if (!videoId) return null;
-			const videoIdStr = Array.isArray(videoId) ? videoId[0] : videoId;
-			if (videoIdStr?.startsWith("av")) {
-				return parseInt(videoIdStr.slice(2));
-			} else if (videoIdStr?.startsWith("BV")) {
-				return getAidFromBV(videoIdStr);
-			}
-			return parseInt(videoIdStr);
-		}
-
-		const aid = await getVideoAid(id);
-
-		if (!aid) {
-			return null;
-		}
-
-		const exists = await idExists(aid);
-
-		if (!exists) {
-			return null;
-		}
 
 		try {
-			const videoData = await getVideoMetadata(aid);
-			const snapshotsData = await getAllSnapshots(aid);
-			videoInfo = videoData;
+			const videoData = await getVideoMetadata(id, context);
+			if (videoData.length === 0) {
+				return null;
+			}
+			const snapshotsData = await getAllSnapshots(videoData[0].aid, context);
+			videoInfo = videoData[0];
 			if (snapshotsData) {
 				snapshots = snapshotsData;
 			}
@@ -71,15 +69,8 @@ export default function VideoInfoPage() {
 		if (!videoInfo) {
 			return null;
 		}
-		let title = "";
-		const backendURL = process.env.BACKEND_URL;
-		const res = await fetch(`${backendURL}/video/${id}/info`);
-		if (!res.ok) {
-			title = "页面未找到 - 中 V 档案馆";
-		}
-		const data = await res.json();
 
-		title = `${data.title} - 歌曲信息 - 中 V 档案馆`;
+		const title = `${videoInfo.title} - 歌曲信息 - 中 V 档案馆`;
 
 		return {
 			v: videoInfo,
@@ -89,7 +80,6 @@ export default function VideoInfoPage() {
 	});
 	return (
 		<main class="flex flex-col items-center min-h-screen gap-8 mt-10 md:mt-6 relative z-0 overflow-x-auto pb-8">
-			<div>hi</div>
 			<div class="w-full lg:max-w-4xl lg:mx-auto lg:p-6">
 				<Suspense fallback={<div>loading</div>}>
 					<Title>{data()?.t}</Title>
@@ -115,8 +105,8 @@ export default function VideoInfoPage() {
 									<MetadataRow
 										title="发布时间"
 										desc={
-											data()?.v.published_at
-												? DateTime.fromJSDate(new Date(data()?.v.published_at || "")).toFormat(
+											data()?.v.publishedAt
+												? DateTime.fromJSDate(new Date(data()?.v.publishedAt || "")).toFormat(
 														"yyyy-MM-dd HH:mm:ss"
 													)
 												: null
@@ -125,11 +115,11 @@ export default function VideoInfoPage() {
 									<MetadataRow title="时长 (秒)" desc={data()?.v.duration} />
 									<MetadataRow
 										title="创建时间"
-										desc={DateTime.fromJSDate(new Date(data()?.v.created_at || "")).toFormat(
+										desc={DateTime.fromJSDate(new Date(data()?.v.createdAt || "")).toFormat(
 											"yyyy-MM-dd HH:mm:ss"
 										)}
 									/>
-									<MetadataRow title="封面" desc={data()?.v?.cover_url} />
+									<MetadataRow title="封面" desc={data()?.v?.coverUrl} />
 								</tbody>
 							</table>
 						</div>
@@ -157,7 +147,7 @@ export default function VideoInfoPage() {
 										{(snapshot) => (
 											<tr>
 												<td class="border dark:border-zinc-500 px-4 py-2">
-													{DateTime.fromJSDate(snapshot.created_at).toFormat(
+													{DateTime.fromJSDate(new Date(snapshot.createdAt)).toFormat(
 														"yyyy-MM-dd HH:mm:ss"
 													)}
 												</td>

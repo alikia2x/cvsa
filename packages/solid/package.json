@@ -2,9 +2,9 @@
 	"name": "example-basic",
 	"type": "module",
 	"scripts": {
-		"dev": "vinxi dev --port 9200",
+		"dev": "vinxi dev --port 7400",
 		"build": "vinxi build",
-		"start": "vinxi start",
+		"start": "vinxi start  --port 7400",
 		"version": "vinxi version"
 	},
 	"dependencies": {
@@ -13,16 +13,23 @@
 		"@solidjs/start": "^1.1.0",
 		"@tailwindcss/vite": "^4.1.10",
 		"@types/luxon": "^3.6.2",
+		"axios": "^1.10.0",
+		"dotenv": "^16.5.0",
+		"drizzle-orm": "^0.44.2",
 		"luxon": "^3.6.1",
+		"postgres": "^3.4.7",
 		"solid-js": "^1.9.5",
 		"tailwindcss": "^4.1.10",
-		"vinxi": "^0.5.3"
+		"vinxi": "^0.5.7"
 	},
 	"engines": {
 		"node": ">=22"
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4.1.10",
-		"postcss": "^8.5.6"
+		"drizzle-kit": "^0.31.1",
+		"postcss": "^8.5.6",
+		"tsx": "^4.20.3",
+		"vite-tsconfig-paths": "^5.1.4"
 	}
 }
