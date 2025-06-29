@@ -1,4 +1,12 @@
 // @refresh reload
 import { mount, StartClient } from "@solidjs/start/client";
+import { RequestContextProvider } from "./components/requestContext";
 
-mount(() => <StartClient />, document.getElementById("app")!);
+mount(
+	() => (
+		<RequestContextProvider>
+			<StartClient />
+		</RequestContextProvider>
+	),
+	document.getElementById("app")!
+);

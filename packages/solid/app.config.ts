@@ -2,10 +2,18 @@
 
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
-import tsconfigPaths from 'vite-tsconfig-paths';
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	vite: {
-		plugins: [tailwindcss(), tsconfigPaths()]
-	}
+		plugins: [tailwindcss(), tsconfigPaths()],
+		optimizeDeps: {
+			include: ["@m3-components/solid"],
+			esbuildOptions: {
+				jsx: "automatic",
+				jsxDev: true,
+				jsxImportSource: "solid-js/h"
+			}
+		},
+	},
 });

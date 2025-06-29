@@ -7,7 +7,6 @@ export default createHandler(() => (
 	<RequestContextProvider>
 		<StartServer
 			document={({ assets, children, scripts }) => (
-
 				<html lang="en">
 					<head>
 						<meta charset="utf-8" />
@@ -18,13 +17,10 @@ export default createHandler(() => (
 						{assets}
 					</head>
 					<body>
-						<div id="app">
-							{children}
-						</div>
+						<div id="app">{children}</div>
 						{scripts}
 					</body>
 				</html>
-
 			)}
 		/>
 	</RequestContextProvider>
