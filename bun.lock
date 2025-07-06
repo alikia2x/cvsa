@@ -95,7 +95,7 @@
     "packages/solid": {
       "name": "example-basic",
       "dependencies": {
-        "@m3-components/solid": "^0.0.3",
+        "@m3-components/solid": "0.0.7",
         "@solidjs/meta": "^0.29.4",
         "@solidjs/router": "^0.15.0",
         "@solidjs/start": "^1.1.0",
@@ -346,7 +346,7 @@
 
     "@koshnic/ratelimit": ["@koshnic/ratelimit@1.0.3", "", { "dependencies": { "@types/chai": "^4.3.9", "@types/mocha": "^10.0.3", "chai": "^4.3.10", "ioredis": "^5.3.2", "mocha": "^10.2.0" } }, "sha512-cfDcSc+I+M4hNM+/4M+lfn8UuTq4OEFKl78ThOcGNaO7g8tWb1vm2qVpV1p1loYao1mqk00NBNwHQu2E/qFq2g=="],
 
-    "@m3-components/solid": ["@m3-components/solid@0.0.3", "", { "dependencies": { "solid-js": "^1.9.5" } }, "sha512-3TjrTTQyiD41uXO7TPuV6Q0FaemsBik4FXg4/2wi858hIkzre3rh/rmHNYG90z73/U9K0kTB6zZgO3HpnhVEwg=="],
+    "@m3-components/solid": ["@m3-components/solid@0.0.7", "", { "dependencies": { "solid-js": "^1.9.5" } }, "sha512-pyu8Of2wys0pgAV08lz9aOGGkiQPjzCXfuQyJeTu0auKYe8EvmqlcgH3JbX0cRP4CVxp6yd9ppfQT9B/i9DgvQ=="],
 
     "@mapbox/node-pre-gyp": ["@mapbox/node-pre-gyp@2.0.0", "", { "dependencies": { "consola": "^3.2.3", "detect-libc": "^2.0.0", "https-proxy-agent": "^7.0.5", "node-fetch": "^2.6.7", "nopt": "^8.0.0", "semver": "^7.5.3", "tar": "^7.4.0" }, "bin": { "node-pre-gyp": "bin/node-pre-gyp" } }, "sha512-llMXd39jtP0HpQLVI37Bf1m2ADlEb35GYSh1SDSLsBhR+5iCxiNGlT31yqbNtVHygHAtMy6dWFERpU2JgufhPg=="],
 

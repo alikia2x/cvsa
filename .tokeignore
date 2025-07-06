@@ -9,3 +9,5 @@ MiSans.css
 *.yaml
 *.yml
 *.mdx
+packages/solid/src/drizzle/cred
+packages/solid/src/drizzle/main
