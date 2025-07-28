@@ -9,7 +9,7 @@ import { bilibiliMetadata, videoSnapshot } from "~db/main/schema";
 import { desc, eq } from "drizzle-orm";
 import { BilibiliMetadataType, VideoSnapshotType } from "~db/outerSchema";
 import { Context, useRequestContext } from "~/components/requestContext";
-import { Header } from "~/components/shell/Header";
+import { Layout } from "~/components/shell/Layout";
 
 async function getAllSnapshots(aid: number, context: Context) {
 	"use server";
@@ -99,8 +99,7 @@ export default function VideoInfoPage() {
 
 	
 	return (
-		<>
-			<Header />
+		<Layout>
 			<main class="flex flex-col items-center min-h-screen gap-8 mt-10 md:mt-6 relative z-0 overflow-x-auto pb-8">
 				<div class="w-full lg:max-w-4xl lg:mx-auto lg:p-6">
 					<Suspense fallback={<div>loading</div>}>
@@ -205,6 +204,6 @@ export default function VideoInfoPage() {
 					</Suspense>
 				</div>
 			</main>
-		</>
+		</Layout>
 	);
 }

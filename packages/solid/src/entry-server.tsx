@@ -8,15 +8,14 @@ export default createHandler(() => (
 		<MetaProvider>
 			<StartServer
 				document={({ assets, children, scripts }) => (
-					<html lang="en">
+					<html lang="zh-CN">
 						<head>
 							<meta charset="utf-8" />
 							<meta name="viewport" content="width=device-width, initial-scale=1" />
-							{/*<link rel="icon" href="/favicon.ico" />*/}
 							{assets}
 						</head>
 						<body>
-							<div id="app">{children}</div>
+							<div id="app" style="overflow-x: hidden">{children}</div>
 							{scripts}
 						</body>
 					</html>

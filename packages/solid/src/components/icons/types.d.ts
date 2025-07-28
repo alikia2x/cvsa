@@ -1,3 +1,3 @@
 import { Component, JSX } from "solid-js";
 
-type SVGIconComponent = Component<JSX.SvgSVGAttributes<SVGElement>>;
+type SVGIconComponent = Component<JSX.SvgSVGAttributes<SVGSVGElement>>;

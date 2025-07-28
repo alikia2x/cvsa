@@ -127,7 +127,7 @@
 	--color-on-error-container: var(--md-sys-color-on-error-container);
 }
 
-a {
+a:not(.clear) {
 	@apply text-primary;
 }
 

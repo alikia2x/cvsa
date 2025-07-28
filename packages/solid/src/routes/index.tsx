@@ -1,9 +1,5 @@
-import { Header } from "~/components/shell/Header";
+import { Layout } from "~/components/shell/Layout";
 
 export default function Home() {
-	return (
-		<div>
-			<Header />
-		</div>
-	);
+	return <Layout></Layout>;
 }
