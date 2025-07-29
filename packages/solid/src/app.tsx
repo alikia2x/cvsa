@@ -15,14 +15,20 @@ const tabMap = {
 	"/album/**/*": 2
 };
 
+export const refreshTab = (path: string) => {
+	for (const [key, value] of Object.entries(tabMap)) {
+		if (!minimatch(path, key)) continue;
+		setActiveTab(value);
+		break;
+	}
+}
+
 export default function App() {
 	onMount(() => {
-		const path = window.location.pathname;
-		for (const [key, value] of Object.entries(tabMap)) {
-			if (!minimatch(path, key)) continue;
-			setActiveTab(value);
-			break;
-		}
+		refreshTab(location.pathname);
+		window.addEventListener('popstate', (event) => {
+			refreshTab(location.pathname);
+		});
 	});
 
 	return (

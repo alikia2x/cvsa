@@ -8,7 +8,7 @@
 		"version": "vinxi version"
 	},
 	"dependencies": {
-		"@m3-components/solid": "0.1.4",
+		"@m3-components/solid": "0.1.7",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.15.0",
 		"@solidjs/start": "^1.1.0",
