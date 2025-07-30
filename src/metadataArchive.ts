@@ -1,7 +1,20 @@
 import arg from "arg";
 import { Database } from "bun:sqlite";
-import { getVideoDetails } from "@crawler/net/getVideoDetails";
 import logger from "@core/log/logger";
+import networkDelegate from "@core/net/delegate.ts";
+import type { VideoDetailsResponse } from "@core/net/bilibili.d.ts";
+
+async function getVideoDetails(aid: number, archive: boolean = false): Promise<VideoDetailsResponse> {
+	const url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`;
+	const data = await networkDelegate.request<VideoDetailsResponse>(url, archive ? "" : "getVideoInfo");
+	const errMessage = `Error fetching metadata for ${aid}:`;
+	if (data.code !== 0) {
+		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");
+		return data;
+	}
+	return data;
+}
+
 
 const SECOND = 1000;
 const SECONDS = SECOND;
@@ -86,7 +99,7 @@ const aids = aidsText
 logger.log(`Read ${aids.length} aids.`);
 
 const db = new Database(dbPath);
-const existingAids = db.query<{ aid: number }, []>(`SELECT aid from bili_info_crawl`).all();
+const existingAids = db.query<{ aid: number }, []>(`SELECT aid from bili_info_crawl where status = 'success' or status = 'error'`).all();
 logger.log(`Existing Aids: ${existingAids.length}`);
 const existingAidsSet = new Set(existingAids.map((a) => a.aid));
 const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
@@ -99,10 +112,10 @@ const startTime = Date.now();
 const processAid = async (aid: number) => {
 	try {
 		const data = await getVideoDetails(aid);
-		if (data === null) {
-			updateAidStatus(aid, "failed");
+		if (data.code !== 0) {
+			updateAidStatus(aid, "error", undefined, JSON.stringify(data));
 		} else {
-			updateAidStatus(aid, "success", data.View.bvid, JSON.stringify(data));
+			updateAidStatus(aid, "success", data.data.View.bvid, JSON.stringify(data));
 		}
 	} catch (error) {
 		console.error(`Error updating aid ${aid}: ${error}`);
@@ -131,8 +144,13 @@ const interval = setInterval(async () => {
 function updateAidStatus(aid: number, status: string, bvid?: string, data?: string) {
 	const query = db.query(`
         INSERT INTO bili_info_crawl
-		(aid, bvid, status, bvid, data, timestamp)
-		VALUES ($aid, $bvid, $status, $bvid, $data, $timestamp)
+		(aid, bvid, status, data, timestamp)
+		VALUES ($aid, $bvid, $status, $data, $timestamp)
+		ON CONFLICT (aid) DO UPDATE SET
+            bvid = excluded.bvid,
+            timestamp = excluded.timestamp,
+            data = excluded.data,
+            status = excluded.status;
     `);
 	query.run({
 		$aid: aid,
