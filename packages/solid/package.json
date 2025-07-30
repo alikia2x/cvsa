@@ -8,32 +8,32 @@
 		"version": "vinxi version"
 	},
 	"dependencies": {
-		"@m3-components/solid": "0.1.7",
+		"@m3-components/solid": "0.1.9",
 		"@solidjs/meta": "^0.29.4",
-		"@solidjs/router": "^0.15.0",
-		"@solidjs/start": "^1.1.0",
-		"@tailwindcss/vite": "^4.1.10",
-		"@types/luxon": "^3.6.2",
-		"axios": "^1.10.0",
-		"dotenv": "^16.5.0",
-		"drizzle-orm": "^0.44.2",
-		"luxon": "^3.6.1",
+		"@solidjs/router": "^0.15.3",
+		"@solidjs/start": "^1.1.7",
+		"@tailwindcss/vite": "^4.1.11",
+		"@types/luxon": "^3.7.1",
+		"axios": "^1.11.0",
+		"dotenv": "^16.6.1",
+		"drizzle-orm": "^0.44.4",
+		"luxon": "^3.7.1",
 		"minimatch": "^10.0.3",
 		"postgres": "^3.4.7",
-		"solid-js": "^1.9.5",
+		"solid-js": "^1.9.7",
 		"tailwind-variants": "^1.0.0",
-		"tailwindcss": "^4.1.10",
-		"vinxi": "^0.5.7"
+		"tailwindcss": "^4.1.11",
+		"vinxi": "^0.5.8"
 	},
 	"engines": {
 		"node": ">=22"
 	},
 	"devDependencies": {
-		"@tailwindcss/postcss": "^4.1.10",
-		"drizzle-kit": "^0.31.1",
+		"@tailwindcss/postcss": "^4.1.11",
+		"drizzle-kit": "^0.31.4",
 		"postcss": "^8.5.6",
 		"tsx": "^4.20.3",
-		"vite-plugin-solid": "^2.11.7",
+		"vite-plugin-solid": "^2.11.8",
 		"vite-tsconfig-paths": "^5.1.4"
 	}
 }

@@ -7,7 +7,7 @@ import { refreshTab } from "~/app";
 
 export const BodyRegion: Component<DivProps> = (props) => {
 	const bodyStyle = tv({
-		base: "relative",
+		base: "relative px-6 pt-20",
 		variants: {
 			open: {
 				true: "left-55 pr-55",
@@ -17,7 +17,6 @@ export const BodyRegion: Component<DivProps> = (props) => {
 	});
 	return (
 		<div class={bodyStyle({ open: navigationExpanded() })} {...props}>
-			{" "}
 			{props.children}
 		</div>
 	);
@@ -35,9 +34,7 @@ export const Layout: Component<DivProps> = (props) => {
 		<div class="relatve w-screen min-h-screen">
 			<NavigationRegion />
 			<BodyRegion>
-				<main class="w-full px-6 lg:max-w-4xl lg:mx-auto pt-20">
-					{props.children}
-				</main>
+				{props.children}
 			</BodyRegion>
 		</div>
 	);
