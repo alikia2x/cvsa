@@ -1,4 +1,4 @@
-import { Component, createSignal, For } from "solid-js";
+import { Component, createEffect, createMemo, createSignal, For, on, onMount } from "solid-js";
 import { HomeIcon } from "../icons/Home";
 import { MusicIcon } from "../icons/Music";
 import {
@@ -18,6 +18,8 @@ import { A } from "@solidjs/router";
 import { AlbumIcon } from "~/components/icons/Album";
 import { SearchIcon } from "../icons/Search";
 import { Portal } from "solid-js/web";
+import { animate, createTimer, utils } from "animejs";
+import { tv } from "tailwind-variants";
 
 export const [activeTab, setActiveTab] = createSignal(-1);
 export const [navigationExpanded, setNavigationExpanded] = createSignal(false);
@@ -84,19 +86,38 @@ const searchT = {
 };
 
 export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
-	let el: HTMLDivElement | undefined;
+	const [el, setEl] = createSignal<HTMLElement | null>(null);
+
+	createEffect(() => {
+		if (!el) return;
+		if (navigationExpanded()) {
+			animate(el()!, {
+				x: 0,
+				duration: 500,
+				z: 100,
+				ease: "cubicBezier(0.27, 1.06, 0.18, 1.00)"
+			});
+		} else {
+			animate(el()!, {
+				x: -340,
+				duration: 500,
+				z: 0,
+				ease: "cubicBezier(0.27, 1.06, 0.18, 1.00)"
+			});
+		}
+	});
+
 	return (
 		<>
 			<NavigationRailMenu
-				class="top-0 left-0 flex fixed z-100 md:hidden"
-				onClick={() => setNavigationExpanded(!navigationExpanded())}
+				class="top-3 left-4 fixed z-100 bg-surface-container/60 backdrop-blur-md lg:hidden"
+				onClick={() => {
+					setNavigationExpanded(!navigationExpanded());
+				}}
 			/>
-			<AppBar class="md:hidden" variant="search">
+			<AppBar class="lg:hidden" variant="search">
 				<AppBarLeadingElement>
-					<NavigationRailMenu
-						class="flex fixed z-100 md:hidden"
-						onClick={() => setNavigationExpanded(!navigationExpanded())}
-					/>
+					<NavigationRailMenu class="invisible" />
 				</AppBarLeadingElement>
 				<AppBarSearchBox placeholder="搜索" />
 				<AppBarTrailingElementGroup>
@@ -106,14 +127,19 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 				</AppBarTrailingElementGroup>
 			</AppBar>
 			<Portal mount={document.getElementById("modal") || undefined}>
-				<div class="fixed md:hidden top-0 left-0 h-full z-50">
+				<div
+					class="fixed lg:invisible top-0 left-0 h-full z-50"
+					style="transform: translateX(-300px);"
+					ref={(el) => {
+						setEl(el);
+					}}
+				>
 					<NavigationRail
-						class="md:hidden top-0 bg-surface-container rounded-r-2xl shadow-shadow shadow-2xl"
-						width={220}
+						class="top-0 bg-surface-container rounded-r-2xl shadow-shadow shadow-2xl"
+						width={256}
 						expanded={true}
 					>
-						<NavigationRailMenu class="opacity-0 pointer-events-none" />
-						<NavigationRailFAB text={searchT[props.lang || "zh"]} color="primary">
+						<NavigationRailFAB text={searchT[props.lang || "zh"]} class="pr-6 mt-6" color="primary">
 							<SearchIcon />
 						</NavigationRailFAB>
 						<NavigationRailActions>
@@ -141,8 +167,8 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 
 export const NavigationRegion: Component<{ lang?: "zh" | "en" }> = (props) => {
 	return (
-		<NavigationRail class="hidden md:flex top-0 bg-surface-container" width={220} expanded={navigationExpanded()}>
-			<NavigationRailMenu class="md:flex left-7" onClick={() => setNavigationExpanded(!navigationExpanded())} />
+		<NavigationRail class="hidden lg:flex top-0 bg-surface-container" width={220} expanded={navigationExpanded()}>
+			<NavigationRailMenu class="lg:flex left-7" onClick={() => setNavigationExpanded(!navigationExpanded())} />
 			<NavigationRailFAB text={searchT[props.lang || "zh"]} color="primary">
 				<SearchIcon />
 			</NavigationRailFAB>

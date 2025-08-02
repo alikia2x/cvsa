@@ -10,8 +10,8 @@ export const BodyRegion: Component<DivProps> = (props) => {
 		base: "relative",
 		variants: {
 			open: {
-				true: "px-5 md:left-55 md:pr-55",
-				false: "px-5 md:left-24 md:pr-24"
+				true: "px-5 lg:left-55 lg:pr-55",
+				false: "px-5 lg:left-24 lg:pr-24"
 			}
 		}
 	});

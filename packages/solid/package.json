@@ -9,11 +9,13 @@
 	},
 	"dependencies": {
 		"@m3-components/solid": "0.1.10",
+		"@solid-primitives/media": "^2.3.3",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.15.3",
 		"@solidjs/start": "^1.1.7",
 		"@tailwindcss/vite": "^4.1.11",
 		"@types/luxon": "^3.7.1",
+		"animejs": "^4.1.2",
 		"axios": "^1.11.0",
 		"dotenv": "^16.6.1",
 		"drizzle-orm": "^0.44.4",

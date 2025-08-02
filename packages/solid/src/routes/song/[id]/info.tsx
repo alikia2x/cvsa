@@ -1,16 +1,21 @@
 import { Layout } from "~/components/shell/Layout";
 import { Card, CardContent, CardMedia, Typography } from "@m3-components/solid";
+import LogoLight from "/icons/zh/appbar_desktop_light.svg";
+import LogoDark from "/icons/zh/appbar_desktop_dark.svg";
+import { DynamicImage } from "~/components/utils/DynamicImage";
 
 export default function Info() {
 	return (
 		<Layout>
 			<title></title>
 			<div
-				class="w-full md:grid md:grid-cols-[1fr_540px_minmax(200px,_1fr)] lg:grid-cols-[1fr_576px_1fr]
+				class="w-full sm:w-120 sm:mx-auto lg:w-full lg:grid lg:grid-cols-[1fr_560px_minmax(300px,_1fr)]
 					xl:grid-cols-[1fr_648px_1fr]"
 			>
-				<nav></nav>
-				<main class="mt-14 lg:mt-8 md:pl-6 lg:pl-0">
+				<nav class="hidden opacity-0 pointer-events-none lg:block xl:opacity-100 xl:pointer-events-auto pt-4">
+					<DynamicImage class="hidden xl:block 2xl:w-8/9" darkSrc={LogoDark} lightSrc={LogoLight} />
+				</nav>
+				<main class="mt-14 lg:mt-8 sm:pl-6 lg:pl-0">
 					<Card variant="outlined" class="w-full">
 						<CardMedia
 							round={false}
@@ -52,9 +57,7 @@ export default function Info() {
 						</Typography.Body>
 					</article>
 				</main>
-				<nav>
-
-				</nav>
+				<nav></nav>
 			</div>
 		</Layout>
 	);
