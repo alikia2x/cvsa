@@ -48,7 +48,7 @@ export default function Home() {
 	return (
 		<Layout>
 			<title>中V档案馆</title>
-			<main class="w-full lg:max-w-3xl xl:max-w-4xl 2xl:max-w-6xl lg:mx-auto">
+			<main class="w-full pt-20 lg:max-w-3xl xl:max-w-4xl 2xl:max-w-6xl lg:mx-auto">
 				<h1 class="text-4xl mb-8">中 V 档案馆</h1>
 				<h2 class="text-2xl font-normal">传说助攻</h2>
 				<div

@@ -4,16 +4,8 @@ import { FileRoutes } from "@solidjs/start/router";
 import { onMount, Suspense } from "solid-js";
 import "./app.css";
 import "@m3-components/solid/index.css";
-import { setActiveTab } from "./components/shell/Navigation";
+import { setActiveTab, tabMap } from "./components/shell/Navigation";
 import { minimatch } from "minimatch";
-
-const tabMap = {
-	"/": 0,
-	"/song*": 1,
-	"/song/**/*": 1,
-	"/albums": 2,
-	"/album/**/*": 2
-};
 
 export const refreshTab = (path: string) => {
 	for (const [key, value] of Object.entries(tabMap)) {

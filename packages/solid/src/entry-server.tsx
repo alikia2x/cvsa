@@ -16,6 +16,7 @@ export default createHandler(() => (
 						</head>
 						<body>
 							<div id="app" style="overflow-x: hidden">{children}</div>
+							<div id="modal"></div>
 							{scripts}
 						</body>
 					</html>

@@ -1,5 +1,4 @@
-@import url("./fonts/InterFont/Inter.css");
-@import url("./fonts/MiSans/MiSans.css");
+@import url("https://assets.projectcvsa.com/hm-sans/index.css");
 
 @import "tailwindcss";
 
@@ -132,8 +131,7 @@ a:not(.clear) {
 }
 
 :root {
-	font-family: "Inter", "MiSans", sans-serif;
-	font-weight: 400;
+	font-family: "HarmonyOS Sans SC", sans-serif;
 	@apply bg-surface text-on-surface;
 }
 
@@ -141,12 +139,4 @@ a:not(.clear) {
 [type="search"]::-webkit-search-decoration {
 	-webkit-appearance: none;
 	appearance: none;
-}
-
-@supports (font-variation-settings: normal) {
-	:root {
-		font-family: "Inter Variable", "MiSans VF", sans-serif;
-		font-optical-sizing: auto;
-		font-weight: 330;
-	}
 }

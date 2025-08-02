@@ -1,5 +1,5 @@
 import { tv } from "tailwind-variants";
-import { navigationExpanded, NavigationRegion } from "./Navigation";
+import { navigationExpanded, NavigationMobile, NavigationRegion } from "./Navigation";
 import { DivProps } from "../common";
 import { Component } from "solid-js";
 import { BeforeLeaveEventArgs, useBeforeLeave } from "@solidjs/router";
@@ -7,11 +7,11 @@ import { refreshTab } from "~/app";
 
 export const BodyRegion: Component<DivProps> = (props) => {
 	const bodyStyle = tv({
-		base: "relative px-6 pt-20",
+		base: "relative",
 		variants: {
 			open: {
-				true: "left-55 pr-55",
-				false: "left-24 pr-24"
+				true: "px-5 md:left-55 md:pr-55",
+				false: "px-5 md:left-24 md:pr-24"
 			}
 		}
 	});
@@ -22,7 +22,11 @@ export const BodyRegion: Component<DivProps> = (props) => {
 	);
 };
 
-export const Layout: Component<DivProps> = (props) => {
+interface LayoutProps extends DivProps {
+	lang?: "zh" | "en";
+}
+
+export const Layout: Component<LayoutProps> = (props) => {
 	useBeforeLeave((e: BeforeLeaveEventArgs) => {
 		if (typeof e.to === "number") {
 			refreshTab(e.to.toString());
@@ -32,7 +36,8 @@ export const Layout: Component<DivProps> = (props) => {
 	});
 	return (
 		<div class="relatve w-screen min-h-screen">
-			<NavigationRegion />
+			<NavigationRegion lang={props.lang} />
+			<NavigationMobile lang={props.lang} />
 			<BodyRegion>
 				{props.children}
 			</BodyRegion>

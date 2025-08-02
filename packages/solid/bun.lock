@@ -4,7 +4,7 @@
     "": {
       "name": "example-basic",
       "dependencies": {
-        "@m3-components/solid": "0.1.9",
+        "@m3-components/solid": "0.1.10",
         "@solidjs/meta": "^0.29.4",
         "@solidjs/router": "^0.15.3",
         "@solidjs/start": "^1.1.7",
@@ -182,7 +182,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.25", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ=="],
 
-    "@m3-components/solid": ["@m3-components/solid@0.1.9", "", { "dependencies": { "animejs": "^4.0.2", "solid-js": "^1.9.5", "tailwind-variants": "^1.0.0" } }, "sha512-gM+qx6C1FEd+dzEeLcpJspKx9kg2L2JyB/BCU8t0ivM7tTHXYVkR5ZHp+gMx/PdWu/wXLGEF6EOreUtnvUs2xg=="],
+    "@m3-components/solid": ["@m3-components/solid@0.1.10", "", { "dependencies": { "animejs": "^4.0.2", "solid-js": "^1.9.5", "tailwind-variants": "^1.0.0" } }, "sha512-dTD8Q++kIXEyKKFCOvdS5DylbUL94T0A+1kMPVMDuAKAavnWVyRkcwV6yh5Ih2fTXGyWLhnSi1jeM0eN1FADZg=="],
 
     "@mapbox/node-pre-gyp": ["@mapbox/node-pre-gyp@2.0.0", "", { "dependencies": { "consola": "^3.2.3", "detect-libc": "^2.0.0", "https-proxy-agent": "^7.0.5", "node-fetch": "^2.6.7", "nopt": "^8.0.0", "semver": "^7.5.3", "tar": "^7.4.0" }, "bin": { "node-pre-gyp": "bin/node-pre-gyp" } }, "sha512-llMXd39jtP0HpQLVI37Bf1m2ADlEb35GYSh1SDSLsBhR+5iCxiNGlT31yqbNtVHygHAtMy6dWFERpU2JgufhPg=="],
 
