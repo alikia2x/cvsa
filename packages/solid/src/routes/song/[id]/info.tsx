@@ -1,8 +1,7 @@
 import { Layout } from "~/components/shell/Layout";
 import { Card, CardContent, CardMedia, Typography } from "@m3-components/solid";
-import LogoLight from "/icons/zh/appbar_desktop_light.svg";
-import LogoDark from "/icons/zh/appbar_desktop_dark.svg";
-import { DynamicImage } from "~/components/utils/DynamicImage";
+
+import { TabSwitcher } from "~/components/song/TabSwitcher";
 
 export default function Info() {
 	return (
@@ -12,10 +11,8 @@ export default function Info() {
 				class="w-full sm:w-120 sm:mx-auto lg:w-full lg:grid lg:grid-cols-[1fr_560px_minmax(300px,_1fr)]
 					xl:grid-cols-[1fr_648px_1fr]"
 			>
-				<nav class="hidden opacity-0 pointer-events-none lg:block xl:opacity-100 xl:pointer-events-auto pt-4">
-					<DynamicImage class="hidden xl:block 2xl:w-8/9" darkSrc={LogoDark} lightSrc={LogoLight} />
-				</nav>
-				<main class="mt-14 lg:mt-8 sm:pl-6 lg:pl-0">
+				<nav class="hidden opacity-0 pointer-events-none lg:block xl:opacity-100 xl:pointer-events-auto pt-4"></nav>
+				<main>
 					<Card variant="outlined" class="w-full">
 						<CardMedia
 							round={false}
@@ -43,6 +40,9 @@ export default function Info() {
 							</div>
 						</CardContent>
 					</Card>
+					<div class="my-6 lg:hidden">
+						<TabSwitcher />
+					</div>
 					<article class="mt-6">
 						<Typography.Headline variant="medium">简介</Typography.Headline>
 						<Typography.Body class="mt-2" variant="large">
@@ -57,7 +57,9 @@ export default function Info() {
 						</Typography.Body>
 					</article>
 				</main>
-				<nav></nav>
+				<div class="hidden lg:block">
+					<TabSwitcher />
+				</div>
 			</div>
 		</Layout>
 	);

@@ -4,7 +4,7 @@
     "": {
       "name": "example-basic",
       "dependencies": {
-        "@m3-components/solid": "0.1.10",
+        "@m3-components/solid": "0.1.17",
         "@solid-primitives/media": "^2.3.3",
         "@solidjs/meta": "^0.29.4",
         "@solidjs/router": "^0.15.3",
@@ -184,7 +184,7 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.25", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ=="],
 
-    "@m3-components/solid": ["@m3-components/solid@0.1.10", "", { "dependencies": { "animejs": "^4.0.2", "solid-js": "^1.9.5", "tailwind-variants": "^1.0.0" } }, "sha512-dTD8Q++kIXEyKKFCOvdS5DylbUL94T0A+1kMPVMDuAKAavnWVyRkcwV6yh5Ih2fTXGyWLhnSi1jeM0eN1FADZg=="],
+    "@m3-components/solid": ["@m3-components/solid@0.1.17", "", { "dependencies": { "@solid-primitives/event-listener": "^2.4.3", "animejs": "^4.0.2", "solid-js": "^1.9.5", "tailwind-variants": "^1.0.0" } }, "sha512-KXNovjVIl0Tr0WhASn71t07DFO98S2VyDMa0453Q6Z4CA8FA91h65uaGkMxL4r9SmUdMOraxMeKNG8GJgV/bZQ=="],
 
     "@mapbox/node-pre-gyp": ["@mapbox/node-pre-gyp@2.0.0", "", { "dependencies": { "consola": "^3.2.3", "detect-libc": "^2.0.0", "https-proxy-agent": "^7.0.5", "node-fetch": "^2.6.7", "nopt": "^8.0.0", "semver": "^7.5.3", "tar": "^7.4.0" }, "bin": { "node-pre-gyp": "bin/node-pre-gyp" } }, "sha512-llMXd39jtP0HpQLVI37Bf1m2ADlEb35GYSh1SDSLsBhR+5iCxiNGlT31yqbNtVHygHAtMy6dWFERpU2JgufhPg=="],
 
@@ -1497,8 +1497,6 @@
     "@isaacs/cliui/string-width": ["string-width@5.1.2", "", { "dependencies": { "eastasianwidth": "^0.2.0", "emoji-regex": "^9.2.2", "strip-ansi": "^7.0.1" } }, "sha512-HnLOCR3vjcY8beoNLtcjZ5/nxn2afmME6lhrDrebokqMap+XbeW8n9TXpPDOqdGK5qcI3oT0GKTW6wC7EMiVqA=="],
 
     "@isaacs/cliui/wrap-ansi": ["wrap-ansi@8.1.0", "", { "dependencies": { "ansi-styles": "^6.1.0", "string-width": "^5.0.1", "strip-ansi": "^7.0.1" } }, "sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ=="],
-
-    "@m3-components/solid/animejs": ["animejs@4.1.1", "", {}, "sha512-IQiV/Mxg5/ViKlRPGUYcZzj9Me6zQRTQQOTtNTXEEVY4VjeokGjGxpKjaBf7nO+q/kgaqC2HKfUlawGvvnrPwQ=="],
 
     "@mapbox/node-pre-gyp/semver": ["semver@7.7.2", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA=="],
 

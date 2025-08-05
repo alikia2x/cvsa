@@ -12,7 +12,7 @@ import {
 	AppBarSearchBox,
 	AppBarTrailingElementGroup,
 	AppBarTrailingElement,
-	IconButton
+	IconButton, AppBarSearchContainer
 } from "@m3-components/solid";
 import { A } from "@solidjs/router";
 import { AlbumIcon } from "~/components/icons/Album";
@@ -119,7 +119,9 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 				<AppBarLeadingElement>
 					<NavigationRailMenu class="invisible" />
 				</AppBarLeadingElement>
-				<AppBarSearchBox placeholder="搜索" />
+				<AppBarSearchContainer class="w-[calc(100%-7.9rem)]">
+					<AppBarSearchBox placeholder="搜索" />
+				</AppBarSearchContainer>
 				<AppBarTrailingElementGroup>
 					<AppBarTrailingElement>
 						<IconButton></IconButton>
@@ -128,7 +130,7 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 			</AppBar>
 			<Portal mount={document.getElementById("modal") || undefined}>
 				<div
-					class="fixed lg:invisible top-0 left-0 h-full z-50"
+					class="fixed lg:hidden top-0 left-0 h-full z-50"
 					style="transform: translateX(-300px);"
 					ref={(el) => {
 						setEl(el);
@@ -151,6 +153,7 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 											label={action.label}
 											icon={action.icon}
 											onClick={() => {
+												setNavigationExpanded(false);
 												setActiveTab(index);
 											}}
 										/>
@@ -162,32 +165,5 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 				</div>
 			</Portal>
 		</>
-	);
-};
-
-export const NavigationRegion: Component<{ lang?: "zh" | "en" }> = (props) => {
-	return (
-		<NavigationRail class="hidden lg:flex top-0 bg-surface-container" width={220} expanded={navigationExpanded()}>
-			<NavigationRailMenu class="lg:flex left-7" onClick={() => setNavigationExpanded(!navigationExpanded())} />
-			<NavigationRailFAB text={searchT[props.lang || "zh"]} color="primary">
-				<SearchIcon />
-			</NavigationRailFAB>
-			<NavigationRailActions>
-				<For each={props.lang == "en" ? actionsEn : actions}>
-					{(action, index) => (
-						<A href={action.href} class="clear">
-							<NavigationRailAction
-								activated={activeTab() == index()}
-								label={action.label}
-								icon={action.icon}
-								onClick={() => {
-									setActiveTab(index);
-								}}
-							/>
-						</A>
-					)}
-				</For>
-			</NavigationRailActions>
-		</NavigationRail>
 	);
 };
