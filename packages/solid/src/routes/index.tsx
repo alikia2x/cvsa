@@ -1,4 +1,4 @@
-import { Layout } from "~/components/shell/Layout";
+import { Layout } from "~/components/layout";
 import { dbMain } from "~/drizzle";
 import { bilibiliMetadata, latestVideoSnapshot } from "~db/main/schema";
 import { and, desc, eq, gte, lt } from "drizzle-orm";

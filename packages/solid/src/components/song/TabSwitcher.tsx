@@ -1,21 +1,14 @@
 import { Button } from "@m3-components/solid";
 import { A } from "@solidjs/router";
-import { tv } from "tailwind-variants";
-import { navigationExpanded } from "~/components/shell/Navigation";
+import { Component, splitProps } from "solid-js";
+import { ElementProps } from "../common";
 
-export const TabSwitcher = () => {
-	const tabsContainerStyle = tv({
-		base: "w-full lg:w-48 gap-4 flex lg:flex-col items-center",
-		variants: {
-			expanded: {
-				true: "lg:self-start xl:self-center",
-				false: "self-center"
-			}
-		}
-	});
+export const TabSwitcher: Component<ElementProps> = (props) => {
+	const [_v, rest] = splitProps(props, ["class"]);
+
 	return (
-		<nav class="flex flex-col lg:h-screen lg:px-6 lg:pt-12">
-			<div class={tabsContainerStyle({ expanded: navigationExpanded() })}>
+		<nav class="flex flex-col" {...rest}>
+			<div class="w-full lg:w-48 gap-4 flex lg:flex-col items-center lg:self-center 2xl:self-end">
 				<A class="w-full" href="../info">
 					<Button class="w-full" variant="filled">
 						信息

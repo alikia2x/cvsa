@@ -1,4 +1,4 @@
-import { Layout } from "~/components/shell/Layout";
+import { Layout } from "~/components/layout";
 
 export default function SongsHome() {
 	return (

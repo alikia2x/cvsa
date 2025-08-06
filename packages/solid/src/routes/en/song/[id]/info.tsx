@@ -1,4 +1,4 @@
-import { Layout } from "~/components/shell/Layout";
+import { Layout } from "~/components/layout";
 import { query } from "@solidjs/router";
 import { Card, CardContent, CardMedia, Typography } from "@m3-components/solid";
 

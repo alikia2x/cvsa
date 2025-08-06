@@ -4,7 +4,7 @@ import { FileRoutes } from "@solidjs/start/router";
 import { onMount, Suspense } from "solid-js";
 import "./app.css";
 import "@m3-components/solid/index.css";
-import { setActiveTab, tabMap } from "./components/shell/Navigation";
+import { setActiveTab, tabMap } from "./components/layout/Navigation";
 import { minimatch } from "minimatch";
 
 export const refreshTab = (path: string) => {

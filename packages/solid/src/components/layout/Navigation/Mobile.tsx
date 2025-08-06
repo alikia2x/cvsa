@@ -1,6 +1,4 @@
-import { Component, createEffect, createMemo, createSignal, For, on, onMount } from "solid-js";
-import { HomeIcon } from "../icons/Home";
-import { MusicIcon } from "../icons/Music";
+import { Component, createEffect, createSignal, For } from "solid-js";
 import {
 	NavigationRailFAB,
 	NavigationRail,
@@ -12,78 +10,14 @@ import {
 	AppBarSearchBox,
 	AppBarTrailingElementGroup,
 	AppBarTrailingElement,
-	IconButton, AppBarSearchContainer
+	IconButton,
+	AppBarSearchContainer
 } from "@m3-components/solid";
 import { A } from "@solidjs/router";
-import { AlbumIcon } from "~/components/icons/Album";
-import { SearchIcon } from "../icons/Search";
+import { SearchIcon } from "~/components/icons/Search";
 import { Portal } from "solid-js/web";
-import { animate, createTimer, utils } from "animejs";
-import { tv } from "tailwind-variants";
-
-export const [activeTab, setActiveTab] = createSignal(-1);
-export const [navigationExpanded, setNavigationExpanded] = createSignal(false);
-
-interface Action {
-	icon: Component;
-	label: string;
-	href: string;
-}
-
-export const actions: Action[] = [
-	{
-		icon: HomeIcon,
-		label: "主页",
-		href: "/"
-	},
-	{
-		icon: MusicIcon,
-		label: "歌曲",
-		href: "/songs"
-	},
-	{
-		icon: AlbumIcon,
-		label: "专辑",
-		href: "/albums"
-	}
-];
-
-export const actionsEn: Action[] = [
-	{
-		icon: HomeIcon,
-		label: "Home",
-		href: "/en/"
-	},
-	{
-		icon: MusicIcon,
-		label: "Songs",
-		href: "/en/songs"
-	},
-	{
-		icon: AlbumIcon,
-		label: "Albums",
-		href: "/en/albums"
-	}
-];
-
-export const tabMap = {
-	"/": 0,
-	"/song*": 1,
-	"/song/**/*": 1,
-	"/albums": 2,
-	"/album/**/*": 2,
-	"/en/": 0,
-	"/en/songs": 1,
-	"/en/song*": 1,
-	"/en/song/**/*": 1,
-	"/en/albums": 2,
-	"/en/album/**/*": 2
-};
-
-const searchT = {
-	zh: "搜索",
-	en: "Search"
-};
+import { animate } from "animejs";
+import { actions, actionsEn, activeTab, navigationExpanded, searchT, setActiveTab, setNavigationExpanded } from ".";
 
 export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 	const [el, setEl] = createSignal<HTMLElement | null>(null);
@@ -119,7 +53,7 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 				<AppBarLeadingElement>
 					<NavigationRailMenu class="invisible" />
 				</AppBarLeadingElement>
-				<AppBarSearchContainer class="w-[calc(100%-7.9rem)]">
+				<AppBarSearchContainer class="max-sm:w-[calc(100%-7.9rem)]">
 					<AppBarSearchBox placeholder="搜索" />
 				</AppBarSearchContainer>
 				<AppBarTrailingElementGroup>

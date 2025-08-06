@@ -9,7 +9,7 @@ import { bilibiliMetadata, videoSnapshot } from "~db/main/schema";
 import { desc, eq } from "drizzle-orm";
 import { BilibiliMetadataType, VideoSnapshotType } from "~db/outerSchema";
 import { Context, useRequestContext } from "~/components/requestContext";
-import { Layout } from "~/components/shell/Layout";
+import { Layout } from "~/components/layout";
 
 async function getAllSnapshots(aid: number, context: Context) {
 	"use server";

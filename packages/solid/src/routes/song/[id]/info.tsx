@@ -1,17 +1,37 @@
-import { Layout } from "~/components/shell/Layout";
-import { Card, CardContent, CardMedia, Typography } from "@m3-components/solid";
+import { Layout } from "~/components/layout";
+import {
+	Button,
+	Card,
+	CardContent,
+	CardMedia,
+	ExtendedFAB,
+	FloatingActionButton,
+	Typography
+} from "@m3-components/solid";
 
 import { TabSwitcher } from "~/components/song/TabSwitcher";
+import { EditIcon, HomeIcon, MusicIcon } from "~/components/icons";
 
 export default function Info() {
 	return (
 		<Layout>
 			<title></title>
 			<div
-				class="w-full sm:w-120 sm:mx-auto lg:w-full lg:grid lg:grid-cols-[1fr_560px_minmax(300px,_1fr)]
+				class="pt-12 px-4 w-full sm:w-120 sm:mx-auto lg:w-full 2xl:w-360 lg:grid lg:grid-cols-[1fr_560px_1fr]
 					xl:grid-cols-[1fr_648px_1fr]"
 			>
-				<nav class="hidden opacity-0 pointer-events-none lg:block xl:opacity-100 xl:pointer-events-auto pt-4"></nav>
+				<nav class="hidden pointer-events-none lg:block xl:pointer-events-auto pt-4">
+					<div class="inline-flex flex-col gap-2">
+						<Button variant="outlined" class="gap-1 items-center" size="extra-small">
+							<HomeIcon class="w-5 h-5 text-xl -translate-y-0.25" />
+							<span>主页</span>
+						</Button>
+						<Button variant="outlined" class="gap-1 items-center" size="extra-small">
+							<MusicIcon class="w-5 h-5 text-xl" />
+							<span>歌曲</span>
+						</Button>
+					</div>
+				</nav>
 				<main>
 					<Card variant="outlined" class="w-full">
 						<CardMedia
@@ -57,7 +77,12 @@ export default function Info() {
 						</Typography.Body>
 					</article>
 				</main>
-				<div class="hidden lg:block">
+				<div class="hidden lg:flex flex-col px-6">
+					<div class="w-48 self-center 2xl:self-end flex justify-end mb-6">
+						<ExtendedFAB position="unset" size="small" text="编辑" color="primary">
+							<EditIcon />
+						</ExtendedFAB>
+					</div>
 					<TabSwitcher />
 				</div>
 			</div>
