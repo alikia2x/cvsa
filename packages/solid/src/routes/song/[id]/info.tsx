@@ -79,7 +79,7 @@ export default function Info() {
 				</main>
 				<div class="hidden lg:flex flex-col px-6">
 					<div class="w-48 self-center 2xl:self-end flex justify-end mb-6">
-						<ExtendedFAB position="unset" size="small" text="编辑" color="primary">
+						<ExtendedFAB position="unset" size="small" elevation={false} text="编辑" color="primary">
 							<EditIcon />
 						</ExtendedFAB>
 					</div>

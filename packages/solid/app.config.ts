@@ -14,6 +14,6 @@ export default defineConfig({
 				jsxDev: true,
 				jsxImportSource: "solid-js/h"
 			}
-		},
+		}
 	},
 });

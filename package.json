@@ -1,24 +1,29 @@
 {
-	"name": "cvsa",
-	"version": "3.15.34",
-	"private": false,
-	"type": "module",
-	"workspaces": [
-		"packages/frontend",
-		"packages/core",
-		"packages/backend",
-		"packages/crawler",
-		"packages/solid"
-	],
-	"dependencies": {
-		"arg": "^5.0.2",
-		"postgres": "^3.4.5"
-	},
-	"devDependencies": {
-		"@types/bun": "^1.2.15",
-		"prettier": "^3.5.3",
-		"vite-tsconfig-paths": "^5.1.4",
-		"vitest": "^3.1.2",
-		"vitest-tsconfig-paths": "^3.4.1"
-	}
+  "name": "cvsa",
+  "version": "3.15.34",
+  "private": false,
+  "type": "module",
+  "workspaces": [
+    "packages/core",
+    "packages/backend",
+    "packages/crawler",
+    "packages/solid"
+  ],
+  "dependencies": {
+    "arg": "^5.0.2",
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.15",
+    "prettier": "^3.5.3",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.1.2",
+    "vitest-tsconfig-paths": "^3.4.1"
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@tailwindcss/oxide",
+    "onnxruntime-node",
+    "protobufjs"
+  ]
 }

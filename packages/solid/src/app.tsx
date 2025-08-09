@@ -2,8 +2,8 @@ import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
 import { onMount, Suspense } from "solid-js";
-import "./app.css";
 import "@m3-components/solid/index.css";
+import "./app.css";
 import { setActiveTab, tabMap } from "./components/layout/Navigation";
 import { minimatch } from "minimatch";
 

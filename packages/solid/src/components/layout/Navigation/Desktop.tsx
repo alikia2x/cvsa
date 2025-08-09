@@ -1,6 +1,4 @@
 import { Component } from "solid-js";
-import LogoLight from "/icons/zh/appbar_desktop_light.svg";
-import LogoDark from "/icons/zh/appbar_desktop_dark.svg";
 import { DynamicImage } from "~/components/utils/DynamicImage";
 import {
 	AppBar,
@@ -16,7 +14,11 @@ export const NavigationDesktop: Component = () => {
 	return (
 		<AppBar class="hidden lg:flex h-20 xl:h-22 2xl:h-24" variant="search">
 			<AppBarLeadingElement class="h-full grow shrink basis-0">
-				<DynamicImage class="lg:block h-full" darkSrc={LogoDark} lightSrc={LogoLight} />
+				<DynamicImage
+					class="lg:block h-full"
+					darkSrc="/icons/zh/appbar_desktop_dark.svg"
+					lightSrc="/icons/zh/appbar_desktop_light.svg"
+				/>
 			</AppBarLeadingElement>
 			<AppBarSearchContainer>
 				<AppBarSearchBox class="mx-auto text-center" placeholder="搜索" />
