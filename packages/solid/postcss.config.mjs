@@ -1,5 +1,8 @@
 export default {
 	plugins: {
-		"@tailwindcss/postcss": {}
+		"@tailwindcss/postcss": {},
+		// "@csstools/postcss-bundler": {},
+		// "@csstools/postcss-cascade-layers": {},
+		// "./src/misc/postcss-calc-keyword-polyfill": {}
 	}
 };

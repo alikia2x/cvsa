@@ -1,3 +1,6 @@
+// polyfill
+import "@ungap/has-own";
+
 import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { FileRoutes } from "@solidjs/start/router";
@@ -13,12 +16,12 @@ export const refreshTab = (path: string) => {
 		setActiveTab(value);
 		break;
 	}
-}
+};
 
 export default function App() {
 	onMount(() => {
 		refreshTab(location.pathname);
-		window.addEventListener('popstate', (event) => {
+		window.addEventListener("popstate", (event) => {
 			refreshTab(location.pathname);
 		});
 	});

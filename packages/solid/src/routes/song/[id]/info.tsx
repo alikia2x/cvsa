@@ -1,16 +1,9 @@
 import { Layout } from "~/components/layout";
-import {
-	Button,
-	Card,
-	CardContent,
-	CardMedia,
-	ExtendedFAB,
-	FloatingActionButton,
-	Typography
-} from "@m3-components/solid";
+import { Button, Card, CardContent, CardMedia, ExtendedFAB, Typography } from "@m3-components/solid";
 
 import { TabSwitcher } from "~/components/song/TabSwitcher";
 import { EditIcon, HomeIcon, MusicIcon } from "~/components/icons";
+import { A } from "@solidjs/router";
 
 export default function Info() {
 	return (
@@ -22,14 +15,18 @@ export default function Info() {
 			>
 				<nav class="hidden pointer-events-none lg:block xl:pointer-events-auto pt-4">
 					<div class="inline-flex flex-col gap-2">
-						<Button variant="outlined" class="gap-1 items-center" size="extra-small">
-							<HomeIcon class="w-5 h-5 text-xl -translate-y-0.25" />
-							<span>主页</span>
-						</Button>
-						<Button variant="outlined" class="gap-1 items-center" size="extra-small">
-							<MusicIcon class="w-5 h-5 text-xl" />
-							<span>歌曲</span>
-						</Button>
+						<A href="/">
+							<Button variant="outlined" class="gap-1 items-center" size="extra-small">
+								<HomeIcon class="w-5 h-5 text-xl -translate-y-0.25" />
+								<span>主页</span>
+							</Button>
+						</A>
+						<A href="/songs">
+							<Button variant="outlined" class="gap-1 items-center" size="extra-small">
+								<MusicIcon class="w-5 h-5 text-xl" />
+								<span>歌曲</span>
+							</Button>
+						</A>
 					</div>
 				</nav>
 				<main>
