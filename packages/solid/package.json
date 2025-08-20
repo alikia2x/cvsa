@@ -7,7 +7,7 @@
 		"version": "vinxi version"
 	},
 	"dependencies": {
-		"@m3-components/solid": "0.2.1",
+		"@m3-components/solid": "0.2.2",
 		"@solid-primitives/media": "^2.3.3",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.15.3",
@@ -33,6 +33,7 @@
 	"devDependencies": {
 		"@csstools/postcss-bundler": "^2.0.8",
 		"@csstools/postcss-cascade-layers": "^5.0.2",
+		"@csstools/postcss-oklab-function": "^4.0.10",
 		"@tailwindcss/postcss": "^4.1.11",
 		"drizzle-kit": "^0.31.4",
 		"postcss": "^8.5.6",
