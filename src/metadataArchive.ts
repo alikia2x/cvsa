@@ -1,162 +1,70 @@
 import arg from "arg";
 import { Database } from "bun:sqlite";
 import logger from "@core/log/logger";
-import networkDelegate from "@core/net/delegate.ts";
-import type { VideoDetailsResponse } from "@core/net/bilibili.d.ts";
+import type { VideoDetailsData } from "@core/net/bilibili.d.ts";
+import { sql } from "@core/index";
 
-async function getVideoDetails(aid: number, archive: boolean = false): Promise<VideoDetailsResponse> {
-	const url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`;
-	const data = await networkDelegate.request<VideoDetailsResponse>(url, archive ? "" : "getVideoInfo");
-	const errMessage = `Error fetching metadata for ${aid}:`;
-	if (data.code !== 0) {
-		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");
-		return data;
-	}
-	return data;
-}
-
-
-const SECOND = 1000;
-const SECONDS = SECOND;
-const MINUTE = 60 * SECONDS;
-const MINUTES = MINUTE;
-const IPs = 6;
-
-const rateLimits = [
-	{ window: 5 * MINUTES, maxRequests: 160 * IPs },
-	{ window: 30 * SECONDS, maxRequests: 20 * IPs },
-	{ window: 1.2 * SECOND, maxRequests: 1 * IPs }
-];
-
-const requestQueue: number[] = [];
-
-function isRateLimited(): boolean {
-	const now = Date.now();
-	return rateLimits.some(({ window, maxRequests }) => {
-		const windowStart = now - window;
-		const requestsInWindow = requestQueue.filter((timestamp) => timestamp >= windowStart).length;
-		return requestsInWindow >= maxRequests;
-	});
-}
-
-function logProgress(aid: number, processedAids: number, totalAids: number, startTime: number) {
-	const elapsedTime = Date.now() - startTime;
-	const elapsedSeconds = Math.floor(elapsedTime / 1000);
-	const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-	const elapsedHours = Math.floor(elapsedMinutes / 60);
-
-	const remainingAids = totalAids - processedAids;
-	const averageTimePerAid = elapsedTime / processedAids;
-	const eta = remainingAids * averageTimePerAid;
-	const etaSeconds = Math.floor(eta / 1000);
-	const etaMinutes = Math.floor(etaSeconds / 60);
-	const etaHours = Math.floor(etaMinutes / 60);
-
-	const progress = `${processedAids}/${totalAids}, ${((processedAids / totalAids) * 100).toFixed(
-		2
-	)}%, elapsed ${elapsedHours.toString().padStart(2, "0")}:${(elapsedMinutes % 60).toString().padStart(2, "0")}:${(
-		elapsedSeconds % 60
-	)
-		.toString()
-		.padStart(2, "0")}, ETA ${etaHours}h${(etaMinutes % 60).toString().padStart(2, "0")}m`;
-	console.log(`Updated aid ${aid}, ${progress}`);
-}
-
-const quit = (reason: string) => {
-	logger.error(reason);
+const quit = (reason?: string) => {
+	reason && logger.error(reason);
 	process.exit();
 };
 
 const args = arg({
-	"--aids": String,
 	"--db": String
 });
 
-const aidsFileName = args["--aids"];
 const dbPath = args["--db"];
-
-if (!aidsFileName) {
-	quit("Missing --aids <file_path>");
-}
-
 if (!dbPath) {
 	quit("Missing --db <path>");
 }
 
-const aidsFile = Bun.file(aidsFileName!);
-const fileExists = await aidsFile.exists();
+const sqlite = new Database(dbPath);
+const pg = sql;
 
-if (!fileExists) {
-	quit(`${aidsFile} does not exist.`);
+async function fixTimezoneError() {
+	let fixQuery = "";
+	let i = 0;
+	let j = 0;
+	const candidates = await pg`
+        SELECT aid, published_at
+        FROM
+          bilibili_metadata
+        WHERE
+          published_at >= '2025-04-26'
+          AND published_at <= '2025-06-01'
+          AND status = 0
+    `;
+	const query = sqlite.query(`SELECT data FROM bili_info_crawl WHERE aid = $aid`);
+	for (const video of candidates) {
+		const aid: number = video.aid;
+		try {
+			const sqliteData: any = query.get({ $aid: aid });
+			const rawData: VideoDetailsData | null = JSON.parse(sqliteData.data);
+			if (!rawData) {
+				logger.warn(`Data not exists for aid: ${aid}`);
+				continue;
+			}
+			const realTimestamp = rawData.View.pubdate;
+			const dbTimestamp = video.published_at.getTime() / 1000;
+			const diff = dbTimestamp - realTimestamp;
+			if (Math.abs(diff) > 1) {
+				logger.warn(`Find incorrect timestamp for aid ${aid} with diff of ${diff} sec`);
+				const date = new Date(realTimestamp * 1000).toISOString();
+				const q = `UPDATE bilibili_metadata SET published_at = '${date}' WHERE aid = ${aid};\n`;
+				fixQuery += q;
+				i++;
+			}
+		} catch (e) {
+			//logger.error(e as Error, undefined, aid.toString());
+			logger.error(aid.toString());
+		}
+		j++;
+		logger.log(`Progress: ${j}/${candidates.length}`);
+	}
+	logger.log(`Fixed ${i} videos, query length ${fixQuery.length}.`);
+	return fixQuery;
 }
 
-const aidsText = await aidsFile.text();
-const aids = aidsText
-	.split("\n")
-	.map((line) => parseInt(line))
-	.filter((num) => !Number.isNaN(num));
-
-logger.log(`Read ${aids.length} aids.`);
-
-const db = new Database(dbPath);
-const existingAids = db.query<{ aid: number }, []>(`SELECT aid from bili_info_crawl where status = 'success' or status = 'error'`).all();
-logger.log(`Existing Aids: ${existingAids.length}`);
-const existingAidsSet = new Set(existingAids.map((a) => a.aid));
-const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
-logger.log(`New Aids: ${newAids.length}`);
-
-const totalAids = newAids.length;
-let processedAids = 0;
-const startTime = Date.now();
-
-const processAid = async (aid: number) => {
-	try {
-		const data = await getVideoDetails(aid);
-		if (data.code !== 0) {
-			updateAidStatus(aid, "error", undefined, JSON.stringify(data));
-		} else {
-			updateAidStatus(aid, "success", data.data.View.bvid, JSON.stringify(data));
-		}
-	} catch (error) {
-		console.error(`Error updating aid ${aid}: ${error}`);
-		updateAidStatus(aid, "failed");
-	} finally {
-		processedAids++;
-		logProgress(aid, processedAids, totalAids, startTime);
-	}
-};
-
-const interval = setInterval(async () => {
-	if (newAids.length === 0) {
-		clearInterval(interval);
-		console.log("All aids processed.");
-		return;
-	}
-	if (!isRateLimited()) {
-		const aid = newAids.shift();
-		if (aid !== undefined) {
-			requestQueue.push(Date.now());
-			await processAid(aid);
-		}
-	}
-}, 50);
-
-function updateAidStatus(aid: number, status: string, bvid?: string, data?: string) {
-	const query = db.query(`
-        INSERT INTO bili_info_crawl
-		(aid, bvid, status, data, timestamp)
-		VALUES ($aid, $bvid, $status, $data, $timestamp)
-		ON CONFLICT (aid) DO UPDATE SET
-            bvid = excluded.bvid,
-            timestamp = excluded.timestamp,
-            data = excluded.data,
-            status = excluded.status;
-    `);
-	query.run({
-		$aid: aid,
-		$bvid: bvid || null,
-		$status: status || null,
-		$data: data || null,
-		$timestamp: Date.now() / 1000
-	});
-}
+const q = await fixTimezoneError();
+await Bun.write("scripts/fix.sql", q);
+quit();
