@@ -147,7 +147,7 @@ const Content: Component = () => {
 					</div>
 				</CardContent>
 			</Card>
-			<div class="mx-4 my-6 lg:hidden">
+			<div class="mx-1 my-6 lg:hidden">
 				<TabSwitcher />
 			</div>
 			<article class="mt-6">
