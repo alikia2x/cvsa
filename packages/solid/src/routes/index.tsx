@@ -31,13 +31,18 @@ export const route = {
 
 const VideoCard: Component<VideoCardProps> = (props) => {
 	return (
-		<Card variant="outlined" class="w-64 h-52 grow-0 shrink-0 basis-64">
-			<CardMedia class="w-64 h-32 object-cover" round={false} src={props.video.bilibili_metadata.coverUrl || ""}
-					   referrerpolicy="no-referrer" />
+		<Card variant="outlined" class="w-64 h-64 grow-0 shrink-0 basis-64">
+			<CardMedia
+				class="w-64 h-32 object-cover"
+				round={false}
+				src={props.video.bilibili_metadata.coverUrl || ""}
+				referrerpolicy="no-referrer"
+			/>
 			<CardContent class="py-3 px-4">
-				<Typography.Body variant="large">
+				<Typography.Body variant="large" class="text-wrap">
 					{props.video.bilibili_metadata.title}
 				</Typography.Body>
+				<span>{props.video.latest_video_snapshot.views} 播放</span>
 			</CardContent>
 		</Card>
 	);
@@ -53,15 +58,13 @@ export default function Home() {
 				<h2 class="text-2xl font-normal">传说助攻</h2>
 				<div
 					class="flex overflow-x-auto overflow-y-hidden gap-4 whitespace-nowrap w-full
-						py-2 px-4 mt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+						py-2 px-4 mt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				>
 					<Suspense fallback={<div>Loading...</div>}>
-						<For each={videos()}>{
-							(video) => <VideoCard video={video} />
-						}</For>
+						<For each={videos()}>{(video) => <VideoCard video={video} />}</For>
 					</Suspense>
 				</div>
 			</main>
-
 		</Layout>
 	);
 }

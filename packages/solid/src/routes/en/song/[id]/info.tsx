@@ -26,9 +26,7 @@ export default function Info() {
 								<Typography.Body class="font-semibold" variant="small">
 									PUBLISHER
 								</Typography.Body>
-								<Typography.Body variant="large">
-									洛凛
-								</Typography.Body>
+								<Typography.Body variant="large">洛凛</Typography.Body>
 							</div>
 							<div class="flex flex-col">
 								<Typography.Body class="font-semibold" variant="small">

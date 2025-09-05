@@ -1,12 +1,11 @@
 "use server";
 
 import { defineConfig } from "@solidjs/start/config";
-import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	vite: {
-		plugins: [tailwindcss(), tsconfigPaths()],
+		plugins: [tsconfigPaths()],
 		optimizeDeps: {
 			include: ["@m3-components/solid"],
 			esbuildOptions: {
@@ -15,5 +14,5 @@ export default defineConfig({
 				jsxImportSource: "solid-js/h"
 			}
 		}
-	},
+	}
 });

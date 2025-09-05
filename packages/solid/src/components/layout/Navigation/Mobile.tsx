@@ -11,7 +11,8 @@ import {
 	AppBarTrailingElementGroup,
 	AppBarTrailingElement,
 	IconButton,
-	AppBarSearchContainer
+	AppBarSearchContainer,
+	ExtendedFAB
 } from "@m3-components/solid";
 import { A } from "@solidjs/router";
 import { SearchIcon } from "~/components/icons/Search";
@@ -33,7 +34,7 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 			});
 		} else {
 			animate(el()!, {
-				x: -340,
+				x: -380,
 				duration: 500,
 				z: 0,
 				ease: "cubicBezier(0.27, 1.06, 0.18, 1.00)"
@@ -44,17 +45,17 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 	return (
 		<>
 			<NavigationRailMenu
-				class="top-3 left-4 fixed z-100 bg-surface-container/60 backdrop-blur-md lg:hidden"
+				class="top-3 left-4 fixed z-[100] backdrop-blur-md shadow-xl lg:hidden"
 				onClick={() => {
 					setNavigationExpanded(!navigationExpanded());
 				}}
 			/>
-			<AppBar class="lg:hidden" variant="search">
+			<AppBar class="z-20 lg:hidden" variant="search">
 				<AppBarLeadingElement>
 					<NavigationRailMenu class="invisible" />
 				</AppBarLeadingElement>
 				<AppBarSearchContainer class="max-sm:w-[calc(100%-7.9rem)]">
-					<AppBarSearchBox placeholder="搜索" />
+					<AppBarSearchBox placeholder="搜索" class="placeholder-on-surface-variant text-on-surface" />
 				</AppBarSearchContainer>
 				<AppBarTrailingElementGroup>
 					<AppBarTrailingElement>
@@ -71,13 +72,19 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 					}}
 				>
 					<NavigationRail
-						class="top-0 bg-surface-container rounded-r-2xl shadow-shadow shadow-2xl"
+						class="z-20 top-0 bg-background overflow-auto rounded-r-2xl shadow-shadow shadow-2xl"
 						width={256}
 						expanded={true}
 					>
-						<NavigationRailFAB text={searchT[props.lang || "zh"]} class="pr-6 mt-6" color="primary">
+						<ExtendedFAB
+							text={searchT[props.lang || "zh"]}
+							class="left-5 top-5 font-medium leading-6 duration-100 whitespace-nowrap
+							transition-none w-24 h-14 text-base mt-6"
+							color="primary"
+							position="unset"
+						>
 							<SearchIcon />
-						</NavigationRailFAB>
+						</ExtendedFAB>
 						<NavigationRailActions>
 							<For each={props.lang == "en" ? actionsEn : actions}>
 								{(action, index) => (
@@ -96,6 +103,10 @@ export const NavigationMobile: Component<{ lang?: "zh" | "en" }> = (props) => {
 							</For>
 						</NavigationRailActions>
 					</NavigationRail>
+					<div
+						onclick={() => setNavigationExpanded(false)}
+						class="w-screen h-screen z-10 absoluter bg-transparent"
+					></div>
 				</div>
 			</Portal>
 		</>

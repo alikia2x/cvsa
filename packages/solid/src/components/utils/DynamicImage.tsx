@@ -18,5 +18,5 @@ export const DynamicImage: Component<Props> = (props) => {
 				<img src={v.lightSrc} alt={v.alt} {...rest} />
 			</Match>
 		</Switch>
-	)
-}
+	);
+};

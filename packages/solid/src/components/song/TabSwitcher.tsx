@@ -8,25 +8,30 @@ export const TabSwitcher: Component<ElementProps> = (props) => {
 
 	return (
 		<nav class="flex flex-col" {...rest}>
-			<div class="w-full lg:w-48 gap-4 flex lg:flex-col items-center lg:self-center 2xl:self-end">
-				<A class="w-full" href="../info">
+			<div class="w-full lg:w-48 gap-4 flex overflow-auto lg:flex-col items-center lg:self-center 2xl:self-end">
+				<A class="min-w-20 w-full" href="../info">
 					<Button class="w-full" variant="filled">
 						信息
 					</Button>
 				</A>
-				<A class="w-full" href="../lyrics">
+				<A class="min-w-20 w-full" href="../lyrics">
 					<Button class="w-full" variant="outlined">
 						歌词
 					</Button>
 				</A>
-				<A class="w-full" href="../analytics">
+				<A class="min-w-20 w-full" href="../analytics">
 					<Button class="w-full" variant="outlined">
 						数据
 					</Button>
 				</A>
-				<A class="w-full" href="../relations">
+				<A class="min-w-20 w-full" href="../relations">
 					<Button class="w-full" variant="outlined">
 						相关
+					</Button>
+				</A>
+				<A class="min-w-20 w-full" href="../discussion">
+					<Button class="w-full" variant="outlined">
+						讨论
 					</Button>
 				</A>
 			</div>

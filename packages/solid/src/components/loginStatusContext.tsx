@@ -1,6 +1,6 @@
 import { dbCred } from "~db/index";
 import { loginSessions, users } from "~db/cred/schema";
-import { and, eq, gt,  isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { SensitiveUserFields, UserType } from "~db/outerSchema";
 
 type ReturnedUser = Omit<UserType, SensitiveUserFields>;

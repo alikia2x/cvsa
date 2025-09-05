@@ -97,7 +97,6 @@ export default function VideoInfoPage() {
 		};
 	});
 
-	
 	return (
 		<Layout>
 			<main class="flex flex-col items-center min-h-screen gap-8 mt-10 md:mt-6 relative z-0 overflow-x-auto pb-8">
