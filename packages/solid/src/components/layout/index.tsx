@@ -19,7 +19,7 @@ export const Layout: Component<LayoutProps> = (props) => {
 		refreshTab(e.to);
 	});
 	return (
-		<div class="relatve w-screen min-h-screen">
+		<div class="relatve w-screen max-w-full min-h-screen">
 			<NavigationMobile lang={props.lang} />
 			<NavigationDesktop />
 			<BodyRegion>{props.children}</BodyRegion>
