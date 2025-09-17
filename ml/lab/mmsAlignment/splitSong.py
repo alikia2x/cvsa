@@ -52,7 +52,7 @@ def split_audio_by_lrc(audio_file, lrc_data):
 
 if __name__ == "__main__":
     lrc_file = "./data/1.lrc"  # LRC文件路径
-    audio_file = "./data/1.flac"  # 音频文件路径
+    audio_file = "./data/1.mp3"  # 音频文件路径
     
     lrc_data = parse_lrc(lrc_file)
     split_audio_by_lrc(audio_file, lrc_data)

@@ -164,4 +164,4 @@ def align(audio_file: str, lrc_file: str, output_ttml: str, segments_dir: str = 
     ttml_generator.save(output_ttml)
     
 if __name__ == "__main__":
-    align("./data/1.flac", "./data/1.lrc", "./data/output.ttml", "./temp/lines")
+    align("./data/1.mp3", "./data/1.lrc", "./data/output.ttml", "./temp/lines")
