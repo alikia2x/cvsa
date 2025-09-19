@@ -12,6 +12,7 @@ import logger from "@core/log/logger.ts";
  * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
  */
 export async function bulkGetVideoStats(aids: number[]): Promise<MediaListInfoData | number> {
+	// TODO: https://api.bilibili.com/x/v3/fav/resource/infos?resources=20:2
 	let url = `https://api.bilibili.com/medialist/gateway/base/resource/infos?resources=`;
 	for (const aid of aids) {
 		url += `${aid}:2,`;
