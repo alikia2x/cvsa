@@ -1,0 +1,350 @@
+{
+	"id": "00000000-0000-0000-0000-000000000000",
+	"prevId": "",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.captcha_difficulty_settings": {
+			"name": "captcha_difficulty_settings",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "nextval('captcha_difficulty_settings_id_seq'::regclass)"
+				},
+				"method": {
+					"name": "method",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"path": {
+					"name": "path",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"duration": {
+					"name": "duration",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"threshold": {
+					"name": "threshold",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"difficulty": {
+					"name": "difficulty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"global": {
+					"name": "global",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"captcha_difficulty_settings_pkey": {
+					"name": "captcha_difficulty_settings_pkey",
+					"columns": [
+						{
+							"expression": "id",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false
+		},
+		"public.login_sessions": {
+			"name": "login_sessions",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"uid": {
+					"name": "uid",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"expire_at": {
+					"name": "expire_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"last_used_at": {
+					"name": "last_used_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"ip_address": {
+					"name": "ip_address",
+					"type": "inet",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"user_agent": {
+					"name": "user_agent",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"deactivated_at": {
+					"name": "deactivated_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"inx_login-sessions_uid": {
+					"name": "inx_login-sessions_uid",
+					"columns": [
+						{
+							"expression": "uid",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"login_sessions_pkey": {
+					"name": "login_sessions_pkey",
+					"columns": [
+						{
+							"expression": "id",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false
+		},
+		"public.users": {
+			"name": "users",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "nextval('users_id_seq'::regclass)"
+				},
+				"nickname": {
+					"name": "nickname",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"username": {
+					"name": "username",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"password": {
+					"name": "password",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"unq_id": {
+					"name": "unq_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"role": {
+					"name": "role",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'USER'"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "CURRENT_TIMESTAMP"
+				}
+			},
+			"indexes": {
+				"users_pkey": {
+					"name": "users_pkey",
+					"columns": [
+						{
+							"expression": "id",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"users_pkey1": {
+					"name": "users_pkey1",
+					"columns": [
+						{
+							"expression": "id",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"users_unq_id_key": {
+					"name": "users_unq_id_key",
+					"columns": [
+						{
+							"expression": "unq_id",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"users_username_key": {
+					"name": "users_username_key",
+					"columns": [
+						{
+							"expression": "username",
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops",
+							"isExpression": false
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"checkConstraints": {},
+			"policies": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {},
+	"schemas": {},
+	"sequences": {
+		"public.captcha_difficulty_settings_id_seq": {
+			"name": "captcha_difficulty_settings_id_seq",
+			"schema": "public",
+			"startWith": "1",
+			"minValue": "1",
+			"maxValue": "2147483647",
+			"increment": "1",
+			"cycle": false,
+			"cache": "1"
+		},
+		"public.users_id_seq": {
+			"name": "users_id_seq",
+			"schema": "public",
+			"startWith": "1",
+			"minValue": "1",
+			"maxValue": "2147483647",
+			"increment": "1",
+			"cycle": false,
+			"cache": "1"
+		}
+	},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"schemas": {},
+		"tables": {},
+		"columns": {}
+	},
+	"internal": {
+		"tables": {
+			"captcha_difficulty_settings": {
+				"columns": {
+					"id": {
+						"isDefaultAnExpression": true
+					}
+				}
+			},
+			"users": {
+				"columns": {
+					"id": {
+						"isDefaultAnExpression": true
+					}
+				}
+			}
+		}
+	}
+}
