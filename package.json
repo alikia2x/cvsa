@@ -7,7 +7,9 @@
 		"packages/frontend",
 		"packages/core",
 		"packages/backend",
-		"packages/crawler"
+		"packages/crawler",
+		"packages/elysia",
+		"packages/temp_frontend"
 	],
 	"dependencies": {
 		"arg": "^5.0.2",
