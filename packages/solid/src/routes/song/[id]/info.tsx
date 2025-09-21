@@ -3,7 +3,7 @@ import { LeftSideBar } from "~/components/song/LeftSideBar";
 import { RightSideBar } from "~/components/song/RightSideBar";
 import { Content } from "~/components/song/Content";
 import { createAsync, query, RouteDefinition, useParams } from "@solidjs/router";
-import { dbMain } from "~/drizzle";
+import { dbMain } from "~db/index";
 import { bilibiliMetadata, songs } from "~db/main/schema";
 import { eq } from "drizzle-orm";
 

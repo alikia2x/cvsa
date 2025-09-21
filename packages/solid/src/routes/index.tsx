@@ -1,9 +1,9 @@
 import { Layout } from "~/components/layout";
-import { dbMain } from "~/drizzle";
+import { dbMain } from "~db/index";
 import { bilibiliMetadata, latestVideoSnapshot } from "~db/main/schema";
 import { and, desc, eq, gte, lt } from "drizzle-orm";
-import { createAsync, query, RouteDefinition } from "@solidjs/router";
-import { Component, createResource, For, Suspense } from "solid-js";
+import { A, createAsync, query, RouteDefinition } from "@solidjs/router";
+import { Component, For, Suspense } from "solid-js";
 import { BilibiliMetadataType, LatestVideoSnapshotType } from "~db/outerSchema";
 import { Card, CardContent, CardMedia, Typography } from "@m3-components/solid";
 
@@ -39,9 +39,11 @@ const VideoCard: Component<VideoCardProps> = (props) => {
 				referrerpolicy="no-referrer"
 			/>
 			<CardContent class="py-3 px-4">
-				<Typography.Body variant="large" class="text-wrap">
-					{props.video.bilibili_metadata.title}
-				</Typography.Body>
+				<A href={`/song/av${props.video.bilibili_metadata.aid}/info`}>
+					<Typography.Body variant="large" class="text-wrap">
+						{props.video.bilibili_metadata.title}
+					</Typography.Body>
+				</A>
 				<span>{props.video.latest_video_snapshot.views} 播放</span>
 			</CardContent>
 		</Card>

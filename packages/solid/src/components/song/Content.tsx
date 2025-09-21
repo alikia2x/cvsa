@@ -87,7 +87,7 @@ export const Content: Component<{data: SongType | null}> = (props) => {
 								投稿
 							</Typography.Label>
 							<Typography.Body variant="large">
-								<a href="#">洛凛</a>
+								<a href="#">{props.data?.producer}</a>
 							</Typography.Body>
 						</div>
 						<div class="flex flex-col">

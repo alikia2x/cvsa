@@ -14,7 +14,7 @@
 		"isolatedModules": true,
 		"paths": {
 			"~/*": ["./src/*"],
-			"~db/*": ["./src/drizzle/*"]
+			"~db/*": ["../core/drizzle/*"],
 		}
 	}
 }

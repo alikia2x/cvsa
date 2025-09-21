@@ -9,7 +9,8 @@
 		"packages/backend",
 		"packages/crawler",
 		"packages/elysia",
-		"packages/temp_frontend"
+		"packages/temp_frontend",
+		"packages/solid"
 	],
 	"dependencies": {
 		"arg": "^5.0.2",
