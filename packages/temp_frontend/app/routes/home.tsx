@@ -23,26 +23,6 @@ export default function Home() {
 						<SearchIcon className="size-6" />
 					</Button>
 				</div>
-
-				<Button
-					className="w-full mt-4 h-10"
-					variant="secondary"
-					onClick={async () => {
-						try {
-							const { data } = await app.ping.get("");
-							if (data && data.message === "pong") {
-								toast("pong");
-								return;
-							}
-							toast("校验失败。");
-						} catch (e) {
-							console.error(e);
-							toast("发生错误。");
-						}
-					}}
-				>
-					Ping
-				</Button>
 			</main>
 		</div>
 	);

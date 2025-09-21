@@ -1,9 +1,14 @@
 import useSWR from "swr";
+import type { Route } from "./+types/info";
 
 const API_URL = "https://api.projectcvsa.com";
 
-export default function SongInfo() {
-	const { data, error, isLoading } = useSWR(`${API_URL}/song/[id]/info`, async (url) => {
+export async function clientLoader({ params }: Route.LoaderArgs) {
+	return { id: params.id };
+}
+
+export default function SongInfo({ loaderData }: Route.ComponentProps) {
+	const { data, error, isLoading } = useSWR(`${API_URL}/video/${loaderData.id}/info`, async (url) => {
 		const response = await fetch(url);
 		if (!response.ok) {
 			throw new Error("Failed to fetch song info");

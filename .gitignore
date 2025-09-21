@@ -44,3 +44,5 @@ docker-compose.yml
 ucaptcha-config.yaml
 
 temp/
+
+meili

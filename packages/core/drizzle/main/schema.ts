@@ -1,4 +1,4 @@
-import { pgTable, uniqueIndex, index, integer, bigint, varchar, text, timestamp, unique, serial, smallint, boolean, bigserial, uuid, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, uniqueIndex, index, integer, bigint, varchar, text, timestamp, smallint, boolean, unique, serial, bigserial, uuid, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -30,18 +30,6 @@ export const bilibiliMetadata = pgTable("bilibili_metadata", {
 	index("idx_all-data_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
 	index("idx_bili-meta_status").using("btree", table.status.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("unq_all-data_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-]);
-
-export const bilibiliUser = pgTable("bilibili_user", {
-	id: serial().primaryKey().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	uid: bigint({ mode: "number" }).notNull(),
-	username: text().notNull(),
-	desc: text().notNull(),
-	fans: integer().notNull(),
-}, (table) => [
-	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
-	unique("unq_bili-user_uid").on(table.uid),
 ]);
 
 export const labellingResult = pgTable("labelling_result", {
@@ -104,13 +92,13 @@ export const songs = pgTable("songs", {
 	publishedAt: timestamp("published_at", { withTimezone: true, mode: 'string' }),
 	duration: integer(),
 	type: smallint(),
-	romanizedName: text("romanized_name"),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	neteaseId: bigint("netease_id", { mode: "number" }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	deleted: boolean().default(false).notNull(),
 	image: text(),
+	producer: text(),
 }, (table) => [
 	index("idx_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	index("idx_hash_songs_aid").using("hash", table.aid.asc().nullsLast().op("int8_ops")),
@@ -120,6 +108,20 @@ export const songs = pgTable("songs", {
 	uniqueIndex("songs_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
+]);
+
+export const bilibiliUser = pgTable("bilibili_user", {
+	id: serial().primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	uid: bigint({ mode: "number" }).notNull(),
+	username: text().notNull(),
+	desc: text().notNull(),
+	fans: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
+	unique("unq_bili-user_uid").on(table.uid),
 ]);
 
 export const singer = pgTable("singer", {
@@ -136,11 +138,18 @@ export const relations = pgTable("relations", {
 	targetId: bigint("target_id", { mode: "number" }).notNull(),
 	targetType: text("target_type").notNull(),
 	relation: text().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
 	index("idx_relations_source_id_source_type_relation").using("btree", table.sourceId.asc().nullsLast().op("int8_ops"), table.sourceType.asc().nullsLast().op("int8_ops"), table.relation.asc().nullsLast().op("text_ops")),
 	index("idx_relations_target_id_target_type_relation").using("btree", table.targetId.asc().nullsLast().op("text_ops"), table.targetType.asc().nullsLast().op("text_ops"), table.relation.asc().nullsLast().op("text_ops")),
 	unique("unq_relations").on(table.sourceId, table.sourceType, table.targetId, table.targetType, table.relation),
 ]);
+
+export const globalKv = pgTable("global_kv", {
+	key: text().primaryKey().notNull(),
+	value: text().notNull(),
+});
 
 export const snapshotSchedule = pgTable("snapshot_schedule", {
 	id: bigserial({ mode: "bigint" }).notNull(),
