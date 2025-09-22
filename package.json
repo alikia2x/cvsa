@@ -14,13 +14,13 @@
 	],
 	"dependencies": {
 		"arg": "^5.0.2",
-		"postgres": "^3.4.5"
+		"postgres": "^3.4.7"
 	},
 	"devDependencies": {
-		"@types/bun": "^1.2.15",
-		"prettier": "^3.5.3",
+		"@types/bun": "^1.2.22",
+		"prettier": "^3.6.2",
 		"vite-tsconfig-paths": "^5.1.4",
-		"vitest": "^3.1.2",
+		"vitest": "^3.2.4",
 		"vitest-tsconfig-paths": "^3.4.1"
 	}
 }

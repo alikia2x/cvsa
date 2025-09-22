@@ -4,6 +4,7 @@ import { pingHandler } from "@elysia/routes/ping";
 import openapi from "@elysiajs/openapi";
 import { cors } from "@elysiajs/cors";
 import { getSongInfoHandler } from "@elysia/routes/song/info";
+import { rootHandler } from "@elysia/routes/root";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -13,12 +14,15 @@ const app = new Elysia({
 		hostname: host
 	}
 })
+	// @ts-expect-error idfk
 	.use(cors())
+	// @ts-expect-error idfk
 	.use(openapi())
+	.use(rootHandler)
 	.use(pingHandler)
 	.use(getSongInfoHandler)
 	.listen(15412);
 
-export const VERESION = "0.7.0";
+export const VERSION = "0.7.0";
 
 export type App = typeof app;

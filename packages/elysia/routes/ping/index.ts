@@ -1,4 +1,4 @@
-import { VERESION } from "@elysia/src";
+import { VERSION } from "@elysia/src";
 import { Elysia, t } from "elysia";
 
 export const pingHandler = new Elysia({ prefix: "/ping" }).get(
@@ -16,7 +16,7 @@ export const pingHandler = new Elysia({ prefix: "/ping" }).get(
 			response: {
 				time: new Date().getTime(),
 				status: 200,
-				version: VERESION
+				version: VERSION
 			}
 		};
 	},

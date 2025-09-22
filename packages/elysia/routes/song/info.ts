@@ -8,8 +8,10 @@ async function getSongIDFromBiliID(id: string) {
 	let aid: number;
 	if (id.startsWith("BV1")) {
 		aid = bv2av(id as `BV1${string}`);
+	} else if (id.startsWith("av")) {
+		aid = Number.parseInt(id.slice(2));
 	} else {
-		aid = Number.parseInt(id);
+		return null;
 	}
 	const songID = await dbMain.select({ id: songs.id }).from(songs).where(eq(songs.aid, aid)).limit(1);
 	if (songID.length > 0) {
