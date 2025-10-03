@@ -4,7 +4,7 @@ import { Picker } from "./components/Picker/Picker";
 import { Switch } from "./Switch";
 import { i18nProvider } from "./utils";
 import { useTheme } from "./ThemeContext";
-import { ColorPalette } from "./components/Plaette";
+import { ColorPalette } from "./components/Palette";
 import { Buttons, Paragraph, SearchBar } from "./components/Components";
 import { AnimatePresence, motion } from "motion/react";
 import { Moon, Sun } from "lucide-react";
