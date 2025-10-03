@@ -5,7 +5,7 @@ import { displaySupportsP3, roundOklch } from "./utils";
 
 export type LchChannel = "l" | "c" | "h";
 
-const toOklchString = (color: Oklch) => {
+export const toOklchString = (color: Oklch) => {
 	return `oklch(${color.l} ${color.c} ${color.h})`;
 };
 
@@ -76,12 +76,12 @@ export const Picker = ({ useP3, i18n, selectedColor, onColorChange, ...rest }: P
 	const [displayColor, setDisplayColor] = useState<Oklch>(selectedColor);
 	const [hexText, setHexText] = useState(formatHex(selectedColor));
 	const [oklchText, setOklchText] = useState(toOklchString(selectedColor));
-	const colorGamut = useP3 ? "p3" : "rgb";
 
 	useEffect(() => {
 		try {
 			setHexText(formatHex(selectedColor));
 			setOklchText(toOklchString(selectedColor));
+			setDisplayColor(selectedColor);
 		} catch (error) {
 			console.warn("Invalid color combination");
 		}
@@ -112,7 +112,6 @@ export const Picker = ({ useP3, i18n, selectedColor, onColorChange, ...rest }: P
 		const hex = e.target.value;
 		const color = parse(hex);
 		const oklchColor = oklch(rgb(color));
-		console.log("hey");
 		if (oklchColor) {
 			onColorChange(roundOklch(oklchColor));
 			setHexText(hex);

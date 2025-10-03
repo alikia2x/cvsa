@@ -36,7 +36,6 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 		onChange(round(value, precision[channel]));
 	};
 
-	console.log(useP3)
 
 	return (
 		<div className="mb-6">

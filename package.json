@@ -11,7 +11,7 @@
 		"packages/elysia",
 		"packages/temp_frontend",
 		"packages/solid",
-		"packages/plaette"
+		"packages/palette"
 	],
 	"dependencies": {
 		"arg": "^5.0.2",
