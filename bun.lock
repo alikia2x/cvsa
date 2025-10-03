@@ -5,13 +5,13 @@
       "name": "cvsa",
       "dependencies": {
         "arg": "^5.0.2",
-        "postgres": "^3.4.5",
+        "postgres": "^3.4.7",
       },
       "devDependencies": {
-        "@types/bun": "^1.2.15",
-        "prettier": "^3.5.3",
+        "@types/bun": "^1.2.22",
+        "prettier": "^3.6.2",
         "vite-tsconfig-paths": "^5.1.4",
-        "vitest": "^3.1.2",
+        "vitest": "^3.2.4",
         "vitest-tsconfig-paths": "^3.4.1",
       },
     },
@@ -78,6 +78,7 @@
         "@elysiajs/openapi": "^1.4.0",
         "chalk": "^5.6.2",
         "elysia": "^1.4.0",
+        "zod": "^4.1.11",
       },
       "devDependencies": {
         "bun-types": "latest",
@@ -2477,6 +2478,8 @@
     "dax-sh/undici-types": ["undici-types@5.28.4", "", {}, "sha512-3OeMF5Lyowe8VW0skf5qaIE7Or3yS9LS7fvMUI0gg4YxpIBVg0L8BxCmROw2CcYhSkpR68Epz7CGc8MPj94Uww=="],
 
     "dot-prop/type-fest": ["type-fest@4.41.0", "", {}, "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="],
+
+    "elysia-api/zod": ["zod@4.1.11", "", {}, "sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg=="],
 
     "execa/is-stream": ["is-stream@3.0.0", "", {}, "sha512-LnQR4bZ9IADDRSkvpqMGvt/tEJWclzklNgSw48V5EAaAeDd6qGvN8ei6k5p0tvxSR171VmGyHuTiAOfxAbr8kA=="],
 

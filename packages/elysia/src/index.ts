@@ -5,6 +5,7 @@ import openapi from "@elysiajs/openapi";
 import { cors } from "@elysiajs/cors";
 import { getSongInfoHandler } from "@elysia/routes/song/info";
 import { rootHandler } from "@elysia/routes/root";
+import { getVideoMetadataHandler } from "@elysia/routes/video/metadata";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -20,6 +21,7 @@ const app = new Elysia({
 	.use(openapi())
 	.use(rootHandler)
 	.use(pingHandler)
+	.use(getVideoMetadataHandler)
 	.use(getSongInfoHandler)
 	.listen(15412);
 
