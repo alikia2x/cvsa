@@ -58,13 +58,13 @@ function App() {
 	};
 
 	return (
-		<div className="min-h-screen my-12 mx-6">
+		<div className="min-h-screen my-12 sm:px-6">
 			<div className="max-w-7xl mx-auto">
-				<h1 className="text-3xl font-bold mb-8 text-on-background">CVSA Color Palette Generator</h1>
+				<h1 className="text-3xl font-bold mb-8 ml-3 text-on-background">CVSA Color Palette Generator</h1>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:[grid-template-columns:2fr_3fr] xl:grid-cols-3 gap-8">
 					{/* Left Column - Color Picker */}
-					<div className="xl:col-span-1 bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-6">
+					<div className="xl:col-span-1 sm:bg-white sm:dark:bg-zinc-800 rounded-lg shadow-sm p-3 sm:p-6">
 						<h2 className="text-xl font-semibold text-on-background mb-4">Color Selection</h2>
 
 						<div className="space-y-6">
@@ -100,7 +100,7 @@ function App() {
 
 					{/* Right Column */}
 					<div className="xl:col-span-2 flex flex-col gap-5">
-						<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-6">
+						<div className="sm:bg-white sm:dark:bg-zinc-800 rounded-lg shadow-sm p-3 sm:p-6">
 							<div className="flex h-8 mb-4 justify-between items-center">
 								<h2 className="text-xl font-semibold">Color Palette</h2>
 								<Icon />
@@ -108,7 +108,7 @@ function App() {
 
 							<ColorPalette baseColor={selectedColor} />
 						</div>
-						<div className="bg-white dark:bg-zinc-800 rounded-lg shadow-sm p-6">
+						<div className="sm:bg-white sm:dark:bg-zinc-800 rounded-lg shadow-sm p-3 sm:p-6">
 							<h2 className="text-xl font-semibold mb-6">Components</h2>
 							<div className="flex flex-col gap-2">
 								<SearchBar baseColor={selectedColor} />

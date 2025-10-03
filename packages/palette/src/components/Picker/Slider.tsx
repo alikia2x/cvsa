@@ -14,15 +14,45 @@ interface SliderProps {
 }
 
 export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: SliderProps) => {
+	const [value, setValue] = React.useState(color[channel]!.toFixed(precision[channel]));
+	const containerRef = useRef<HTMLDivElement>(null);
+
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
 	useOklchCanvas({ channel: channel, max: maxValue[channel], canvasRef: canvasRef, color, useP3 });
+	
 	const getSliderPosition = (value: number, max: number) => {
 		return (value / max) * 100;
 	};
 
+	const getValueFromPosition = (clientX: number) => {
+		if (!containerRef.current) return 0;
+		
+		const rect = containerRef.current.getBoundingClientRect();
+		const x = clientX - rect.left;
+		const percentage = Math.max(0, Math.min(1, x / rect.width));
+		return round(percentage * maxValue[channel], precision[channel]);
+	};
+
 	const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const value = parseFloat(e.target.value);
-		onChange(value);
+		if (value > maxValue[channel]) onChange(maxValue[channel]);
+		else if (value < 0 || isNaN(value)) onChange(0);
+		else onChange(value);
+		setValue(e.target.value);
+	};
+
+	const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		const value = parseFloat(e.target.value);
+		if (value > maxValue[channel]) {
+			onChange(maxValue[channel]);
+			setValue(maxValue[channel].toFixed(precision[channel]));
+		} else if (value < 0 || isNaN(value)) {
+			onChange(0);
+			setValue("0");
+		} else {
+			onChange(value);
+			setValue(value.toFixed(precision[channel]));
+		}
 	};
 
 	const buttonHanlder = (type: "increase" | "decrease") => {
@@ -36,6 +66,21 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 		onChange(round(value, precision[channel]));
 	};
 
+	const handleTouchMove = (e: React.TouchEvent) => {
+		const touch = e.touches[0];
+		if (touch) {
+			const newValue = getValueFromPosition(touch.clientX);
+			handleOnChange(newValue);
+		}
+	};
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		const touch = e.touches[0];
+		if (touch) {
+			const newValue = getValueFromPosition(touch.clientX);
+			handleOnChange(newValue);
+		}
+	};
 
 	return (
 		<div className="mb-6">
@@ -46,8 +91,9 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 						type="text"
 						className="w-28 h-10 text-right text-[15px] font-mono bg-zinc-200 dark:bg-zinc-700 rounded-lg pl-3 pr-6 focus:outline-none 
                         focus:ring-2 focus:ring-black dark:focus:ring-white font-stretch-semi-expanded"
-						value={color[channel]}
+						value={value}
 						onChange={onInputChange}
+						onBlur={onBlur}
 						step={Math.pow(10, -precision[channel])}
 						aria-label={i18nProvider(channel)}
 						aria-keyshortcuts={channel}
@@ -72,7 +118,12 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 				</div>
 			</div>
 
-			<div className="relative h-10">
+			<div 
+				ref={containerRef}
+				className="relative h-10"
+				onTouchMove={handleTouchMove}
+				onTouchStart={handleTouchStart}
+			>
 				<div className="absolute z-3 inset-0 rounded-xl overflow-hidden">
 					<canvas ref={canvasRef} width={400} height={40} className="w-full h-full" />
 				</div>
@@ -91,6 +142,8 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 					color={color}
 					onChange={handleOnChange}
 					maxValue={maxValue[channel]}
+					onTouchMove={handleTouchMove}
+					onTouchStart={handleTouchStart}
 				/>
 			</div>
 		</div>

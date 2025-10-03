@@ -44,7 +44,7 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
     };
 
     return (
-        <div className="w-30 h-36 flex flex-col items-center">
+        <div className="w-26 md:w-30 h-36 flex flex-col items-center">
             <div className="w-full h-20 relative rounded-lg duration-50" style={{ backgroundColor: formatHex(color) }} />
             <span className="mt-2 text-sm">{text}</span>
             <div

@@ -31,7 +31,7 @@ const Paragraph = ({ baseColor }: { baseColor: Oklch }) => {
 
 	return (
 		<div
-			className="w-full h-18 flex items-center justify-center rounded-md"
+			className="w-full h-18 flex items-center justify-center rounded-md px-4"
 			style={{ backgroundColor: formatHex(tokens.background) }}
 		>
 			<p style={{ color: formatHex(tokens["body-text"]) }}>
@@ -47,23 +47,24 @@ const Buttons = ({ baseColor }: { baseColor: Oklch }) => {
 
 	return (
 		<div
-			className="w-full h-18 flex items-center justify-center rounded-md gap-4 px-10"
+			className="w-full py-4 grid [grid-template-columns:repeat(auto-fit,minmax(120px,1fr))] place-items-center 
+				items-center justify-between rounded-md gap-4 px-10"
 			style={{ backgroundColor: formatHex(tokens.background) }}
 		>
 			<button
-				className="cursor-pointer font-medium py-1.5 px-4 rounded-lg border-2"
+				className="w-24 cursor-pointer font-medium py-1.5 px-4 rounded-lg border-2"
 				style={{ borderColor: formatHex(tokens["border-var-3"]), color: formatHex(tokens["on-bg-var-2"]) }}
 			>
 				Cancel
 			</button>
 			<button
-				className="cursor-pointer font-medium py-2 px-4 rounded-lg"
+				className="w-24 cursor-pointer font-medium py-2 px-4 rounded-lg"
 				style={{ backgroundColor: formatHex(tokens.primary), color: formatHex(tokens["on-primary"]) }}
 			>
 				Confirm
 			</button>
 			<button
-				className="cursor-pointer font-medium py-2 px-4 rounded-lg"
+				className="w-24 cursor-pointer font-medium py-2 px-4 rounded-lg"
 				style={{ backgroundColor: formatHex(tokens.error), color: formatHex(tokens["on-error"]) }}
 			>
 				Delete
