@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useOklchCanvas } from "./useOklchCanvas";
 import { Handle } from "./Handle";
 import type { I18nProvider, LchChannel } from "./Picker";
@@ -14,8 +14,12 @@ interface SliderProps {
 }
 
 export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: SliderProps) => {
-	const [value, setValue] = React.useState(color[channel]!.toFixed(precision[channel]));
+	const [value, setValue] = useState(color[channel]!.toFixed(precision[channel]));
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		setValue(color[channel]!.toFixed(precision[channel]));
+	}, [color.l, color.c, color.h]);
 
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
 	useOklchCanvas({ channel: channel, max: maxValue[channel], canvasRef: canvasRef, color, useP3 });
