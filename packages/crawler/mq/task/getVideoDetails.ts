@@ -1,10 +1,10 @@
-import { getVideoDetails } from "net/getVideoDetails.ts";
-import { formatTimestampToPsql } from "utils/formatTimestampToPostgre.ts";
-import logger from "@core/log/logger.ts";
-import { ClassifyVideoQueue } from "mq/index.ts";
-import { userExistsInBiliUsers, videoExistsInAllData } from "../../db/bilibili_metadata.ts";
-import { HOUR, SECOND } from "@core/const/time.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { getVideoDetails } from "net/getVideoDetails";
+import { formatTimestampToPsql } from "utils/formatTimestampToPostgre";
+import logger from "@core/log";
+import { ClassifyVideoQueue } from "mq/index";
+import { userExistsInBiliUsers, videoExistsInAllData } from "../../db/bilibili_metadata";
+import { HOUR, SECOND } from "@core/lib";
+import type { Psql } from "@core/db/psql.d";
 
 export async function insertVideoInfo(sql: Psql, aid: number) {
 	const videoExists = await videoExistsInAllData(sql, aid);

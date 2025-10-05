@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
-import { insertVideoInfo } from "mq/task/getVideoDetails.ts";
-import logger from "@core/log/logger.ts";
+import { insertVideoInfo } from "mq/task/getVideoDetails";
+import logger from "@core/log";
 import { sql } from "@core/db/dbNew";
 
 export const getVideoInfoWorker = async (job: Job): Promise<void> => {

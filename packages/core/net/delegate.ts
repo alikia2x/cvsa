@@ -1,7 +1,7 @@
-import logger from "@core/log/logger.ts";
-import { MultipleRateLimiter, RateLimiterError, type RateLimiterConfig } from "@core/mq/multipleRateLimiter.ts";
+import logger from "@core/log";
+import { MultipleRateLimiter, RateLimiterError, type RateLimiterConfig } from "@core/mq/multipleRateLimiter";
 import { ReplyError } from "ioredis";
-import { SECOND } from "@core/const/time.ts";
+import { SECOND } from "@core/lib";
 import { spawn, SpawnOptions } from "child_process";
 
 export function spawnPromise(

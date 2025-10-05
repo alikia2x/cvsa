@@ -1,6 +1,6 @@
-import { createHandlers } from "src/utils.ts";
-import { getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty.ts";
-import { sqlCred } from "@core/db/dbNew.ts";
+import { createHandlers } from "src/utils";
+import { getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty";
+import { sqlCred } from "@core/db/dbNew";
 import { object, string, ValidationError } from "yup";
 import { CaptchaSessionResponse, ErrorResponse } from "@/src/schema";
 import type { ContentfulStatusCode } from "hono/utils/http-status";

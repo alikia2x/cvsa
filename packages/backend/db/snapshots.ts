@@ -1,5 +1,5 @@
 import { sql } from "@core/db/dbNew";
-import type { VideoSnapshotType } from "@core/db/schema.d.ts";
+import type { VideoSnapshotType } from "@core/db/schema";
 
 export async function getVideoSnapshots(
 	aid: number,

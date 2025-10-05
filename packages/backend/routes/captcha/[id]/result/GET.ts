@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import { sign } from "hono/jwt";
-import { generateRandomId } from "@core/lib/randomID.ts";
-import { getJWTsecret } from "lib/auth/getJWTsecret.ts";
+import { generateRandomId } from "@core/lib/randomID";
+import { getJWTsecret } from "lib/auth/getJWTsecret";
 
 interface CaptchaResponse {
 	success: boolean;

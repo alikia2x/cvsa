@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse, LoginResponse } from "src/schema";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import { sqlCred } from "@core/db/dbNew";
 import { object, string, ValidationError } from "yup";
 import { setCookie } from "hono/cookie";
@@ -27,12 +27,12 @@ export const loginHandler = createHandlers(
 			`;
 
 			if (result.length === 0) {
-				const response: ErrorResponse<string> = {
+				const response: ErrorResponse = {
 					message: `User does not exist.`,
 					errors: [`User ${username} does not exist.`],
 					code: "ENTITY_NOT_FOUND"
 				};
-				return c.json<ErrorResponse<string>>(response, 400);
+				return c.json<ErrorResponse>(response, 400);
 			}
 
 			const storedPassword = result[0].password;
@@ -43,7 +43,7 @@ export const loginHandler = createHandlers(
 			const passwordAreSame = await Argon2id.verify(storedPassword, submittedPassword);
 
 			if (!passwordAreSame) {
-				const response: ErrorResponse<string> = {
+				const response: ErrorResponse = {
 					message: "Incorrect password.",
 					errors: [],
 					i18n: {
@@ -51,7 +51,7 @@ export const loginHandler = createHandlers(
 					},
 					code: "INVALID_CREDENTIALS"
 				};
-				return c.json<ErrorResponse<string>>(response, 401);
+				return c.json<ErrorResponse>(response, 401);
 			}
 
 			const sessionID = await createLoginSession(uid, c);
@@ -79,26 +79,26 @@ export const loginHandler = createHandlers(
 			return c.json<LoginResponse>(response, 200);
 		} catch (e) {
 			if (e instanceof ValidationError) {
-				const response: ErrorResponse<string> = {
+				const response: ErrorResponse = {
 					message: "Invalid registration data.",
 					errors: e.errors,
 					code: "INVALID_PAYLOAD"
 				};
-				return c.json<ErrorResponse<string>>(response, 400);
+				return c.json<ErrorResponse>(response, 400);
 			} else if (e instanceof SyntaxError) {
-				const response: ErrorResponse<string> = {
+				const response: ErrorResponse = {
 					message: "Invalid JSON payload.",
 					errors: [e.message],
 					code: "INVALID_FORMAT"
 				};
-				return c.json<ErrorResponse<string>>(response, 400);
+				return c.json<ErrorResponse>(response, 400);
 			} else {
-				const response: ErrorResponse<string> = {
+				const response: ErrorResponse = {
 					message: "Unknown error.",
 					errors: [(e as Error).message],
 					code: "UNKNOWN_ERROR"
 				};
-				return c.json<ErrorResponse<string>>(response, 500);
+				return c.json<ErrorResponse>(response, 500);
 			}
 		}
 	}

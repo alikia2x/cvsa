@@ -1,5 +1,5 @@
-import type { Psql } from "@core/db/psql.d.ts";
-import { parseTimestampFromPsql } from "utils/formatTimestampToPostgre.ts";
+import type { Psql } from "@core/db/psql.d";
+import { parseTimestampFromPsql } from "utils/formatTimestampToPostgre";
 
 export async function getNotCollectedSongs(sql: Psql) {
 	const rows = await sql<{ aid: number }[]>`

@@ -1,8 +1,8 @@
-import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
-import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.ts";
-import logger from "@core/log/logger.ts";
-import { initSnapshotWindowCounts } from "db/snapshotSchedule.ts";
-import { redis } from "@core/db/redis.ts";
+import { HOUR, MINUTE, SECOND } from "@core/lib";
+import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index";
+import logger from "@core/log";
+import { initSnapshotWindowCounts } from "db/snapshotSchedule";
+import { redis } from "@core/db/redis";
 import { sql } from "@core/db/dbNew";
 
 export async function initMQ() {

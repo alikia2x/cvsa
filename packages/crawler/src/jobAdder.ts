@@ -1,3 +1,3 @@
-import { initMQ } from "mq/init.ts";
+import { initMQ } from "mq/init";
 
 await initMQ();

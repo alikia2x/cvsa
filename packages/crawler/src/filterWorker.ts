@@ -1,10 +1,10 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { redis } from "@core/db/redis.ts";
-import logger from "@core/log/logger.ts";
-import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo.ts";
-import { WorkerError } from "mq/schema.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
-import Akari from "ml/akari.ts";
+import { redis } from "@core/db/redis";
+import logger from "@core/log";
+import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo";
+import { WorkerError } from "mq/schema";
+import { lockManager } from "@core/mq/lockManager";
+import Akari from "ml/akari";
 
 const shutdown = async (signal: string) => {
 	logger.log(`${signal} Received: Shutting down workers...`, "mq");

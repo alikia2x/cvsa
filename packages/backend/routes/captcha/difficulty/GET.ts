@@ -1,8 +1,8 @@
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import { object, string, ValidationError } from "yup";
 import { ErrorResponse } from "src/schema";
-import { getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty.ts";
-import { sqlCred } from "@core/db/dbNew.ts";
+import { getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty";
+import { sqlCred } from "@core/db/dbNew";
 
 const queryParamsSchema = object({
 	route: string().matches(/(?:GET|POST|PUT|PATCH|DELETE)-\/.*/g)

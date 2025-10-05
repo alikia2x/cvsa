@@ -1,6 +1,6 @@
-import networkDelegate from "@core/net/delegate.ts";
-import type { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d.ts";
-import logger from "@core/log/logger.ts";
+import networkDelegate from "@core/net/delegate";
+import type { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d";
+import logger from "@core/log";
 
 /*
  * Bulk fetch video metadata from bilibili API

@@ -1,9 +1,9 @@
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import Argon2id from "@rabbit-company/argon2id";
 import { object, string, ValidationError } from "yup";
 import type { Context } from "hono";
 import type { Bindings, BlankEnv, BlankInput } from "hono/types";
-import { sqlCred } from "@core/db/dbNew.ts";
+import { sqlCred } from "@core/db/dbNew";
 import { ErrorResponse, SignUpResponse } from "src/schema";
 import { generateRandomId } from "@core/lib/randomID";
 import { getUserIP } from "@/middleware/rateLimiters";
@@ -79,7 +79,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 		const uid = await getUserIDByName(username);
 
 		if (!uid) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Cannot find registered user.",
 				errors: [`Cannot find user ${username} in table 'users'.`],
 				code: "ENTITY_NOT_FOUND",
@@ -90,7 +90,7 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 					}
 				}
 			};
-			return c.json<ErrorResponse<string>>(response, 500);
+			return c.json<ErrorResponse>(response, 500);
 		}
 
 		const sessionID = await createLoginSession(uid, c);
@@ -115,26 +115,26 @@ export const registerHandler = createHandlers(async (c: ContextType) => {
 		return c.json<SignUpResponse>(response, 201);
 	} catch (e) {
 		if (e instanceof ValidationError) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Invalid registration data.",
 				errors: e.errors,
 				code: "INVALID_PAYLOAD"
 			};
-			return c.json<ErrorResponse<string>>(response, 400);
+			return c.json<ErrorResponse>(response, 400);
 		} else if (e instanceof SyntaxError) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Invalid JSON payload.",
 				errors: [e.message],
 				code: "INVALID_FORMAT"
 			};
-			return c.json<ErrorResponse<string>>(response, 400);
+			return c.json<ErrorResponse>(response, 400);
 		} else {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Unknown error.",
 				errors: [(e as Error).message],
 				code: "UNKNOWN_ERROR"
 			};
-			return c.json<ErrorResponse<string>>(response, 500);
+			return c.json<ErrorResponse>(response, 500);
 		}
 	}
 });

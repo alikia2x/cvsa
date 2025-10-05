@@ -2,17 +2,16 @@
 	"include": ["**/*.ts"],
 	"compilerOptions": {
 		"baseUrl": ".",
-		"target": "ESNext",
-		"module": "ESNext",
+		"target": "esnext",
+		"module": "esnext",
 		"useDefineForClassFields": true,
-		"moduleResolution": "node",
+		"moduleResolution": "node10",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"skipLibCheck": true,
 		"paths": {
 			"@core/*": ["../core/*"]
 		},
 		"allowSyntheticDefaultImports": true,
-		"allowImportingTsExtensions": true,
 		"noEmit": true
 	}
 }

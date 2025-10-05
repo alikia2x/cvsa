@@ -1,5 +1,5 @@
-import type { Psql } from "@core/db/psql.d.ts";
-import { BiliVideoMetadataType, BiliUserType } from "@core/db/schema";
+import type { Psql } from "@core/db/psql.d";
+import { BiliUserType, BiliVideoMetadataType } from "@core/db/schema";
 import { AkariModelVersion } from "ml/const";
 
 export async function videoExistsInAllData(sql: Psql, aid: number) {
@@ -30,7 +30,7 @@ export async function insertVideoLabel(sql: Psql, aid: number, label: number) {
 }
 
 export async function getVideoInfoFromAllData(sql: Psql, aid: number) {
-	const rows = await sql<AllDataType[]>`
+	const rows = await sql<BiliVideoMetadataType[]>`
         SELECT * FROM bilibili_metadata WHERE aid = ${aid}
   `;
 	const row = rows[0];
@@ -50,16 +50,6 @@ export async function getVideoInfoFromAllData(sql: Psql, aid: number) {
 		tags: row.tags,
 		author_info: authorInfo
 	};
-}
-
-export async function getUnArchivedBiliUsers(sql: Psql) {
-	const rows = await sql<{ uid: number }[]>`
-        SELECT ad.uid
-        FROM bilibili_metadata ad
-        LEFT JOIN bilibili_user bu ON ad.uid = bu.uid
-        WHERE bu.uid IS NULL;
-    `;
-	return rows.map((row) => row.uid);
 }
 
 export async function setBiliVideoStatus(sql: Psql, aid: number, status: number) {

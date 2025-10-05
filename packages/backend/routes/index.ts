@@ -1,6 +1,6 @@
-import { getSingerForBirthday, pickSinger, pickSpecialSinger, type Singer } from "lib/const/singers.ts";
-import { VERSION } from "src/main.ts";
-import { createHandlers } from "src/utils.ts";
+import { getSingerForBirthday, pickSinger, pickSpecialSinger, type Singer } from "lib/const/singers";
+import { VERSION } from "src/main";
+import { createHandlers } from "src/utils";
 
 export const rootHandler = createHandlers((c) => {
 	let singer: Singer | Singer[];

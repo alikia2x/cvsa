@@ -1,7 +1,7 @@
 import { Psql } from "@core/db/psql";
-import { SlidingWindow } from "@core/mq/slidingWindow.ts";
-import { redis } from "@core/db/redis.ts";
-import { getIdentifier } from "@/middleware/rateLimiters.ts";
+import { SlidingWindow } from "@core/mq/slidingWindow";
+import { redis } from "@core/db/redis";
+import { getIdentifier } from "@/middleware/rateLimiters";
 import { Context } from "hono";
 
 type seconds = number;

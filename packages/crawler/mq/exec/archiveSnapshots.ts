@@ -1,9 +1,9 @@
 import { Job } from "bullmq";
-import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule.ts";
-import logger from "@core/log/logger.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
-import { getLatestVideoSnapshot } from "db/snapshot.ts";
-import { MINUTE } from "@core/const/time.ts";
+import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import { getLatestVideoSnapshot } from "db/snapshot";
+import { MINUTE } from "@core/lib";
 import { sql } from "@core/db/dbNew";
 
 function getNextSaturdayMidnightTimestamp(): number {

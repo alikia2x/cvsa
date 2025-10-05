@@ -1,14 +1,14 @@
 import { Job } from "bullmq";
-import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "../../db/bilibili_metadata.ts";
-import Akari from "ml/akari.ts";
-import { ClassifyVideoQueue } from "mq/index.ts";
-import logger from "@core/log/logger.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
-import { aidExistsInSongs } from "db/songs.ts";
-import { insertIntoSongs } from "mq/task/collectSongs.ts";
-import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "@core/const/time.ts";
-import { sql } from "@core/db/dbNew.ts";
+import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "../../db/bilibili_metadata";
+import Akari from "ml/akari";
+import { ClassifyVideoQueue } from "mq/index";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import { aidExistsInSongs } from "db/songs";
+import { insertIntoSongs } from "mq/task/collectSongs";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import { MINUTE } from "@core/lib";
+import { sql } from "@core/db/dbNew";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const aid = job.data.aid;

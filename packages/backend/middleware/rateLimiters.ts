@@ -1,10 +1,10 @@
 import type { BlankEnv } from "hono/types";
 import { getConnInfo } from "hono/bun";
 import { Context, Next } from "hono";
-import { generateRandomId } from "@core/lib/randomID.ts";
+import { generateRandomId } from "@core/lib/randomID";
 import { RateLimiter } from "@koshnic/ratelimit";
 import { ErrorResponse } from "@/src/schema";
-import { redis } from "@core/db/redis.ts";
+import { redis } from "@core/db/redis";
 
 export const getUserIP = (c: Context) => {
 	let ipAddr = null;

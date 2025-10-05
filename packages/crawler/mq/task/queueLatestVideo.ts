@@ -1,10 +1,10 @@
-import { getLatestVideoAids } from "net/getLatestVideoAids.ts";
-import { videoExistsInAllData } from "db/bilibili_metadata.ts";
-import { sleep } from "utils/sleep.ts";
-import { SECOND } from "@core/const/time.ts";
-import logger from "@core/log/logger.ts";
-import { LatestVideosQueue } from "mq/index.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { getLatestVideoAids } from "net/getLatestVideoAids";
+import { videoExistsInAllData } from "db/bilibili_metadata";
+import { sleep } from "utils/sleep";
+import { SECOND } from "@core/lib";
+import logger from "@core/log";
+import { LatestVideosQueue } from "mq/index";
+import type { Psql } from "@core/db/psql.d";
 
 export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 	let page = 1;

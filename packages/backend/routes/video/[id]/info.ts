@@ -1,14 +1,14 @@
-import logger from "@core/log/logger.ts";
-import { redis } from "@core/db/redis.ts";
-import { sql } from "@core/db/dbNew.ts";
+import logger from "@core/log";
+import { redis } from "@core/db/redis";
+import { sql } from "@core/db/dbNew";
 import { number, ValidationError } from "yup";
-import { createHandlers } from "@/src/utils.ts";
-import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo.ts";
-import { idSchema } from "./snapshots.ts";
-import { NetSchedulerError } from "@core/net/delegate.ts";
+import { createHandlers } from "@/src/utils";
+import { getVideoInfo, getVideoInfoByBV } from "@core/net/getVideoInfo";
+import { idSchema } from "./snapshots";
+import { NetSchedulerError } from "@core/net/delegate";
 import type { Context } from "hono";
 import type { BlankEnv, BlankInput } from "hono/types";
-import type { VideoInfoData } from "@core/net/bilibili.d.ts";
+import type { VideoInfoData } from "@core/net/bilibili";
 import { startTime, endTime } from "hono/timing";
 
 const CACHE_EXPIRATION_SECONDS = 60;

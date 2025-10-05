@@ -5,7 +5,7 @@ import { videoInfoHandler, getSnapshotsHanlder } from "routes/video";
 import { Hono } from "hono";
 import { Variables } from "hono/types";
 import { createCaptchaSessionHandler, verifyChallengeHandler } from "routes/captcha";
-import { getCaptchaDifficultyHandler } from "routes/captcha/difficulty/GET.ts";
+import { getCaptchaDifficultyHandler } from "routes/captcha/difficulty/GET";
 import { getVideosHanlder } from "@/routes/videos";
 import { loginHandler } from "@/routes/login/session/POST";
 import { logoutHandler } from "@/routes/session";

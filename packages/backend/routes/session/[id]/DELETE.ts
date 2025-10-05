@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import { sqlCred } from "@core/db/dbNew";
-import { object, string, ValidationError } from "yup";
+import { ValidationError } from "yup";
 import { setCookie } from "hono/cookie";
 
 const loginSessionExists = async (sessionID: string) => {
@@ -22,12 +22,12 @@ export const logoutHandler = createHandlers(async (c: Context<BlankEnv & { Bindi
 		const exists = loginSessionExists(session_id);
 
 		if (!exists) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Cannot found given session_id.",
 				errors: [`Session ${session_id} not found`],
 				code: "ENTITY_NOT_FOUND"
 			};
-			return c.json<ErrorResponse<string>>(response, 404);
+			return c.json<ErrorResponse>(response, 404);
 		}
 
 		await sqlCred`
@@ -50,26 +50,26 @@ export const logoutHandler = createHandlers(async (c: Context<BlankEnv & { Bindi
 		return c.body(null, 204);
 	} catch (e) {
 		if (e instanceof ValidationError) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Invalid registration data.",
 				errors: e.errors,
 				code: "INVALID_PAYLOAD"
 			};
-			return c.json<ErrorResponse<string>>(response, 400);
+			return c.json<ErrorResponse>(response, 400);
 		} else if (e instanceof SyntaxError) {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Invalid JSON payload.",
 				errors: [e.message],
 				code: "INVALID_FORMAT"
 			};
-			return c.json<ErrorResponse<string>>(response, 400);
+			return c.json<ErrorResponse>(response, 400);
 		} else {
-			const response: ErrorResponse<string> = {
+			const response: ErrorResponse = {
 				message: "Unknown error.",
 				errors: [(e as Error).message],
 				code: "UNKNOWN_ERROR"
 			};
-			return c.json<ErrorResponse<string>>(response, 500);
+			return c.json<ErrorResponse>(response, 500);
 		}
 	}
 });

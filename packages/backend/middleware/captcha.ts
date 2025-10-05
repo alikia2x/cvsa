@@ -1,15 +1,15 @@
 import { Context, Next } from "hono";
 import { ErrorResponse } from "src/schema";
-import { SlidingWindow } from "@core/mq/slidingWindow.ts";
-import { getCaptchaConfigMaxDuration, getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty.ts";
-import { sqlCred } from "@core/db/dbNew.ts";
-import { redis } from "@core/db/redis.ts";
+import { SlidingWindow } from "@core/mq/slidingWindow";
+import { getCaptchaConfigMaxDuration, getCurrentCaptchaDifficulty } from "@/lib/auth/captchaDifficulty";
+import { sqlCred } from "@core/db/dbNew";
+import { redis } from "@core/db/redis";
 import { verify } from "hono/jwt";
 import { JwtTokenInvalid, JwtTokenExpired } from "hono/utils/jwt/types";
-import { getJWTsecret } from "@/lib/auth/getJWTsecret.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
+import { getJWTsecret } from "@/lib/auth/getJWTsecret";
+import { lockManager } from "@core/mq/lockManager";
 import { object, string, number, ValidationError } from "yup";
-import { getIdentifier } from "@/middleware/rateLimiters.ts";
+import { getIdentifier } from "@/middleware/rateLimiters";
 
 const tokenSchema = object({
 	exp: number().integer(),

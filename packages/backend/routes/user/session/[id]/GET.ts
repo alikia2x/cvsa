@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { Bindings, BlankEnv } from "hono/types";
 import { ErrorResponse } from "src/schema";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import { sqlCred } from "@core/db/dbNew";
 import { UserType } from "@core/db/schema";
 

@@ -1,7 +1,6 @@
 import type { Route } from "./+types/home";
 import { treaty } from "@elysiajs/eden";
 import type { App } from "@elysia/src";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon } from "@/components/icons/search";

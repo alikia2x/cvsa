@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import type { BlankEnv, BlankInput } from "hono/types";
 import { number, object, ValidationError } from "yup";
 import { ErrorResponse } from "src/schema";

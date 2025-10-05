@@ -1,10 +1,10 @@
-import type { SnapshotScheduleType } from "@core/db/schema.d.ts";
-import logger from "@core/log/logger.ts";
-import { MINUTE } from "@core/const/time.ts";
-import { redis } from "@core/db/redis.ts";
+import type { SnapshotScheduleType } from "@core/db/schema.d";
+import logger from "@core/log";
+import { MINUTE } from "@core/lib";
+import { redis } from "@core/db/redis";
 import { Redis } from "ioredis";
-import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre";
+import type { Psql } from "@core/db/psql.d";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 

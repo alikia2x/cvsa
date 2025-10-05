@@ -15,9 +15,7 @@ const app = new Elysia({
 		hostname: host
 	}
 })
-	// @ts-expect-error idfk
 	.use(cors())
-	// @ts-expect-error idfk
 	.use(openapi())
 	.use(rootHandler)
 	.use(pingHandler)

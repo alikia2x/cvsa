@@ -1,12 +1,12 @@
 import { Job } from "bullmq";
-import { getLatestVideoSnapshot } from "db/snapshot.ts";
-import { truncate } from "utils/truncate.ts";
-import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule.ts";
-import logger from "@core/log/logger.ts";
-import { HOUR, MINUTE, WEEK } from "@core/const/time.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
-import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval.ts";
-import { sql } from "@core/db/dbNew.ts";
+import { getLatestVideoSnapshot } from "db/snapshot";
+import { truncate } from "utils/truncate";
+import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule";
+import logger from "@core/log";
+import { HOUR, MINUTE, WEEK } from "@core/lib";
+import { lockManager } from "@core/mq/lockManager";
+import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval";
+import { sql } from "@core/db/dbNew";
 
 export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> => {
 	try {

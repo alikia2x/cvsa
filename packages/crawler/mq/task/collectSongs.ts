@@ -1,9 +1,9 @@
 import { sql } from "@core/db/dbNew";
-import { aidExistsInSongs, getNotCollectedSongs } from "db/songs.ts";
-import logger from "@core/log/logger.ts";
-import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import { MINUTE } from "@core/const/time.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { aidExistsInSongs, getNotCollectedSongs } from "db/songs";
+import logger from "@core/log";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import { MINUTE } from "@core/lib";
+import type { Psql } from "@core/db/psql.d";
 
 export async function collectSongs() {
 	const aids = await getNotCollectedSongs(sql);

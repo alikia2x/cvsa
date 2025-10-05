@@ -1,6 +1,6 @@
-import networkDelegate from "@core/net/delegate.ts";
-import type { VideoInfoData, VideoInfoResponse } from "@core/net/bilibili.d.ts";
-import logger from "@core/log/logger.ts";
+import networkDelegate from "@core/net/delegate";
+import type { VideoInfoData, VideoInfoResponse } from "@core/net/bilibili.d";
+import logger from "@core/log";
 
 /*
  * Fetch video metadata from bilibili API

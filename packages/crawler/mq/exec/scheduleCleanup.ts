@@ -1,10 +1,10 @@
 import { Job } from "bullmq";
 import { sql } from "@core/db/dbNew";
-import logger from "@core/log/logger.ts";
-import { scheduleSnapshot, setSnapshotStatus } from "db/snapshotSchedule.ts";
-import { SECOND } from "@core/const/time.ts";
-import { getTimeoutSchedulesCount } from "mq/task/getTimeoutSchedulesCount.ts";
-import { removeAllTimeoutSchedules } from "mq/task/removeAllTimeoutSchedules.ts";
+import logger from "@core/log";
+import { scheduleSnapshot, setSnapshotStatus } from "db/snapshotSchedule";
+import { SECOND } from "@core/lib";
+import { getTimeoutSchedulesCount } from "mq/task/getTimeoutSchedulesCount";
+import { removeAllTimeoutSchedules } from "mq/task/removeAllTimeoutSchedules";
 
 interface SnapshotSchedule {
 	id: bigint;

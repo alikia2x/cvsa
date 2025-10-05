@@ -1,6 +1,6 @@
 import arg from "arg";
 import { Database } from "bun:sqlite";
-import logger from "@core/log/logger";
+import logger from "@core/log";
 import type { VideoDetailsData } from "@core/net/bilibili.d.ts";
 import { sql } from "@core/index";
 

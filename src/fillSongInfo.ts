@@ -1,5 +1,5 @@
 import arg from "arg";
-import logger from "@core/log/logger";
+import logger from "@core/log";
 import { sql } from "@core/index";
 import type { Row } from "postgres";
 

@@ -1,5 +1,5 @@
 import { sql } from "@core/db/dbNew";
-import type { LatestSnapshotType } from "@core/db/schema.d.ts";
+import type { LatestSnapshotType } from "@core/db/schema";
 
 export async function getVideosInViewsRange(minViews: number, maxViews: number) {
 	return sql<LatestSnapshotType[]>`

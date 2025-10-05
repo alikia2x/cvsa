@@ -15,7 +15,7 @@ export type ErrorCode =
 export interface ErrorResponse<E = string> {
 	code: ErrorCode;
 	message: string;
-	errors: E[] = [];
+	errors: E[];
 	i18n?: {
 		key: string;
 		values?: {

@@ -11,11 +11,11 @@ import {
 	snapshotTickWorker,
 	snapshotVideoWorker,
 	takeBulkSnapshotForVideosWorker
-} from "mq/exec/executors.ts";
-import { redis } from "@core/db/redis.ts";
-import logger from "@core/log/logger.ts";
-import { lockManager } from "@core/mq/lockManager.ts";
-import { WorkerError } from "mq/schema.ts";
+} from "mq/exec/executors";
+import { redis } from "@core/db/redis";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import { WorkerError } from "mq/schema";
 
 const releaseLockForJob = async (name: string) => {
 	await lockManager.releaseLock(name);

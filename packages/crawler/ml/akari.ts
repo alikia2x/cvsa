@@ -1,7 +1,7 @@
-import { AIManager } from "ml/manager.ts";
+import { AIManager } from "ml/manager";
 import * as ort from "onnxruntime-node";
-import logger from "@core/log/logger.ts";
-import { WorkerError } from "mq/schema.ts";
+import logger from "@core/log";
+import { WorkerError } from "mq/schema";
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import { AkariModelVersion } from "./const";
 
@@ -90,10 +90,6 @@ class AkariProto extends AIManager {
 			logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml");
 		}
 		return probabilities.indexOf(Math.max(...probabilities));
-	}
-
-	public getModelVersion(): string {
-		return this.modelVersion;
 	}
 }
 

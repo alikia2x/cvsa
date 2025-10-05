@@ -1,6 +1,6 @@
-import { getVideoInfo } from "@core/net/getVideoInfo.ts";
-import logger from "@core/log/logger.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { getVideoInfo } from "@core/net/getVideoInfo";
+import logger from "@core/log";
+import type { Psql } from "@core/db/psql.d";
 
 export interface SnapshotNumber {
 	time: number;

@@ -2,7 +2,7 @@ import express from "express";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
-import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index.ts";
+import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index";
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/");

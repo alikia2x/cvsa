@@ -1,6 +1,6 @@
-import { getClientIP } from "middleware/logger.ts";
-import { createHandlers } from "src/utils.ts";
-import { VERSION } from "src/main.ts";
+import { getClientIP } from "middleware/logger";
+import { createHandlers } from "src/utils";
+import { VERSION } from "src/main";
 
 export const pingHandler = createHandlers(async (c) => {
 	const requestHeaders = c.req.raw.headers;

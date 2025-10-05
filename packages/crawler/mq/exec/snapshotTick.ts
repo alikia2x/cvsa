@@ -6,9 +6,9 @@ import {
 	getSnapshotsInNextSecond,
 	setSnapshotStatus,
 	videoHasProcessingSchedule
-} from "db/snapshotSchedule.ts";
-import logger from "@core/log/logger.ts";
-import { SnapshotQueue } from "mq/index.ts";
+} from "db/snapshotSchedule";
+import logger from "@core/log";
+import { SnapshotQueue } from "mq/index";
 import { sql } from "@core/db/dbNew";
 
 const priorityMap: { [key: string]: number } = {

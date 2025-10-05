@@ -1,5 +1,5 @@
 import { RateLimiter as Limiter } from "@koshnic/ratelimit";
-import { redis } from "@core/db/redis.ts";
+import { redis } from "@core/db/redis";
 
 export interface RateLimiterConfig {
 	duration: number;

@@ -1,8 +1,8 @@
-import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db/snapshotSchedule.ts";
-import { truncate } from "utils/truncate.ts";
-import { closetMilestone } from "./exec/snapshotTick.ts";
-import { HOUR, MINUTE } from "@core/const/time.ts";
-import type { Psql } from "@core/db/psql.d.ts";
+import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db/snapshotSchedule";
+import { truncate } from "utils/truncate";
+import { closetMilestone } from "./exec/snapshotTick";
+import { HOUR, MINUTE } from "@core/lib";
+import type { Psql } from "@core/db/psql.d";
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 

@@ -1,8 +1,8 @@
 import type { Context } from "hono";
-import { createHandlers } from "src/utils.ts";
+import { createHandlers } from "src/utils";
 import type { BlankEnv, BlankInput } from "hono/types";
-import { getVideoSnapshots, getVideoSnapshotsByBV } from "db/snapshots.ts";
-import type { VideoSnapshotType } from "@core/db/schema.d.ts";
+import { getVideoSnapshots, getVideoSnapshotsByBV } from "db/snapshots";
+import type { VideoSnapshotType } from "@core/db/schema";
 import { boolean, mixed, number, object, ValidationError } from "yup";
 import { ErrorResponse } from "src/schema";
 import { startTime, endTime } from "hono/timing";

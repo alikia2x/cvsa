@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosError, Method, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from "axios";
 
 export class ApiRequestError extends Error {
 	public code: number | undefined;
@@ -49,8 +49,7 @@ export async function fetcher<JSON = unknown>(
 			const response = await httpMethods[m](url, data, fullConfig);
 			return response.data;
 		} else if (m === "delete") {
-			const response = await axios.delete(url, fullConfig);
-			return response;
+			return await axios.delete(url, fullConfig);
 		} else {
 			const response = await httpMethods[m](url, fullConfig);
 			return response.data;

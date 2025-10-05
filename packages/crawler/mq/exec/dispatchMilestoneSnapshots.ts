@@ -1,10 +1,10 @@
 import { Job } from "bullmq";
-import { getVideosNearMilestone } from "db/snapshot.ts";
-import { getAdjustedShortTermETA } from "mq/scheduling.ts";
-import { truncate } from "utils/truncate.ts";
-import { scheduleSnapshot } from "db/snapshotSchedule.ts";
-import logger from "@core/log/logger.ts";
-import { HOUR, MINUTE, SECOND } from "@core/const/time.ts";
+import { getVideosNearMilestone } from "db/snapshot";
+import { getAdjustedShortTermETA } from "mq/scheduling";
+import { truncate } from "utils/truncate";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import logger from "@core/log";
+import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { sql } from "@core/db/dbNew";
 
 export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
