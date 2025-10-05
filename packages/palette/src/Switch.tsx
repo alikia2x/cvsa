@@ -22,8 +22,8 @@ export const Switch: React.FC<SwitchProps> = ({ checked, onChange, disabled = fa
 				disabled={disabled}
 				className={`relative flex items-center justify-center w-12 h-6 rounded-full transition-all duration-300
                      focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
-					disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:scale-105"
-				} ${checked ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"}`}
+							disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:scale-105"
+						} ${checked ? "bg-green-500" : "bg-zinc-300 dark:bg-zinc-600"}`}
 				aria-checked={checked}
 				aria-disabled={disabled}
 			>

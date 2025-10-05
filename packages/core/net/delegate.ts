@@ -7,7 +7,7 @@ import { spawn, SpawnOptions } from "child_process";
 export function spawnPromise(
 	command: string,
 	args: string[] = [],
-	options?: SpawnOptions,
+	options?: SpawnOptions
 ): Promise<{ stdout: string; stderr: string }> {
 	return new Promise((resolve, reject) => {
 		const child = spawn(command, args, options);
@@ -171,8 +171,7 @@ class NetworkDelegate {
 		for (const proxyName of shuffleArray(proxiesNames)) {
 			try {
 				return await this.proxyRequest<R>(url, proxyName, task, method);
-			}
-			catch (e) {
+			} catch (e) {
 				if (e instanceof RateLimiterError) {
 					continue;
 				}
@@ -202,7 +201,7 @@ class NetworkDelegate {
 		proxyName: string,
 		task: string,
 		method: string = "GET",
-		force: boolean = false,
+		force: boolean = false
 	): Promise<R> {
 		const proxy = this.proxies[proxyName];
 		if (!proxy) {
@@ -232,7 +231,7 @@ class NetworkDelegate {
 
 			const response = await fetch(url, {
 				method,
-				signal: controller.signal,
+				signal: controller.signal
 			});
 
 			clearTimeout(timeout);
@@ -262,7 +261,7 @@ class NetworkDelegate {
 				"--connect-timeout",
 				"10",
 				"--profile",
-				`CVSA-${region}`,
+				`CVSA-${region}`
 			]);
 			const out = output.stdout;
 			const rawData = JSON.parse(out);
@@ -270,7 +269,7 @@ class NetworkDelegate {
 				// noinspection ExceptionCaughtLocallyJS
 				throw new NetSchedulerError(
 					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
-					"ALICLOUD_PROXY_ERR",
+					"ALICLOUD_PROXY_ERR"
 				);
 			} else {
 				return JSON.parse(rawData.body) as R;
@@ -280,7 +279,7 @@ class NetworkDelegate {
 			throw new NetSchedulerError(
 				`Unhandled error: Cannot proxy ${url} to ali-fc-${region}.`,
 				"ALICLOUD_PROXY_ERR",
-				e,
+				e
 			);
 		}
 	}
@@ -290,38 +289,38 @@ const networkDelegate = new NetworkDelegate();
 const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
 	{
 		duration: 0.3,
-		max: 1,
+		max: 1
 	},
 	{
 		duration: 3,
-		max: 5,
+		max: 5
 	},
 	{
 		duration: 30,
-		max: 30,
+		max: 30
 	},
 	{
 		duration: 2 * 60,
-		max: 50,
-	},
+		max: 50
+	}
 ];
 const biliLimiterConfig: RateLimiterConfig[] = [
 	{
 		duration: 1,
-		max: 6,
+		max: 6
 	},
 	{
 		duration: 5,
-		max: 20,
+		max: 20
 	},
 	{
 		duration: 30,
-		max: 100,
+		max: 100
 	},
 	{
 		duration: 5 * 60,
-		max: 200,
-	},
+		max: 200
+	}
 ];
 
 const bili_test = [...biliLimiterConfig];
@@ -369,7 +368,7 @@ networkDelegate.addTask("getLatestVideos", "bilibili", "all");
 networkDelegate.addTask(
 	"snapshotMilestoneVideo",
 	"bilibili",
-	regions.map((region) => `alicloud-${region}`),
+	regions.map((region) => `alicloud-${region}`)
 );
 networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-qingdao",
@@ -377,7 +376,7 @@ networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-zhangjiakou",
 	"alicloud-chengdu",
 	"alicloud-shenzhen",
-	"alicloud-hohhot",
+	"alicloud-hohhot"
 ]);
 networkDelegate.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-qingdao",
@@ -385,7 +384,7 @@ networkDelegate.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-zhangjiakou",
 	"alicloud-chengdu",
 	"alicloud-shenzhen",
-	"alicloud-hohhot",
+	"alicloud-hohhot"
 ]);
 networkDelegate.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 networkDelegate.setTaskLimiter("getLatestVideos", null);

@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 .content {
-
 	h1 {
 		@apply text-3xl;
 	}

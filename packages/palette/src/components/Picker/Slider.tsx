@@ -23,14 +23,14 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
 	useOklchCanvas({ channel: channel, max: maxValue[channel], canvasRef: canvasRef, color, useP3 });
-	
+
 	const getSliderPosition = (value: number, max: number) => {
 		return (value / max) * 100;
 	};
 
 	const getValueFromPosition = (clientX: number) => {
 		if (!containerRef.current) return 0;
-		
+
 		const rect = containerRef.current.getBoundingClientRect();
 		const x = clientX - rect.left;
 		const percentage = Math.max(0, Math.min(1, x / rect.width));
@@ -122,7 +122,7 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 				</div>
 			</div>
 
-			<div 
+			<div
 				ref={containerRef}
 				className="relative h-10"
 				onTouchMove={handleTouchMove}

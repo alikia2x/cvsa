@@ -2,7 +2,7 @@ import { SVGProps } from "react";
 
 export const Checkmark: React.FC<SVGProps<SVGSVGElement>> = (props) => {
 	return (
-		<svg  viewBox="10 5 90 85" xmlns="http://www.w3.org/2000/svg" {...props}>
+		<svg viewBox="10 5 90 85" xmlns="http://www.w3.org/2000/svg" {...props}>
 			<path
 				fill="none"
 				stroke="currentColor"

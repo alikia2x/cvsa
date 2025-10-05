@@ -12,24 +12,24 @@ const getVideoAID = async (id: string) => {
 	if (id.startsWith("av")) {
 		return parseInt(id.slice(2));
 	} else if (id.startsWith("BV")) {
-		const data = await dbMain
-			.select()
-			.from(bilibiliMetadata)
-			.where(eq(bilibiliMetadata.bvid, id));
+		const data = await dbMain.select().from(bilibiliMetadata).where(eq(bilibiliMetadata.bvid, id));
 		return data[0].aid;
-	}
-	else {
+	} else {
 		return null;
 	}
 };
 
 const findSongIDFromAID = async (aid: number) => {
 	"use server";
-	const data = await dbMain.select({
-		id: songs.id,
-	}).from(songs).where(eq(songs.aid, aid)).limit(1);
+	const data = await dbMain
+		.select({
+			id: songs.id
+		})
+		.from(songs)
+		.where(eq(songs.aid, aid))
+		.limit(1);
 	return data[0].id;
-}
+};
 
 const getSongInfo = query(async (songID: number) => {
 	"use server";
@@ -42,18 +42,16 @@ const getSongInfoFromID = query(async (id: string) => {
 	const aid = await getVideoAID(id);
 	if (!aid && parseInt(id)) {
 		return getSongInfo(parseInt(id));
-	}
-	else if (!aid) {
+	} else if (!aid) {
 		return null;
 	}
 	const songID = await findSongIDFromAID(aid);
 	return getSongInfo(songID);
-}, "songsRaw")
+}, "songsRaw");
 
 export const route = {
 	preload: ({ params }) => getSongInfoFromID(params.id)
 } satisfies RouteDefinition;
-
 
 export default function Info() {
 	const params = useParams();
@@ -69,7 +67,7 @@ export default function Info() {
 					<LeftSideBar />
 				</nav>
 				<main class="mb-24">
-					<Content data={info() || null}/>
+					<Content data={info() || null} />
 				</main>
 				<div class="top-32 hidden lg:flex self-start sticky flex-col pb-12 px-6">
 					<RightSideBar />

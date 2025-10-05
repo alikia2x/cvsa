@@ -46,7 +46,7 @@
 - 对于数据库中有原创性的内容（如贡献者编辑的描述性内容），如无例外，以 [CC BY 4.0 协议](https://creativecommons.org/licenses/by/4.0/) 提供。
 - 对于引用、摘编或改编自萌娘百科、VCPedia 的内容，以与原始协议(CC BY-NC-SA 3.0
   CN)兼容的协议 [CC BY-NC-SA 4.0 协议](https://creativecommons.org/licenses/by-nc-sa/4.0/) 提供，并注明原始协议 。
-  > 根据原始协议第四条第 2 项内容，CC BY-NC-SA 4.0 协议为与原始协议具有相同授权要素的后续版本（“可适用的协议”）。
+    > 根据原始协议第四条第 2 项内容，CC BY-NC-SA 4.0 协议为与原始协议具有相同授权要素的后续版本（“可适用的协议”）。
 - 中 V 档案馆文档使用 [CC BY 4.0 协议](https://creativecommons.org/licenses/by/4.0/)。
 
 ### 软件代码

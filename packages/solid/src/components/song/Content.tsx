@@ -4,7 +4,7 @@ import { TabSwitcher } from "~/components/song/TabSwitcher";
 import { Staff } from "~/components/song/Staff";
 import { SongType } from "~db/outerSchema";
 
-export const Content: Component<{data: SongType | null}> = (props) => {
+export const Content: Component<{ data: SongType | null }> = (props) => {
 	return (
 		<>
 			<Card variant="outlined" class="w-full max-lg:rounded-none max-lg:border-none">

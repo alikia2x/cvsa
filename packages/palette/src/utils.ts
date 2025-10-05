@@ -16,11 +16,10 @@ export const i18nProvider = (key: i18nKeys) => {
 	}
 };
 
-
 export const getAdjustedColor = (color: Oklch, l?: number, c?: number, h?: number) => {
-    const newColor = { ...color };
-    if (l) newColor.l = l;
-    if (c) newColor.c = c;
-    if (h) newColor.h = h;
-    return newColor;
+	const newColor = { ...color };
+	if (l) newColor.l = l;
+	if (c) newColor.c = c;
+	if (h) newColor.h = h;
+	return newColor;
 };

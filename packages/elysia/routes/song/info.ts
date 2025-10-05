@@ -88,7 +88,8 @@ export const getSongInfoHandler = new Elysia({ prefix: "/song" }).get(
 		},
 		detail: {
 			summary: "Get information of a song",
-			description: "This endpoint retrieves detailed information about a song using its unique ID, \
+			description:
+				"This endpoint retrieves detailed information about a song using its unique ID, \
 			which can be provided in several formats. \
 			The endpoint accepts a song ID in either a numerical format as the internal ID in our database\
 			 or as a bilibili video ID (either av or BV format). \

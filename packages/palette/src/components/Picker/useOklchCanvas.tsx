@@ -2,10 +2,10 @@ import { useEffect, type RefObject } from "react";
 import { oklch, formatHex, inGamut, type Oklch } from "culori";
 
 interface UseOklchCanvasOptions {
-	useP3: boolean
+	useP3: boolean;
 	channel: "l" | "c" | "h";
 	max: number;
-	canvasRef: RefObject<HTMLCanvasElement | null>
+	canvasRef: RefObject<HTMLCanvasElement | null>;
 	color: Oklch;
 }
 

@@ -1,4 +1,3 @@
-
 // Define interfaces for input and output
 interface VdfProgressCallback {
 	(progress: number): void;
@@ -73,7 +72,12 @@ const workerContent = `addEventListener("message", async (event) => {
  * @param onProgress - Optional callback function to receive progress updates (0-100).
  * @returns A Promise that resolves with the VDF result and time taken.
  */
-export function computeVdfInWorker(g: bigint, N: bigint, difficulty: bigint, onProgress?: VdfProgressCallback): Promise<VdfResult> {
+export function computeVdfInWorker(
+	g: bigint,
+	N: bigint,
+	difficulty: bigint,
+	onProgress?: VdfProgressCallback
+): Promise<VdfResult> {
 	return new Promise((resolve, reject) => {
 		// Create a Blob containing the worker script
 		const blob = new Blob([workerContent], { type: "text/javascript" });

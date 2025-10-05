@@ -26,7 +26,7 @@ export const Handle = ({
 
 		const x = clientX - sliderRect.left;
 		const percentage = Math.max(0, Math.min(1, x / sliderRect.width));
-		return (percentage * maxValue);
+		return percentage * maxValue;
 	};
 
 	const handleMouseDown = () => {
@@ -50,13 +50,13 @@ export const Handle = ({
 
 	const handleTouchStart = (e: React.TouchEvent) => {
 		isTouching.current = true;
-		
+
 		const touch = e.touches[0];
 		if (touch) {
 			const value = getValueFromPosition(touch.clientX);
 			onChange(value);
 		}
-		
+
 		onTouchStart?.(e);
 	};
 

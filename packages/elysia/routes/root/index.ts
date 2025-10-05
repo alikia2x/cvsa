@@ -53,7 +53,8 @@ export const rootHandler = new Elysia().get(
 		},
 		detail: {
 			summary: "Root route",
-			description: "The root path. It returns a JSON object containing a random virtual singer, \
+			description:
+				"The root path. It returns a JSON object containing a random virtual singer, \
 			backend version, current server time and other miscellaneous information."
 		}
 	}

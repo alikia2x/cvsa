@@ -65,9 +65,7 @@ const OutlineTextField: React.FC<InputProps> = ({
 
 					<div
 						className={`flex-grow rounded-r-sm border-outline dark:border-dark-outline
-							${focus ? 
-							"border-primary dark:border-dark-primary border-r-2 border-y-2" : 
-							"border-r-[1px] border-y-[1px] "}
+							${focus ? "border-primary dark:border-dark-primary border-r-2 border-y-2" : "border-r-[1px] border-y-[1px] "}
 						`}
 					></div>
 				</div>

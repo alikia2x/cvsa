@@ -10,7 +10,7 @@
 			"@lib/*": ["src/lib/*"],
 			"@assets/*": ["src/assets/*"],
 			"@styles": ["src/styles/*"],
-			"@core/*": ["../core/*"],
+			"@core/*": ["../core/*"]
 		},
 		"verbatimModuleSyntax": true
 	}

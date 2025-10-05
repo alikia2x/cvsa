@@ -48,7 +48,7 @@ const createTransport = (level: string, filename: string) => {
 		maxsize,
 		tailable,
 		maxFiles,
-		format: format.combine(timestampFormat, format.json({ replacer })),
+		format: format.combine(timestampFormat, format.json({ replacer }))
 	});
 };
 
@@ -65,13 +65,13 @@ const winstonLogger = winston.createLogger({
 				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
 				format.colorize(),
 				format.errors({ stack: true }),
-				customFormat,
-			),
+				customFormat
+			)
 		}),
 		createTransport("silly", sillyLogPath),
 		createTransport("warn", warnLogPath),
-		createTransport("error", errorLogPath),
-	],
+		createTransport("error", errorLogPath)
+	]
 });
 
 const logger = {
@@ -96,7 +96,7 @@ const logger = {
 		} else {
 			winstonLogger.error(error, { service, codePath });
 		}
-	},
+	}
 };
 
 export default logger;
