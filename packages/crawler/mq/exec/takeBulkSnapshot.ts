@@ -2,6 +2,7 @@ import { Job } from "bullmq";
 import {
 	bulkScheduleSnapshot,
 	bulkSetSnapshotStatus,
+	getLatestSnapshot,
 	scheduleSnapshot,
 	snapshotScheduleExists
 } from "db/snapshotSchedule";
@@ -12,6 +13,8 @@ import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval";
 import { SnapshotScheduleType } from "@core/db/schema";
 import { sql } from "@core/db/dbNew";
+import { updateETA } from "db/eta";
+import { closetMilestone } from "./snapshotTick";
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 	const schedules: SnapshotScheduleType[] = job.data.schedules;
@@ -43,6 +46,15 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			const coins = stat.coin;
 			const shares = stat.share;
 			const favorites = stat.collect;
+			const currentSnapshot = await getLatestSnapshot(sql, aid);
+			const DELTA = 0.0001;
+			const viewsDiff = views - currentSnapshot.views;
+			const hoursDiff = (new Date().getTime() - currentSnapshot.created_at) / HOUR;
+			const speed = viewsDiff / (hoursDiff + DELTA);
+			const target = closetMilestone(views);
+			const viewsToIncrease = target - views;
+			const eta = viewsToIncrease / (speed + DELTA);
+			await updateETA(sql, aid, eta, speed, views);
 			await sql`
                 INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
                 VALUES (
