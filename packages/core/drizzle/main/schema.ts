@@ -1,77 +1,12 @@
-import { pgTable, uniqueIndex, index, bigint, real, integer, timestamp, bigserial, text, unique, serial, smallint, boolean, varchar, jsonb, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, bigserial, real, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
-export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
 export const allDataIdSeq = pgSequence("all_data_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const labelingResultIdSeq = pgSequence("labeling_result_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const songsIdSeq = pgSequence("songs_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const videoSnapshotIdSeq = pgSequence("video_snapshot_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
-export const captchaDifficultySettingsIdSeq = pgSequence("captcha_difficulty_settings_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
-export const usersIdSeq = pgSequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
-
-export const eta = pgTable("eta", {
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }).notNull(),
-	eta: real().notNull(),
-	speed: real().notNull(),
-	currentViews: integer("current_views").notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	uniqueIndex("eta_pkey").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_eta_eta").using("btree", table.eta.asc().nullsLast().op("float4_ops")),
-]);
-
-export const snapshotSchedule = pgTable("snapshot_schedule", {
-	id: bigserial({ mode: "bigint" }).notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }).notNull(),
-	type: text(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	startedAt: timestamp("started_at", { withTimezone: true, mode: 'string' }),
-	finishedAt: timestamp("finished_at", { withTimezone: true, mode: 'string' }),
-	status: text().default('pending').notNull(),
-}, (table) => [
-	index("idx_snapshot_schedule_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_snapshot_schedule_started_at").using("btree", table.startedAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_snapshot_schedule_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
-	index("idx_snapshot_schedule_type").using("btree", table.type.asc().nullsLast().op("text_ops")),
-	uniqueIndex("snapshot_schedule_pkey").using("btree", table.id.asc().nullsLast().op("int8_ops")),
-]);
-
-export const videoSnapshot = pgTable("video_snapshot", {
-	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	views: integer().notNull(),
-	coins: integer().notNull(),
-	likes: integer().notNull(),
-	favorites: integer().notNull(),
-	shares: integer().notNull(),
-	danmakus: integer().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }).notNull(),
-	replies: integer().notNull(),
-}, (table) => [
-	index("idx_vid_snapshot_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("int8_ops")),
-	index("idx_vid_snapshot_time").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_vid_snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("video_snapshot_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
-]);
-
-export const bilibiliUser = pgTable("bilibili_user", {
-	id: serial().primaryKey().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	uid: bigint({ mode: "number" }).notNull(),
-	username: text().notNull(),
-	desc: text().notNull(),
-	fans: integer().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
-	unique("unq_bili-user_uid").on(table.uid),
-]);
+export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
 
 export const relations = pgTable("relations", {
 	id: serial().primaryKey().notNull(),
@@ -89,37 +24,6 @@ export const relations = pgTable("relations", {
 	index("idx_relations_target_id_target_type_relation").using("btree", table.targetId.asc().nullsLast().op("text_ops"), table.targetType.asc().nullsLast().op("text_ops"), table.relation.asc().nullsLast().op("text_ops")),
 	unique("unq_relations").on(table.sourceId, table.sourceType, table.targetId, table.targetType, table.relation),
 ]);
-
-export const songs = pgTable("songs", {
-	id: integer().default(sql`nextval('songs_id_seq'::regclass)`).notNull(),
-	name: text(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }),
-	publishedAt: timestamp("published_at", { withTimezone: true, mode: 'string' }),
-	duration: integer(),
-	type: smallint(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	neteaseId: bigint("netease_id", { mode: "number" }),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	deleted: boolean().default(false).notNull(),
-	image: text(),
-	producer: text(),
-}, (table) => [
-	index("idx_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_hash_songs_aid").using("hash", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
-	index("idx_published_at").using("btree", table.publishedAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_type").using("btree", table.type.asc().nullsLast().op("int2_ops")),
-	uniqueIndex("songs_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
-]);
-
-export const singer = pgTable("singer", {
-	id: serial().primaryKey().notNull(),
-	name: text().notNull(),
-});
 
 export const bilibiliMetadata = pgTable("bilibili_metadata", {
 	id: integer().default(sql`nextval('all_data_id_seq'::regclass)`).notNull(),
@@ -146,7 +50,7 @@ export const bilibiliMetadata = pgTable("bilibili_metadata", {
 ]);
 
 export const humanClassifiedLables = pgTable("human_classified_lables", {
-	id: serial().notNull(),
+	id: serial().primaryKey().notNull(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	aid: bigint({ mode: "number" }).notNull(),
 	uid: integer().notNull(),
@@ -199,4 +103,97 @@ export const latestVideoSnapshot = pgTable("latest_video_snapshot", {
 }, (table) => [
 	index("idx_latest-video-snapshot_time").using("btree", table.time.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_latest-video-snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
+]);
+
+export const songs = pgTable("songs", {
+	id: integer().default(sql`nextval('songs_id_seq'::regclass)`).notNull(),
+	name: text(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }),
+	publishedAt: timestamp("published_at", { withTimezone: true, mode: 'string' }),
+	duration: integer(),
+	type: smallint(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	neteaseId: bigint("netease_id", { mode: "number" }),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	deleted: boolean().default(false).notNull(),
+	image: text(),
+	producer: text(),
+}, (table) => [
+	index("idx_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	index("idx_hash_songs_aid").using("hash", table.aid.asc().nullsLast().op("int8_ops")),
+	index("idx_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
+	index("idx_published_at").using("btree", table.publishedAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_type").using("btree", table.type.asc().nullsLast().op("int2_ops")),
+	uniqueIndex("songs_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
+]);
+
+export const singer = pgTable("singer", {
+	id: serial().primaryKey().notNull(),
+	name: text().notNull(),
+});
+
+export const videoSnapshot = pgTable("video_snapshot", {
+	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	views: integer().notNull(),
+	coins: integer().notNull(),
+	likes: integer().notNull(),
+	favorites: integer().notNull(),
+	shares: integer().notNull(),
+	danmakus: integer().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }).notNull(),
+	replies: integer().notNull(),
+}, (table) => [
+	index("idx_vid_snapshot_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("int8_ops")),
+	index("idx_vid_snapshot_time").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_vid_snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("video_snapshot_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+]);
+
+export const bilibiliUser = pgTable("bilibili_user", {
+	id: serial().primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	uid: bigint({ mode: "number" }).notNull(),
+	username: text().notNull(),
+	desc: text().notNull(),
+	fans: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
+	unique("unq_bili-user_uid").on(table.uid),
+]);
+
+export const snapshotSchedule = pgTable("snapshot_schedule", {
+	id: bigserial({ mode: "bigint" }).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }).notNull(),
+	type: text(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	startedAt: timestamp("started_at", { withTimezone: true, mode: 'string' }),
+	finishedAt: timestamp("finished_at", { withTimezone: true, mode: 'string' }),
+	status: text().default('pending').notNull(),
+}, (table) => [
+	index("idx_snapshot_schedule_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	index("idx_snapshot_schedule_started_at").using("btree", table.startedAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_snapshot_schedule_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
+	index("idx_snapshot_schedule_type").using("btree", table.type.asc().nullsLast().op("text_ops")),
+	uniqueIndex("snapshot_schedule_pkey").using("btree", table.id.asc().nullsLast().op("int8_ops")),
+]);
+
+export const eta = pgTable("eta", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }).primaryKey().notNull(),
+	eta: real().notNull(),
+	speed: real().notNull(),
+	currentViews: integer("current_views").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_eta_eta").using("btree", table.eta.asc().nullsLast().op("float4_ops")),
 ]);
