@@ -1,10 +1,16 @@
+import { dbMain } from "@core/drizzle";
+import { eta as etaTable } from "@core/drizzle/main/schema";
+import { eq } from "drizzle-orm";
 import { MINUTE, HOUR, getClosetMilestone } from "@core/lib";
 import { getLatestSnapshot, getClosestSnapshot } from "@core/db";
 
-export const getMilestoneETA = async (aid: number, targetViews?: number): Promise<number> => {
+export const getGroundTruthMilestoneETA = async (
+	aid: number,
+	targetViews?: number
+): Promise<number> => {
 	const DELTA = 1e-5;
 	let minETAHours = Infinity;
-	const timeIntervals = [3 * HOUR, 24 * HOUR, 96 * HOUR];
+	const timeIntervals = [3 * MINUTE, 20 * MINUTE, HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
 	const currentTimestamp = new Date().getTime();
 	const latestSnapshot = await getLatestSnapshot(aid);
 	const latestSnapshotTime = new Date(latestSnapshot.time).getTime();
@@ -25,4 +31,12 @@ export const getMilestoneETA = async (aid: number, targetViews?: number): Promis
 		}
 	}
 	return minETAHours;
+};
+
+export const getMilestoneETA = async (aid: number) => {
+	const data = await dbMain.select().from(etaTable).where(eq(etaTable.aid, aid)).limit(1);
+	if (data.length > 0) {
+		return data[0].eta;
+	}
+	return getGroundTruthMilestoneETA(aid);
 };
