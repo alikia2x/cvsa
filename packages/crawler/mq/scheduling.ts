@@ -35,11 +35,9 @@ export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
 
 	const currentTimestamp = new Date().getTime();
 	const timeIntervals = [3 * MINUTE, 20 * MINUTE, HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
-	const originalWeight = [3, 5, 3, 2, 2, 3];
-	const weight = originalWeight.map((x) => x / originalWeight.reduce((a, b) => a + b, 0));
 	const DELTA = 0.00001;
 	let minETAHours = Infinity;
-	let avgSpeed = 0;
+	let maxSpeed = 0;
 
 	const target = closetMilestone(latestSnapshot.views);
 	const viewsToIncrease = target - latestSnapshot.views;
@@ -53,10 +51,10 @@ export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
 		const viewsDiff = latestSnapshot.views - snapshot.views;
 		if (viewsDiff <= 0) continue;
 		const speed = viewsDiff / (hoursDiff + DELTA);
-		avgSpeed += speed * weight[timeIntervals.indexOf(timeInterval)];
 		const eta = viewsToIncrease / (speed + DELTA);
 		const adjustedETA = eta / factor;
 		if (adjustedETA < minETAHours) {
+			maxSpeed = speed;
 			minETAHours = adjustedETA;
 		}
 	}
@@ -66,9 +64,9 @@ export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
 	}
 
 	const remaining = closetMilestone(latestSnapshot.views, true) - latestSnapshot.views;
-	const avgETAHours = remaining / (avgSpeed + DELTA);
+	const avgETAHours = remaining / (maxSpeed + DELTA);
 
-	await updateETA(sql, aid, avgETAHours, avgSpeed, latestSnapshot.views);
+	await updateETA(sql, aid, avgETAHours, maxSpeed, latestSnapshot.views);
 
 	return minETAHours;
 };
