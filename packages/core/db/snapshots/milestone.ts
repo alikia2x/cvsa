@@ -1,10 +1,10 @@
 import { MINUTE, HOUR, getClosetMilestone } from "@core/lib";
 import { getLatestSnapshot, getClosestSnapshot } from "@core/db";
 
-export const getShortTermETA = async (aid: number, targetViews?: number): Promise<number> => {
+export const getMilestoneETA = async (aid: number, targetViews?: number): Promise<number> => {
 	const DELTA = 1e-5;
 	let minETAHours = Infinity;
-	const timeIntervals = [20 * MINUTE, HOUR, 3 * HOUR, 6 * HOUR, 24 * HOUR, 72 * HOUR, 168 * HOUR];
+	const timeIntervals = [3 * HOUR, 24 * HOUR, 96 * HOUR];
 	const currentTimestamp = new Date().getTime();
 	const latestSnapshot = await getLatestSnapshot(aid);
 	const latestSnapshotTime = new Date(latestSnapshot.time).getTime();

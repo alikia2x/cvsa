@@ -1,27 +1,33 @@
 import { Job } from "bullmq";
-import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule";
+import {
+	getCommonArchiveAids,
+	getVideosWithoutActiveSnapshotScheduleByType,
+	scheduleSnapshot
+} from "db/snapshotSchedule";
 import logger from "@core/log";
 import { lockManager } from "@core/mq/lockManager";
-import { getLatestVideoSnapshot } from "db/snapshot";
 import { MINUTE } from "@core/lib";
 import { sql } from "@core/db/dbNew";
+import {
+	nextMonday,
+	nextSaturday,
+	formatDistanceStrict,
+	intervalToDuration,
+	formatDuration
+} from "date-fns";
 
-function getNextSaturdayMidnightTimestamp(): number {
-	const now = new Date();
-	const currentDay = now.getDay();
-
-	let daysUntilNextSaturday = (6 - currentDay + 7) % 7;
-
-	if (daysUntilNextSaturday === 0) {
-		daysUntilNextSaturday = 7;
-	}
-
-	const nextSaturday = new Date(now);
-	nextSaturday.setDate(nextSaturday.getDate() + daysUntilNextSaturday);
-	nextSaturday.setHours(0, 0, 0, 0);
-
-	return nextSaturday.getTime();
+function randomTimestampBetween(start: Date, end: Date) {
+	const startMs = start.getTime();
+	const endMs = end.getTime();
+	const randomMs = startMs + Math.random() * (endMs - startMs);
+	return Math.floor(randomMs);
 }
+
+const getRandomTimeInNextWeek = (): number => {
+	const secondMonday = nextMonday(new Date());
+	const thirdMonday = nextMonday(secondMonday);
+	return randomTimestampBetween(secondMonday, thirdMonday);
+};
 
 export const archiveSnapshotsWorker = async (_job: Job) => {
 	try {
@@ -34,17 +40,37 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 		const aids = await getVideosWithoutActiveSnapshotScheduleByType(sql, "archive");
 		for (const rawAid of aids) {
 			const aid = Number(rawAid);
-			const latestSnapshot = await getLatestVideoSnapshot(sql, aid);
 			const now = Date.now();
-			const lastSnapshotedAt = latestSnapshot?.time ?? now;
-			const nextSatMidnight = getNextSaturdayMidnightTimestamp();
-			const interval = nextSatMidnight - now;
+			const date = new Date();
+			const formatted = formatDistanceStrict(date, nextSaturday(date).getTime(), {
+				unit: "hour"
+			});
 			logger.log(
-				`Scheduled archive snapshot for aid ${aid} in ${interval} hours.`,
+				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
 				"mq",
 				"fn:archiveSnapshotsWorker"
 			);
-			const targetTime = lastSnapshotedAt + interval;
+			await scheduleSnapshot(sql, aid, "archive", nextSaturday(date).getTime());
+			if (now - startedAt > 30 * MINUTE) {
+				return;
+			}
+		}
+		const aids2 = await getCommonArchiveAids(sql);
+		for (const rawAid of aids2) {
+			const aid = Number(rawAid);
+			const now = Date.now();
+			const targetTime = getRandomTimeInNextWeek();
+			const interval = intervalToDuration({
+				start: new Date(),
+				end: new Date(targetTime)
+			});
+			const formatted = formatDuration(interval, { format: ["days", "hours"] });
+
+			logger.log(
+				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
+				"mq",
+				"fn:archiveSnapshotsWorker"
+			);
 			await scheduleSnapshot(sql, aid, "archive", targetTime);
 			if (now - startedAt > 30 * MINUTE) {
 				return;

@@ -2,7 +2,8 @@ import { Elysia, t } from "elysia";
 import { dbMain } from "@core/drizzle";
 import { bilibiliMetadata, latestVideoSnapshot } from "@core/drizzle/main/schema";
 import { eq, and, gte, lt, desc } from "drizzle-orm";
-import { getShortTermETA } from "@core/db";
+import { getMilestoneETA } from "@core/db";
+import serverTiming from "@elysia/middlewares/timing";
 
 type MileStoneType = "dendou" | "densetsu" | "shinwa";
 
@@ -12,10 +13,11 @@ const range = {
 	shinwa: [5000000, 9999999, 10000000]
 };
 
-export const closeMileStoneHandler = new Elysia({ prefix: "/song" }).get(
+export const closeMileStoneHandler = new Elysia({ prefix: "/song" }).use(serverTiming()).get(
 	"/close-milestone/:type",
-	async (c) => {
-		const type = c.params.type;
+	async ({ params, timeLog }) => {
+		timeLog.startTime("retrieveCandidates")
+		const type = params.type;
 		const min = range[type as MileStoneType][0];
 		const max = range[type as MileStoneType][1];
 		const data = await dbMain
@@ -29,14 +31,19 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/song" }).get(
 			eta: number;
 		};
 		const result: Result[] = [];
+		timeLog.endTime("retrieveCandidates")
+
+		timeLog.startTime("calculateETA");
 		for (let i = 0; i < data.length; i++) {
 			const aid = data[i].bilibili_metadata.aid;
-			const eta = await getShortTermETA(aid, range[type as MileStoneType][2]);
+			const eta = await getMilestoneETA(aid, range[type as MileStoneType][2]);
 			result.push({
 				...data[i],
 				eta
 			});
 		}
+		timeLog.endTime("calculateETA");
+
 		result.sort((a, b) => a.eta - b.eta);
 		return result;
 	},

@@ -7,17 +7,38 @@ import { getSongInfoHandler } from "@elysia/routes/song/info";
 import { rootHandler } from "@elysia/routes/root";
 import { getVideoMetadataHandler } from "@elysia/routes/video/metadata";
 import { closeMileStoneHandler } from "@elysia/routes/song/milestone";
-import { serverTiming } from '@elysiajs/server-timing'
+import serverTiming from "@elysia/middlewares/timing";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
+
+const encoder = new TextEncoder();
 
 const app = new Elysia({
 	serve: {
 		hostname: host
 	}
 })
-.use(serverTiming())
+	.onAfterHandle({ as: "global" }, ({ responseValue, set, request }) => {
+		const contentType = request.headers.get("Content-Type") || "";
+		const accept = request.headers.get("Accept") || "";
+		const secFetchMode = request.headers.get("Sec-Fetch-Mode");
+		const requestJson = contentType.includes("application/json");
+		const isBrowser = !requestJson && (accept.includes("text/html") || secFetchMode === "navigate");
+		const responseValueType = typeof responseValue;
+		const isObject = responseValueType === "object";
+		const response = isObject
+			? responseValue
+			: {
+					message: responseValue
+				};
+		const text = isBrowser ? JSON.stringify(response, null, 2) : JSON.stringify(response);
+		return new Response(encoder.encode(text), {
+			headers: {
+				"Content-Type": "application/json; charset=utf-8"
+			}
+		});
+	})
 	.use(cors())
 	.use(openapi())
 	.use(rootHandler)

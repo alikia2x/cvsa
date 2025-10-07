@@ -341,3 +341,21 @@ export async function getVideosWithoutActiveSnapshotScheduleByType(sql: Psql, ty
 	`;
 	return rows.map((r) => Number(r.aid));
 }
+
+export async function getCommonArchiveAids(sql: Psql) {
+	const rows = await sql<{ aid: string }[]>`
+		SELECT b.aid
+		FROM bilibili_metadata b
+		LEFT JOIN snapshot_schedule ss ON
+			b.aid = ss.aid AND
+			(ss.status = 'pending' OR ss.status = 'processing') AND
+			ss.type = 'archive'
+		WHERE ss.aid IS NULL
+		AND NOT EXISTS (
+			SELECT 1
+			FROM songs s
+			WHERE s.aid = b.aid
+		)
+	`;
+	return rows.map((r) => Number(r.aid));
+}
