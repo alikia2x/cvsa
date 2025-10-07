@@ -71,6 +71,7 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 	};
 
 	const handleTouchMove = (e: React.TouchEvent) => {
+		e.preventDefault();
 		const touch = e.touches[0];
 		if (touch) {
 			const newValue = getValueFromPosition(touch.clientX);
