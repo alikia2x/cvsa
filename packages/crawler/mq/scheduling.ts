@@ -65,7 +65,8 @@ export const getAdjustedShortTermETA = async (sql: Psql, aid: number) => {
 		minETAHours = Infinity;
 	}
 
-	const avgETAHours = viewsToIncrease / (avgSpeed + DELTA);
+	const remaining = closetMilestone(latestSnapshot.views, true) - latestSnapshot.views;
+	const avgETAHours = remaining / (avgSpeed + DELTA);
 
 	await updateETA(sql, aid, avgETAHours, avgSpeed, latestSnapshot.views);
 

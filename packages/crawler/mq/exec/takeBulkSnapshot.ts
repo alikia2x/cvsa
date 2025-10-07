@@ -51,7 +51,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			const viewsDiff = views - currentSnapshot.views;
 			const hoursDiff = (new Date().getTime() - currentSnapshot.created_at) / HOUR;
 			const speed = viewsDiff / (hoursDiff + DELTA);
-			const target = closetMilestone(views);
+			const target = closetMilestone(views, true);
 			const viewsToIncrease = target - views;
 			const eta = viewsToIncrease / (speed + DELTA);
 			await updateETA(sql, aid, eta, speed, views);
