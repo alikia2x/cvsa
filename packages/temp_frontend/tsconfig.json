@@ -11,7 +11,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./app/*"],
-			"@elysia/*": ["../elysia/*"]
+			"@elysia/*": ["../elysia/*"],
+			"@core/*": ["../core/*"]
 		},
 		"esModuleInterop": true,
 		"verbatimModuleSyntax": true,

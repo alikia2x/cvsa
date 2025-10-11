@@ -9,10 +9,12 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
+		"@alikia/dark-theme-hook": "^1.0.2",
 		"@elysiajs/eden": "^1.4.1",
 		"@nivo/core": "^0.99.0",
 		"@nivo/line": "^0.99.0",
 		"@radix-ui/react-slot": "^1.2.3",
+		"@radix-ui/react-tabs": "^1.1.13",
 		"@react-router/node": "^7.7.1",
 		"@react-router/serve": "^7.7.1",
 		"class-variance-authority": "^0.7.1",
