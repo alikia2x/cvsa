@@ -240,7 +240,9 @@ export const TimeSeriesChart = ({
 
 		const windowSize = getWindowSize(timeRange, { maxTime, minTime });
 
-		const initialEndTime = maxTime;
+		// Preserve current endTime if it exists, otherwise use maxTime
+		const currentEndTime = timeWindow.endTime > 0 ? timeWindow.endTime : maxTime;
+		const initialEndTime = Math.min(maxTime, currentEndTime);
 		const initialStartTime = Math.max(minTime, initialEndTime - windowSize);
 
 		setTimeWindow({
@@ -444,7 +446,7 @@ export const TimeSeriesChart = ({
 
 			visibleData.forEach((point, idx) => {
 				if (
-					idx < leftPad||
+					idx < leftPad ||
 					(idx > visibleData.length - rightPad + 1 &&
 						visibleData[visibleData.length - 1].timestamp > timeWindow.endTime)
 				)
@@ -565,7 +567,7 @@ export const TimeSeriesChart = ({
 			const targetMin = Math.max(0, vmin);
 			const targetMax = vmax;
 
-			const buffer = (targetMax - targetMin) * 0.3;
+			const buffer = (targetMax - targetMin) * 0.2;
 
 			// Align to nice numbers
 			const alignedRange = alignRangeToNiceNumbers(targetMin - buffer, targetMax + buffer);
@@ -574,6 +576,23 @@ export const TimeSeriesChart = ({
 			startYAxisAnimation(alignedRange.min, alignedRange.max);
 		}
 	}, [visibleData, yAxisRange, yAxisAnimation]);
+
+	useEffect(() => {
+		if (!visibleData.length) return;
+
+		const vmin = visibleData[leftPad - 1].value;
+		const vmax = visibleData[visibleData.length - rightPad].value;
+		const targetMin = Math.max(0, vmin);
+		const targetMax = vmax;
+
+		const buffer = (targetMax - targetMin) * 0.04;
+
+		// Align to nice numbers
+		const alignedRange = alignRangeToNiceNumbers(targetMin - buffer, targetMax + buffer);
+
+		// Start animation to new range
+		startYAxisAnimation(alignedRange.min, alignedRange.max);
+	}, [timeRange]);
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent) => {
@@ -614,7 +633,7 @@ export const TimeSeriesChart = ({
 			const maxTime = sortedData[sortedData.length - 1].timestamp;
 
 			const adjustedStartTime = Math.max(minTime - timeRange * 0.2, newStartTime);
-			const adjustedEndTime = Math.min(maxTime + timeRange * 1, newEndTime);
+			const adjustedEndTime = Math.min(maxTime + timeRange * 0.8, newEndTime);
 
 			if (adjustedEndTime - adjustedStartTime < timeRange) {
 				return;
@@ -696,13 +715,10 @@ export const TimeSeriesChart = ({
 				updateCursorPosition(x);
 			}
 
-			if (currentPosition) return;
-
 			// Check for swipe gesture on all devices (not just touch)
 			if (!lastPointerPositions || !pointerStartPosition) return;
 
 			const totalDeltaX = x - pointerStartPosition.x;
-			const totalTimeDelta = Date.now() - pointerStartPosition.time;
 
 			const avgAcceleration = calculateXAxisAverageAcceleration(lastPointerPositions);
 			const signAcc = avgAcceleration / Math.abs(avgAcceleration);
