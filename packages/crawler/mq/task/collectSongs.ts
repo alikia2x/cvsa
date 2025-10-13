@@ -18,11 +18,12 @@ export async function collectSongs() {
 
 export async function insertIntoSongs(sql: Psql, aid: number) {
 	await sql`
-		INSERT INTO songs (aid, published_at, duration)
+		INSERT INTO songs (aid, published_at, duration, image)
 		VALUES (
 			$1,
 			(SELECT published_at FROM bilibili_metadata WHERE aid = ${aid}),
-			(SELECT duration FROM bilibili_metadata WHERE aid = ${aid})
+			(SELECT duration FROM bilibili_metadata WHERE aid = ${aid}),
+			(SELECT cover_url FROM bilibili_metadata WHERE aid = ${aid})
 		)
 		ON CONFLICT DO NOTHING
 	`;
