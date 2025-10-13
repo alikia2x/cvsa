@@ -13,7 +13,11 @@ async function getSongIDFromBiliID(id: string) {
 	} else {
 		return null;
 	}
-	const songID = await dbMain.select({ id: songs.id }).from(songs).where(eq(songs.aid, aid)).limit(1);
+	const songID = await dbMain
+		.select({ id: songs.id })
+		.from(songs)
+		.where(eq(songs.aid, aid))
+		.limit(1);
 	if (songID.length > 0) {
 		return songID[0].id;
 	}
@@ -44,23 +48,29 @@ async function getSingers(id: number) {
 		})
 		.from(relations)
 		.innerJoin(singer, eq(relations.targetId, singer.id))
-		.where(and(eq(relations.sourceId, id), eq(relations.sourceType, "song"), eq(relations.relation, "sing")));
+		.where(
+			and(
+				eq(relations.sourceId, id),
+				eq(relations.sourceType, "song"),
+				eq(relations.relation, "sing")
+			)
+		);
 	return singers.map((singer) => singer.singers);
 }
 
 export const getSongInfoHandler = new Elysia({ prefix: "/song" }).get(
 	"/:id/info",
-	async (c) => {
-		const id = c.params.id;
+	async ({ params, status }) => {
+		const id = params.id;
 		const songID = await getSongID(id);
 		if (!songID) {
-			return c.status(404, {
+			return status(404, {
 				message: "song not found"
 			});
 		}
 		const info = await getSongInfo(songID);
 		if (!info) {
-			return c.status(404, {
+			return status(404, {
 				message: "song not found"
 			});
 		}
@@ -70,7 +80,8 @@ export const getSongInfoHandler = new Elysia({ prefix: "/song" }).get(
 			aid: info.aid,
 			producer: info.producer,
 			duration: info.duration,
-			singers: singers
+			singers: singers,
+			cover: info.image || undefined
 		};
 	},
 	{
@@ -80,7 +91,8 @@ export const getSongInfoHandler = new Elysia({ prefix: "/song" }).get(
 				aid: t.Union([t.Number(), t.Null()]),
 				producer: t.Union([t.String(), t.Null()]),
 				duration: t.Union([t.Number(), t.Null()]),
-				singers: t.Array(t.String())
+				singers: t.Array(t.String()),
+				cover: t.Optional(t.String())
 			}),
 			404: t.Object({
 				message: t.String()
@@ -95,5 +107,53 @@ export const getSongInfoHandler = new Elysia({ prefix: "/song" }).get(
 			 or as a bilibili video ID (either av or BV format). \
 			 It responds with the song's name, bilibili ID (av), producer, duration, and associated singers."
 		}
+	}
+);
+
+export const patchInfoHandler = new Elysia({ prefix: "/song" }).patch(
+	"/:id/info",
+	async ({ params, status, body }) => {
+		const id = params.id;
+		const songID = await getSongID(id);
+		if (!songID) {
+			return status(404, {
+				message: "song not found"
+			});
+		}
+		const info = await getSongInfo(songID);
+		if (!info) {
+			return status(404, {
+				message: "song not found"
+			});
+		}
+		if (body.name) {
+			await dbMain
+				.update(songs)
+				.set({ name: body.name })
+				.where(eq(songs.id, songID));
+		}
+		if (body.producer) {
+			await dbMain
+				.update(songs)
+				.set({ producer: body.producer })
+				.where(eq(songs.id, songID));
+		}
+		return {
+			message: "success"
+		};
+	},
+	{
+		response: {
+			200: t.Object({
+				message: t.String()
+			}),
+			404: t.Object({
+				message: t.String()
+			})
+		},
+		body: t.Object({
+			name: t.Optional(t.String()),
+			producer: t.Optional(t.String())
+		})
 	}
 );

@@ -1,11 +1,9 @@
 import type { Route } from "./+types/home";
-import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon } from "@/components/icons/search";
 
-const app = treaty<App>("localhost:15412");
+
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: "中V档案馆" }];
