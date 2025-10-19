@@ -167,7 +167,7 @@ export async function getLatestActiveScheduleWithType(sql: Psql, aid: number, ty
 		ORDER BY started_at DESC
 		LIMIT 1
 	`;
-	return rows[0];
+	return rows.length > 0 ? rows[0] : null;
 }
 
 /*
@@ -186,10 +186,13 @@ export async function scheduleSnapshot(
 	adjustTime: boolean = true
 ) {
 	let adjustedTime = new Date(targetTime);
-	const hashActiveSchedule = await videoHasActiveScheduleWithType(sql, aid, type);
-	if (type == "milestone" && hashActiveSchedule) {
+	const hasActiveSchedule = await videoHasActiveScheduleWithType(sql, aid, type);
+	if (type == "milestone" && hasActiveSchedule) {
 		const latestActiveSchedule = await getLatestActiveScheduleWithType(sql, aid, type);
-		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at!));
+		if (!latestActiveSchedule) {
+			return;
+		}
+		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at));
 		if (latestScheduleStartedAt > adjustedTime) {
 			await sql`
                 UPDATE snapshot_schedule
@@ -204,7 +207,7 @@ export async function scheduleSnapshot(
 			return;
 		}
 	}
-	if (hashActiveSchedule && !force) return;
+	if (hasActiveSchedule && !force) return;
 	if (type !== "milestone" && type !== "new" && adjustTime) {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
 	}
