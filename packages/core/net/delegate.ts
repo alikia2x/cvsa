@@ -132,7 +132,7 @@ class NetworkDelegate {
 		} catch (e) {
 			const error = e as Error;
 			if (e instanceof ReplyError) {
-				logger.error(error, "redis");
+				logger.error(error, "redis", "fn:triggerLimiter");
 			} else if (e instanceof RateLimiterError) {
 				// Re-throw it to ensure this.request can catch it
 				throw e;

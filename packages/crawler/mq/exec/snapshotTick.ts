@@ -48,7 +48,7 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 		}
 		return `OK`;
 	} catch (e) {
-		logger.error(e as Error);
+		logger.error(e as Error, "mq", "fn:snapshotTickWorker");
 	}
 };
 
@@ -77,7 +77,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 		}
 		return `OK`;
 	} catch (e) {
-		logger.error(e as Error);
+		logger.error(e as Error, "mq", "fn:snapshotTickWorker");
 	}
 };
 
