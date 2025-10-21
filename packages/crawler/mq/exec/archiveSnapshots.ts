@@ -46,7 +46,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 				unit: "hour"
 			});
 			logger.log(
-				`Scheduled archive snapshot for aid ${aid} in ${formatted}. date: ${nextSaturday(date).toUTCString()}, timestamp: ${nextSaturday(date).getTime()}`,
+				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
 				"mq",
 				"fn:archiveSnapshotsWorker"
 			);
@@ -67,7 +67,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const formatted = formatDuration(interval, { format: ["days", "hours"] });
 
 			logger.log(
-				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
+				`Scheduled common archive snapshot for aid ${aid} in ${formatted}.`,
 				"mq",
 				"fn:archiveSnapshotsWorker"
 			);
