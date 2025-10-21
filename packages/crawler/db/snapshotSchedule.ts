@@ -246,12 +246,8 @@ export async function adjustSnapshotTime(
 
 	const initialOffset = currentWindow + Math.max(targetOffset, 0);
 
-	let timePerIteration: number;
 	const MAX_ITERATIONS = 2880;
-	let iters = 0;
-	const t = performance.now();
 	for (let i = initialOffset; i < MAX_ITERATIONS; i++) {
-		iters++;
 		const offset = i;
 		const count = await getWindowCount(redisClient, offset);
 
@@ -267,20 +263,11 @@ export async function adjustSnapshotTime(
 			const now = new Date();
 
 			if (delayedDate.getTime() < now.getTime()) {
-				const elapsed = performance.now() - t;
-				timePerIteration = elapsed / (i + 1);
-				logger.log(`${timePerIteration.toFixed(3)}ms * ${iters} iterations`, "perf", "fn:adjustSnapshotTime");
 				return now;
 			}
-			const elapsed = performance.now() - t;
-			timePerIteration = elapsed / (i + 1);
-			logger.log(`${timePerIteration.toFixed(3)}ms * ${iters} iterations`, "perf", "fn:adjustSnapshotTime");
 			return delayedDate;
 		}
 	}
-	const elapsed = performance.now() - t;
-	timePerIteration = elapsed / MAX_ITERATIONS;
-	logger.log(`${timePerIteration.toFixed(3)}ms * ${MAX_ITERATIONS} iterations`, "perf", "fn:adjustSnapshotTime");
 	return expectedStartTime;
 }
 

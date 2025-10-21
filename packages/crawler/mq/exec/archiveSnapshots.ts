@@ -46,7 +46,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 				unit: "hour"
 			});
 			logger.log(
-				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
+				`Scheduled archive snapshot for aid ${aid} in ${formatted}. date: ${nextSaturday(date).toUTCString()}, timestamp: ${nextSaturday(date).getTime()}`,
 				"mq",
 				"fn:archiveSnapshotsWorker"
 			);
