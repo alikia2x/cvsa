@@ -1,5 +1,10 @@
 import { Job } from "bullmq";
-import { getLatestSnapshot, scheduleSnapshot, setSnapshotStatus, snapshotScheduleExists } from "db/snapshotSchedule";
+import {
+	getLatestSnapshot,
+	scheduleSnapshot,
+	setSnapshotStatus,
+	snapshotScheduleExists
+} from "db/snapshotSchedule";
 import logger from "@core/log";
 import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata";
@@ -28,6 +33,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		if (!exists) {
 			return;
 		}
+
 		const status = await getBiliVideoStatus(sql, aid);
 		if (status !== 0) {
 			logger.warn(
@@ -37,6 +43,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			);
 			return;
 		}
+
 		await setSnapshotStatus(sql, id, "processing");
 		const stat = await insertVideoSnapshot(sql, aid, task);
 		if (typeof stat === "number") {
@@ -94,7 +101,11 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		return;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
-			logger.warn(`No available proxy for aid ${job.data.aid}.`, "mq", "fn:snapshotVideoWorker");
+			logger.warn(
+				`No available proxy for aid ${job.data.aid}.`,
+				"mq",
+				"fn:snapshotVideoWorker"
+			);
 			await setSnapshotStatus(sql, id, "no_proxy");
 			await scheduleSnapshot(sql, aid, type, Date.now() + retryInterval, false, true);
 			return;

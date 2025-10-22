@@ -1,8 +1,8 @@
 import type { SnapshotScheduleType } from "@core/db/schema.d";
 import logger from "@core/log";
 import { MINUTE } from "@core/lib";
-import { redis } from "@core/db/redis";
-import { Redis } from "ioredis";
+import { redis } from "bun";
+import { RedisClient } from "bun";
 import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre";
 import type { Psql } from "@core/db/psql.d";
 
@@ -14,7 +14,7 @@ function getCurrentWindowIndex(): number {
 	return Math.floor(minutesSinceMidnight / 5);
 }
 
-export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
+export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: RedisClient) {
 	const now = new Date();
 	const startTime = now.getTime();
 
@@ -37,19 +37,19 @@ export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis)
 		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
 		const offset = currentWindow + targetOffset;
 		if (offset >= 0) {
-			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
+			await redisClient.hmset(REDIS_KEY, [offset.toString(), row.count.toString()]);
 		}
 	}
 }
 
-export async function initSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
+export async function initSnapshotWindowCounts(sql: Psql, redisClient: RedisClient) {
 	await refreshSnapshotWindowCounts(sql, redisClient);
 	setInterval(async () => {
 		await refreshSnapshotWindowCounts(sql, redisClient);
 	}, 5 * MINUTE);
 }
 
-async function getWindowCount(redisClient: Redis, offset: number): Promise<number> {
+async function getWindowCount(redisClient: RedisClient, offset: number): Promise<number> {
 	const count = await redisClient.hget(REDIS_KEY, offset.toString());
 	return count ? parseInt(count, 10) : 0;
 }
@@ -239,7 +239,7 @@ export async function bulkScheduleSnapshot(
 export async function adjustSnapshotTime(
 	expectedStartTime: Date,
 	allowedCounts: number = 1000,
-	redisClient: Redis
+	redisClient: RedisClient
 ): Promise<Date> {
 	const currentWindow = getCurrentWindowIndex();
 	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE)) - 6;

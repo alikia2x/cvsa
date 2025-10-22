@@ -2,7 +2,7 @@ import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index";
 import logger from "@core/log";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule";
-import { redis } from "@core/db/redis";
+import { redis } from "bun";
 import { sql } from "@core/db/dbNew";
 
 export async function initMQ() {

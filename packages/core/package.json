@@ -7,6 +7,11 @@
 		"build": "bun build ./index.ts --target node --outdir ./dist"
 	},
 	"dependencies": {
+		"@alicloud/credentials": "^2.4.4",
+		"@alicloud/darabonba-stream": "^0.0.2",
+		"@alicloud/fc20230330": "^4.6.2",
+		"@alicloud/openapi-client": "^0.4.15",
+		"@alicloud/tea-util": "^1.4.10",
 		"@koshnic/ratelimit": "^1.0.3",
 		"@types/luxon": "^3.7.1",
 		"chalk": "^5.4.1",

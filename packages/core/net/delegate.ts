@@ -1,40 +1,21 @@
 import logger from "@core/log";
-import { MultipleRateLimiter, RateLimiterError, type RateLimiterConfig } from "@core/mq/multipleRateLimiter";
+import {
+	MultipleRateLimiter,
+	RateLimiterError,
+	type RateLimiterConfig
+} from "@core/mq/multipleRateLimiter";
 import { ReplyError } from "ioredis";
 import { SECOND } from "@core/lib";
-import { spawn, SpawnOptions } from "child_process";
+import FC20230330, * as $FC20230330 from "@alicloud/fc20230330";
+import Credential from "@alicloud/credentials";
+import * as OpenApi from "@alicloud/openapi-client";
+import Stream from "@alicloud/darabonba-stream";
+import * as Util from "@alicloud/tea-util";
+import { Readable } from "stream";
 
-export function spawnPromise(
-	command: string,
-	args: string[] = [],
-	options?: SpawnOptions
-): Promise<{ stdout: string; stderr: string }> {
-	return new Promise((resolve, reject) => {
-		const child = spawn(command, args, options);
-
-		let stdout = "";
-		let stderr = "";
-
-		child.stdout?.on("data", (data) => {
-			stdout += data;
-		});
-
-		child.stderr?.on("data", (data) => {
-			stderr += data;
-		});
-
-		child.on("close", (code) => {
-			if (code !== 0) {
-				reject(new Error(`Error code: ${code}\nstderr: ${stderr}`));
-			} else {
-				resolve({ stdout, stderr });
-			}
-		});
-
-		child.on("error", (err) => {
-			reject(err);
-		});
-	});
+interface FCResponse {
+	statusCode: number;
+	body: string;
 }
 
 interface Proxy {
@@ -91,6 +72,25 @@ function shuffleArray<T>(array: T[]): T[] {
 	return newArray;
 }
 
+const getEndpoint = (region: string) => `fcv3.cn-${region}.aliyuncs.com`;
+
+const getAlicloudClient = (region: string) => {
+	const credential = new Credential();
+	const config = new OpenApi.Config({
+		credential: credential
+	});
+	config.endpoint = getEndpoint(region);
+	return new FC20230330(config);
+};
+
+const streamToString = async (readableStream: Readable) => {
+	let data = "";
+	for await (const chunk of readableStream) {
+		data += chunk.toString();
+	}
+	return data;
+};
+
 class NetworkDelegate {
 	private proxies: ProxiesMap = {};
 	private providerLimiters: LimiterMap = {};
@@ -119,7 +119,9 @@ class NetworkDelegate {
 		const proxies = this.getTaskProxies(taskName);
 		for (const proxyName of proxies) {
 			const limiterId = "proxy-" + proxyName + "-" + taskName;
-			this.proxyLimiters[limiterId] = config ? new MultipleRateLimiter(limiterId, config) : null;
+			this.proxyLimiters[limiterId] = config
+				? new MultipleRateLimiter(limiterId, config)
+				: null;
 		}
 	}
 
@@ -165,12 +167,12 @@ class NetworkDelegate {
 	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
 	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
-	async request<R>(url: string, task: string, method: string = "GET"): Promise<R> {
+	async request<R>(url: string, task: string): Promise<R> {
 		// find a available proxy
 		const proxiesNames = this.getTaskProxies(task);
 		for (const proxyName of shuffleArray(proxiesNames)) {
 			try {
-				return await this.proxyRequest<R>(url, proxyName, task, method);
+				return await this.proxyRequest<R>(url, proxyName, task);
 			} catch (e) {
 				if (e instanceof RateLimiterError) {
 					continue;
@@ -200,7 +202,6 @@ class NetworkDelegate {
 		url: string,
 		proxyName: string,
 		task: string,
-		method: string = "GET",
 		force: boolean = false
 	): Promise<R> {
 		const proxy = this.proxies[proxyName];
@@ -209,28 +210,30 @@ class NetworkDelegate {
 		}
 
 		await this.triggerLimiter(task, proxyName, force);
-		const result = await this.makeRequest<R>(url, proxy, method);
+		const result = await this.makeRequest<R>(url, proxy);
 		return result;
 	}
 
-	private async makeRequest<R>(url: string, proxy: Proxy, method: string): Promise<R> {
+	private async makeRequest<R>(url: string, proxy: Proxy): Promise<R> {
 		switch (proxy.type) {
 			case "native":
-				return await this.nativeRequest<R>(url, method);
+				return await this.nativeRequest<R>(url);
 			case "alicloud-fc":
 				return await this.alicloudFcRequest<R>(url, proxy.data);
 			default:
-				throw new NetSchedulerError(`Proxy type ${proxy.type} not supported`, "NOT_IMPLEMENTED");
+				throw new NetSchedulerError(
+					`Proxy type ${proxy.type} not supported`,
+					"NOT_IMPLEMENTED"
+				);
 		}
 	}
 
-	private async nativeRequest<R>(url: string, method: string): Promise<R> {
+	private async nativeRequest<R>(url: string): Promise<R> {
 		try {
 			const controller = new AbortController();
 			const timeout = setTimeout(() => controller.abort(), 10 * SECOND);
 
 			const response = await fetch(url, {
-				method,
 				signal: controller.signal
 			});
 
@@ -244,31 +247,31 @@ class NetworkDelegate {
 
 	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
 		try {
-			const output = await spawnPromise("aliyun", [
-				"fc",
-				"POST",
-				`/2023-03-30/functions/proxy-${region}/invocations`,
-				"--qualifier",
-				"LATEST",
-				"--header",
-				"Content-Type=application/json;x-fc-invocation-type=Sync;x-fc-log-type=None;",
-				"--body",
-				JSON.stringify({ url: url }),
-				"--retry-count",
-				"5",
-				"--read-timeout",
-				"30",
-				"--connect-timeout",
-				"10",
-				"--profile",
-				`CVSA-${region}`
-			]);
-			const out = output.stdout;
-			const rawData = JSON.parse(out);
+			const client = getAlicloudClient(region);
+			const bodyStream = Stream.readFromString(JSON.stringify({ url: url }));
+			const headers = new $FC20230330.InvokeFunctionHeaders({});
+			const request = new $FC20230330.InvokeFunctionRequest({
+				body: bodyStream
+			});
+			const runtime = new Util.RuntimeOptions({});
+			const response = await client.invokeFunctionWithOptions(
+				`proxy-${region}`,
+				request,
+				headers,
+				runtime
+			);
+			if (response.statusCode !== 200) {
+				// noinspection ExceptionCaughtLocallyJS
+				throw new NetSchedulerError(
+					`Error proxying ${url} to ali-fc region ${region}, code: ${response.statusCode} (Not correctly invoked).`,
+					"ALICLOUD_PROXY_ERR"
+				);
+			}
+			const rawData = JSON.parse(await streamToString(response.body)) as FCResponse;
 			if (rawData.statusCode !== 200) {
 				// noinspection ExceptionCaughtLocallyJS
 				throw new NetSchedulerError(
-					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}.`,
+					`Error proxying ${url} to ali-fc region ${region}, code: ${rawData.statusCode}. (fetch error)`,
 					"ALICLOUD_PROXY_ERR"
 				);
 			} else {
@@ -319,7 +322,7 @@ const biliLimiterConfig: RateLimiterConfig[] = [
 	},
 	{
 		duration: 5 * 60,
-		max: 200
+		max: 500
 	}
 ];
 
@@ -358,11 +361,21 @@ The order of setTaskLimiter and setProviderLimiter relative to each other is fle
 but both should come after addProxy and addTask to ensure proper setup and dependencies are met.
 */
 
-const regions = ["shanghai", "hangzhou", "qingdao", "beijing", "zhangjiakou", "chengdu", "shenzhen", "hohhot"];
+const regions = [
+	"shanghai",
+	"hangzhou",
+	"qingdao",
+	"beijing",
+	"zhangjiakou",
+	"chengdu",
+	"shenzhen",
+	"hohhot"
+];
 networkDelegate.addProxy("native", "native", "");
 for (const region of regions) {
 	networkDelegate.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
+networkDelegate.addTask("test", "test", "all");
 networkDelegate.addTask("getVideoInfo", "bilibili", "all");
 networkDelegate.addTask("getLatestVideos", "bilibili", "all");
 networkDelegate.addTask(
@@ -391,6 +404,8 @@ networkDelegate.setTaskLimiter("getLatestVideos", null);
 networkDelegate.setTaskLimiter("snapshotMilestoneVideo", null);
 networkDelegate.setTaskLimiter("snapshotVideo", null);
 networkDelegate.setTaskLimiter("bulkSnapshot", null);
+networkDelegate.setTaskLimiter("test", null);
+networkDelegate.setProviderLimiter("test", []);
 networkDelegate.setProviderLimiter("bilibili", biliLimiterConfig);
 networkDelegate.setProviderLimiter("bili_test", bili_test);
 networkDelegate.setProviderLimiter("bili_strict", bili_strict);

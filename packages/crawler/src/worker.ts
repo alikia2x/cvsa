@@ -12,7 +12,7 @@ import {
 	snapshotVideoWorker,
 	takeBulkSnapshotForVideosWorker
 } from "mq/exec/executors";
-import { redis } from "@core/db/redis";
+import { redis } from "bun";
 import logger from "@core/log";
 import { lockManager } from "@core/mq/lockManager";
 import { WorkerError } from "mq/schema";

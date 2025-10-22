@@ -1,14 +1,13 @@
-import { Redis } from "ioredis";
-import { redis } from "@core/db/redis";
+import { redis, RedisClient } from "bun";
 
 class LockManager {
-	private redis: Redis;
+	private redis: RedisClient;
 
 	/*
 	 * Create a new LockManager
 	 * @param redisClient The Redis client used to store the lock data
 	 */
-	constructor(redisClient: Redis) {
+	constructor(redisClient: RedisClient) {
 		this.redis = redisClient;
 	}
 
@@ -49,8 +48,7 @@ class LockManager {
 	 */
 	async isLocked(id: string): Promise<boolean> {
 		const key = `cvsa:lock:${id}`;
-		const result = await this.redis.exists(key);
-		return result === 1;
+		return await this.redis.exists(key);
 	}
 }
 

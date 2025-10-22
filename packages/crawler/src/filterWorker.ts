@@ -1,5 +1,5 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { redis } from "@core/db/redis";
+import { redis } from "bun";
 import logger from "@core/log";
 import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo";
 import { WorkerError } from "mq/schema";
