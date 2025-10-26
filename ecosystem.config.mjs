@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 export const apps = [
     {
         name: 'crawler-jobadder',
