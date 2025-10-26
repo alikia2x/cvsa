@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "bunx --bun react-router build",
 		"dev": "bunx --bun react-router dev --port 7399",
-		"start": "bunx --bun react-router-serve ./build/server/index.js --port 7399",
+		"start": "bunx react-router-serve ./build/server/index.js --port 7399",
 		"typecheck": "bunx --bun react-router typegen && tsc"
 	},
 	"dependencies": {
