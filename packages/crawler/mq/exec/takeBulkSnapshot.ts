@@ -47,14 +47,16 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			const shares = stat.share;
 			const favorites = stat.collect;
 			const currentSnapshot = await getLatestSnapshot(sql, aid);
-			const DELTA = 0.0001;
-			const viewsDiff = views - currentSnapshot.views;
-			const hoursDiff = (new Date().getTime() - currentSnapshot.created_at) / HOUR;
-			const speed = viewsDiff / (hoursDiff + DELTA);
-			const target = closetMilestone(views, true);
-			const viewsToIncrease = target - views;
-			const eta = viewsToIncrease / (speed + DELTA);
-			await updateETA(sql, aid, eta, speed, views);
+			if (currentSnapshot) {
+				const DELTA = 0.0001;
+				const viewsDiff = views - currentSnapshot.views;
+				const hoursDiff = (new Date().getTime() - currentSnapshot.created_at) / HOUR;
+				const speed = viewsDiff / (hoursDiff + DELTA);
+				const target = closetMilestone(views, true);
+				const viewsToIncrease = target - views;
+				const eta = viewsToIncrease / (speed + DELTA);
+				await updateETA(sql, aid, eta, speed, views);
+			}
 			await sql`
                 INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
                 VALUES (
@@ -69,7 +71,11 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				)
 			`;
 
-			logger.log(`Taken snapshot for video ${aid} in bulk.`, "net", "fn:takeBulkSnapshotForVideosWorker");
+			logger.log(
+				`Taken snapshot for video ${aid} in bulk.`,
+				"net",
+				"fn:takeBulkSnapshotForVideosWorker"
+			);
 		}
 		await bulkSetSnapshotStatus(sql, ids, "completed");
 
@@ -84,7 +90,11 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		return `DONE`;
 	} catch (e) {
 		if (e instanceof NetSchedulerError && e.code === "NO_PROXY_AVAILABLE") {
-			logger.warn(`No available proxy for bulk request now.`, "mq", "fn:takeBulkSnapshotForVideosWorker");
+			logger.warn(
+				`No available proxy for bulk request now.`,
+				"mq",
+				"fn:takeBulkSnapshotForVideosWorker"
+			);
 			await bulkSetSnapshotStatus(sql, ids, "no_proxy");
 			await bulkScheduleSnapshot(
 				sql,
