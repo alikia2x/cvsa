@@ -1,6 +1,6 @@
 import { Job } from "bullmq";
 import { getUnlabelledVideos, getVideoInfoFromAllData, insertVideoLabel } from "../../db/bilibili_metadata";
-import Akari from "ml/akari";
+import Akari from "ml/akari_api";
 import { ClassifyVideoQueue } from "mq/index";
 import logger from "@core/log";
 import { lockManager } from "@core/mq/lockManager";

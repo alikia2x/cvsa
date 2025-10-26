@@ -1,6 +1,5 @@
 import { RateLimiter as Limiter } from "@koshnic/ratelimit";
-import { redis } from "bun";
-import Redis from "ioredis";
+import { redis } from "@core/db/redis";
 
 export interface RateLimiterConfig {
 	duration: number;
@@ -9,7 +8,6 @@ export interface RateLimiterConfig {
 
 export class RateLimiterError extends Error {
 	public code: string;
-
 	constructor(message: string) {
 		super(message);
 		this.name = "RateLimiterError";
@@ -30,7 +28,7 @@ export class MultipleRateLimiter {
 	 */
 	constructor(name: string, configs: RateLimiterConfig[]) {
 		this.configs = configs;
-		this.limiter = new Limiter(redis as unknown as Redis);
+		this.limiter = new Limiter(redis);
 		this.name = name;
 	}
 

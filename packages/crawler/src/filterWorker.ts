@@ -1,21 +1,18 @@
 import { ConnectionOptions, Job, Worker } from "bullmq";
-import { redis } from "bun";
+import { redis } from "@core/db/redis";
 import logger from "@core/log";
 import { classifyVideosWorker, classifyVideoWorker } from "mq/exec/classifyVideo";
 import { WorkerError } from "mq/schema";
 import { lockManager } from "@core/mq/lockManager";
-import Akari from "ml/akari";
+import Akari from "ml/akari_api";
 
-const shutdown = async (signal: string) => {
+const shutdown = async (signal: string, filterWorker: Worker<any, any, string>) => {
 	logger.log(`${signal} Received: Shutting down workers...`, "mq");
 	await filterWorker.close(true);
 	process.exit(0);
 };
 
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-
-await Akari.init();
+await Akari.init()
 
 const filterWorker = new Worker(
 	"classifyVideo",
@@ -31,6 +28,9 @@ const filterWorker = new Worker(
 	},
 	{ connection: redis as ConnectionOptions, concurrency: 2, removeOnComplete: { count: 1000 } }
 );
+
+process.on("SIGINT", () => shutdown("SIGINT", filterWorker));
+process.on("SIGTERM", () => shutdown("SIGTERM", filterWorker));
 
 filterWorker.on("active", () => {
 	logger.log("Worker (filter) activated.", "mq");

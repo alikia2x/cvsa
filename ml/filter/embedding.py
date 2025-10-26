@@ -84,7 +84,6 @@ def prepare_batch_per_token(batch_data, max_length=1024):
         # Step 4: 将输出重塑为 [batch_size, seq_length, embedding_dim]
         # 注意：这里假设 ONNX 输出的形状是 [total_tokens, embedding_dim]
         # 需要根据实际序列长度重新分组
-        batch_size = len(texts)
         embeddings_split = np.split(embeddings, np.cumsum(input_ids_lengths[:-1]))
         padded_embeddings = []
         for emb, seq_len in zip(embeddings_split, input_ids_lengths):

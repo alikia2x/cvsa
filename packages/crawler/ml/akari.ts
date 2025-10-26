@@ -4,10 +4,14 @@ import logger from "@core/log";
 import { WorkerError } from "mq/schema";
 import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
 import { AkariModelVersion } from "./const";
+import path from "node:path";
+
+const currentDir = import.meta.dir;
+const modelDir = path.join(currentDir, "../../../model/");
 
 const tokenizerModel = "alikia2x/jina-embedding-v3-m2v-1024";
-const onnxClassifierPath = `../../model/akari/${AkariModelVersion}.onnx`;
-const onnxEmbeddingPath = "../../model/embedding/model.onnx";
+const onnxClassifierPath = path.join(modelDir, `./akari/${AkariModelVersion}.onnx`);
+const onnxEmbeddingPath = path.join(modelDir, "./embedding/model.onnx");
 
 class AkariProto extends AIManager {
 	private tokenizer: PreTrainedTokenizer | null = null;
@@ -59,16 +63,24 @@ class AkariProto extends AIManager {
 		});
 
 		const cumsum = (arr: number[]): number[] =>
-			arr.reduce((acc: number[], num: number, i: number) => [...acc, num + (acc[i - 1] || 0)], []);
+			arr.reduce(
+				(acc: number[], num: number, i: number) => [...acc, num + (acc[i - 1] || 0)],
+				[]
+			);
 
-		const offsets: number[] = [0, ...cumsum(input_ids.slice(0, -1).map((x: string) => x.length))];
+		const offsets: number[] = [
+			0,
+			...cumsum(input_ids.slice(0, -1).map((x: string) => x.length))
+		];
 		const flattened_input_ids = input_ids.flat();
 
 		const inputs = {
 			input_ids: new ort.Tensor("int64", new BigInt64Array(flattened_input_ids.map(BigInt)), [
 				flattened_input_ids.length
 			]),
-			offsets: new ort.Tensor("int64", new BigInt64Array(offsets.map(BigInt)), [offsets.length])
+			offsets: new ort.Tensor("int64", new BigInt64Array(offsets.map(BigInt)), [
+				offsets.length
+			])
 		};
 
 		const { embeddings } = await session.run(inputs);
@@ -83,11 +95,19 @@ class AkariProto extends AIManager {
 		return this.softmax(logits.data as Float32Array);
 	}
 
-	public async classifyVideo(title: string, description: string, tags: string, aid?: number): Promise<number> {
+	public async classifyVideo(
+		title: string,
+		description: string,
+		tags: string,
+		aid?: number
+	): Promise<number> {
 		const embeddings = await this.getJinaEmbeddings1024([title, description, tags]);
 		const probabilities = await this.runClassification(embeddings);
 		if (aid) {
-			logger.log(`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`, "ml");
+			logger.log(
+				`Prediction result for aid: ${aid}: [${probabilities.map((p) => p.toFixed(5))}]`,
+				"ml"
+			);
 		}
 		return probabilities.indexOf(Math.max(...probabilities));
 	}

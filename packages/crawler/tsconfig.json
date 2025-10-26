@@ -5,6 +5,7 @@
 		"target": "esnext",
 		"module": "esnext",
 		"useDefineForClassFields": true,
+		"allowImportingTsExtensions": true,
 		"moduleResolution": "node10",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
 		"skipLibCheck": true,
