@@ -369,7 +369,7 @@ const regions = [
 	"zhangjiakou",
 	"chengdu",
 	"shenzhen",
-	"hohhot"
+	"huhehaote"
 ];
 networkDelegate.addProxy("native", "native", "");
 for (const region of regions) {
@@ -389,7 +389,7 @@ networkDelegate.addTask("snapshotVideo", "bili_test", [
 	"alicloud-zhangjiakou",
 	"alicloud-chengdu",
 	"alicloud-shenzhen",
-	"alicloud-hohhot"
+	"alicloud-huhehaote"
 ]);
 networkDelegate.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-qingdao",
@@ -397,7 +397,7 @@ networkDelegate.addTask("bulkSnapshot", "bili_strict", [
 	"alicloud-zhangjiakou",
 	"alicloud-chengdu",
 	"alicloud-shenzhen",
-	"alicloud-hohhot"
+	"alicloud-huhehaote"
 ]);
 networkDelegate.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
 networkDelegate.setTaskLimiter("getLatestVideos", null);
