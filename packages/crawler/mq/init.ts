@@ -1,5 +1,5 @@
 import { HOUR, MINUTE, SECOND } from "@core/lib";
-import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue } from "mq/index";
+import { ClassifyVideoQueue, LatestVideosQueue, MiscQueue, SnapshotQueue } from "mq/index";
 import logger from "@core/log";
 import { initSnapshotWindowCounts } from "db/snapshotSchedule";
 import { redis } from "@core/db/redis";
@@ -68,6 +68,11 @@ export async function initMQ() {
 
 	await SnapshotQueue.upsertJobScheduler("scheduleCleanup", {
 		every: 2 * MINUTE,
+		immediately: true
+	});
+
+	await MiscQueue.upsertJobScheduler("collectQueueMetrics", {
+		every: 10 * SECOND,
 		immediately: true
 	});
 

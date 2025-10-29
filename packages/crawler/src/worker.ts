@@ -16,6 +16,7 @@ import { redis } from "@core/db/redis";
 import logger from "@core/log";
 import { lockManager } from "@core/mq/lockManager";
 import { WorkerError } from "mq/schema";
+import { collectQueueMetrics } from "mq/exec/collectQueueMetrics";
 
 const releaseLockForJob = async (name: string) => {
 	await lockManager.releaseLock(name);
@@ -34,6 +35,7 @@ const shutdown = async (signal: string) => {
 	await releaseAllLocks();
 	await latestVideoWorker.close(true);
 	await snapshotWorker.close(true);
+	await miscWorker.close(true);
 	process.exit(0);
 };
 
@@ -99,6 +101,24 @@ const snapshotWorker = new Worker(
 );
 
 snapshotWorker.on("error", (err) => {
+	const e = err as WorkerError;
+	logger.error(e.rawError, e.service, e.codePath);
+});
+
+const miscWorker = new Worker(
+	"misc",
+	async (job: Job) => {
+		switch (job.name) {
+			case "collectQueueMetrics":
+				return await collectQueueMetrics();
+			default:
+				break;
+		}
+	},
+	{ connection: redis as ConnectionOptions, concurrency: 5, removeOnComplete: { count: 1000 } }
+);
+
+miscWorker.on("error", (err) => {
 	const e = err as WorkerError;
 	logger.error(e.rawError, e.service, e.codePath);
 });

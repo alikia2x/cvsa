@@ -12,3 +12,7 @@ export const ClassifyVideoQueue = new Queue("classifyVideo", {
 export const SnapshotQueue = new Queue("snapshot", {
 	connection: redis as ConnectionOptions
 });
+
+export const MiscQueue = new Queue("misc", {
+	connection: redis as ConnectionOptions
+});
