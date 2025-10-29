@@ -10,6 +10,7 @@ import {
 import logger from "@core/log";
 import { SnapshotQueue } from "mq/index";
 import { sql } from "@core/db/dbNew";
+import { jobCounter, jobDuration } from "metrics";
 
 const priorityMap: { [key: string]: number } = {
 	milestone: 1,
@@ -53,6 +54,7 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 };
 
 export const snapshotTickWorker = async (_job: Job) => {
+	const start = Date.now();
 	try {
 		const schedules = await getSnapshotsInNextSecond(sql);
 		for (const schedule of schedules) {
@@ -78,6 +80,11 @@ export const snapshotTickWorker = async (_job: Job) => {
 		return `OK`;
 	} catch (e) {
 		logger.error(e as Error, "mq", "fn:snapshotTickWorker");
+	} finally {
+		const duration = Date.now() - start;
+
+		jobCounter.add(1, { jobName: "snapshotTick" });
+		jobDuration.record(duration, { jobName: "snapshotTick" });
 	}
 };
 

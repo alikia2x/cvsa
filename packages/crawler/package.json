@@ -18,6 +18,8 @@
 		"@bull-board/api": "^6.9.5",
 		"@bull-board/express": "^6.9.5",
 		"@huggingface/transformers": "^3.5.1",
+		"@opentelemetry/exporter-metrics-otlp-grpc": "^0.207.0",
+		"@opentelemetry/sdk-metrics": "^2.2.0",
 		"bullmq": "^5.52.1",
 		"date-fns": "^4.1.0",
 		"express": "^5.1.0",
