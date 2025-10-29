@@ -7,7 +7,7 @@ const exporter = new OTLPMetricExporter({
 
 const metricReader = new PeriodicExportingMetricReader({
 	exporter: exporter,
-	exportIntervalMillis: 60000
+	exportIntervalMillis: 5000
 });
 
 const meterProvider = new MeterProvider({
@@ -16,11 +16,11 @@ const meterProvider = new MeterProvider({
 
 const meter = meterProvider.getMeter("bullmq-worker");
 
-export const jobCounter = meter.createCounter("bullmq_job_executed_total", {
+export const jobCounter = meter.createCounter("job_count", {
 	description: "Number of executed BullMQ jobs"
 });
 
-export const jobDuration = meter.createHistogram("bullmq_job_duration_ms", {
+export const jobDuration = meter.createHistogram("job_duration", {
 	description: "Execution duration of BullMQ jobs in milliseconds",
 	unit: "ms"
 });
