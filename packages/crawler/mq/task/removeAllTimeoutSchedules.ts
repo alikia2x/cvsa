@@ -11,7 +11,7 @@ export async function removeAllTimeoutSchedules() {
 		WITH deleted AS (
 			DELETE FROM snapshot_schedule
 			WHERE status IN ('pending', 'processing')
-			AND started_at < NOW() - INTERVAL '30 minutes'
+			AND started_at < NOW() - INTERVAL '2 minute'
 			RETURNING *
 		) 
 		SELECT count(*) FROM deleted;

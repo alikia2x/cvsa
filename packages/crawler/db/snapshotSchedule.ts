@@ -276,13 +276,9 @@ export async function getSnapshotsInNextSecond(sql: Psql) {
         SELECT *
         FROM snapshot_schedule
         WHERE started_at <= NOW() + INTERVAL '1 seconds'
+		  AND started_at >= NOW() - INTERVAL '1 minutes'
           AND status = 'pending'
           AND type != 'normal'
-        ORDER BY CASE
-                     WHEN type = 'milestone' THEN 0
-                     ELSE 1
-                     END,
-                 started_at
         LIMIT 10;
 	`;
 }
@@ -292,6 +288,7 @@ export async function getBulkSnapshotsInNextSecond(sql: Psql) {
         SELECT *
         FROM snapshot_schedule
         WHERE (started_at <= NOW() + INTERVAL '15 seconds')
+		  AND started_at >= NOW() - INTERVAL '2 minutes'
           AND status = 'pending'
           AND (type = 'normal' OR type = 'archive')
         ORDER BY CASE
