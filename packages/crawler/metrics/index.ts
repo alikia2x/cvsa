@@ -20,6 +20,10 @@ export const jobCounter = meter.createCounter("job_count", {
 	description: "Number of executed BullMQ jobs"
 });
 
+export const queueJobsCounter = meter.createGauge("queue_jobs_count", {
+	description: "Number of jobs in specific BullMQ queue"
+});
+
 export const jobDuration = meter.createHistogram("job_duration", {
 	description: "Execution duration of BullMQ jobs in milliseconds",
 	unit: "ms"
