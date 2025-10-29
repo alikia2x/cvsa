@@ -310,33 +310,27 @@ const videoInfoRateLimiterConfig: RateLimiterConfig[] = [
 const biliLimiterConfig: RateLimiterConfig[] = [
 	{
 		duration: 1,
-		max: 6
-	},
-	{
-		duration: 5,
 		max: 20
 	},
 	{
-		duration: 30,
-		max: 100
+		duration: 15,
+		max: 130
 	},
 	{
 		duration: 5 * 60,
-		max: 500
+		max: 2000
 	}
 ];
 
-const bili_test = [...biliLimiterConfig];
-bili_test[0].max = 10;
-bili_test[1].max = 36;
-bili_test[2].max = 150;
-bili_test[3].max = 1000;
+const bili_normal = [...biliLimiterConfig];
+bili_normal[0].max = 5;
+bili_normal[1].max = 40;
+bili_normal[2].max = 200;
 
 const bili_strict = [...biliLimiterConfig];
 bili_strict[0].max = 1;
-bili_strict[1].max = 4;
-bili_strict[2].max = 12;
-bili_strict[3].max = 100;
+bili_strict[1].max = 6;
+bili_strict[2].max = 100;
 
 /*
 Execution order for setup:
@@ -362,52 +356,35 @@ but both should come after addProxy and addTask to ensure proper setup and depen
 */
 
 const regions = [
-	"shanghai",
-	"hangzhou",
-	"qingdao",
 	"beijing",
+	"hangzhou",
+	"shanghai",
+	"qingdao",
 	"zhangjiakou",
 	"chengdu",
 	"shenzhen",
 	"huhehaote"
 ];
+const fcProxies = regions.map((region) => `alicloud-${region}`);
+const fcProxiesL = regions.slice(2).map((region) => `alicloud-${region}`);
 networkDelegate.addProxy("native", "native", "");
 for (const region of regions) {
 	networkDelegate.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
+
 networkDelegate.addTask("test", "test", "all");
 networkDelegate.addTask("getVideoInfo", "bilibili", "all");
 networkDelegate.addTask("getLatestVideos", "bilibili", "all");
-networkDelegate.addTask(
-	"snapshotMilestoneVideo",
-	"bilibili",
-	regions.map((region) => `alicloud-${region}`)
-);
-networkDelegate.addTask("snapshotVideo", "bili_test", [
-	"alicloud-qingdao",
-	"alicloud-shanghai",
-	"alicloud-zhangjiakou",
-	"alicloud-chengdu",
-	"alicloud-shenzhen",
-	"alicloud-huhehaote"
-]);
-networkDelegate.addTask("bulkSnapshot", "bili_strict", [
-	"alicloud-qingdao",
-	"alicloud-shanghai",
-	"alicloud-zhangjiakou",
-	"alicloud-chengdu",
-	"alicloud-shenzhen",
-	"alicloud-huhehaote"
-]);
+networkDelegate.addTask("snapshotMilestoneVideo", "bilibili", fcProxies);
+networkDelegate.addTask("snapshotVideo", "bilibili", fcProxiesL);
+networkDelegate.addTask("bulkSnapshot", "bilibili", fcProxiesL);
+
 networkDelegate.setTaskLimiter("getVideoInfo", videoInfoRateLimiterConfig);
-networkDelegate.setTaskLimiter("getLatestVideos", null);
-networkDelegate.setTaskLimiter("snapshotMilestoneVideo", null);
-networkDelegate.setTaskLimiter("snapshotVideo", null);
-networkDelegate.setTaskLimiter("bulkSnapshot", null);
-networkDelegate.setTaskLimiter("test", null);
+networkDelegate.setTaskLimiter("bulkSnapshot", bili_strict);
+networkDelegate.setTaskLimiter("getLatestVideos", bili_strict);
+networkDelegate.setTaskLimiter("getVideoInfo", bili_strict);
+networkDelegate.setTaskLimiter("snapshotVideo", bili_normal);
 networkDelegate.setProviderLimiter("test", []);
 networkDelegate.setProviderLimiter("bilibili", biliLimiterConfig);
-networkDelegate.setProviderLimiter("bili_test", bili_test);
-networkDelegate.setProviderLimiter("bili_strict", bili_strict);
 
 export default networkDelegate;

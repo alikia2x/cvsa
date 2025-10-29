@@ -24,7 +24,7 @@ export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis)
 		(EXTRACT(minute FROM started_at)::int / 5 * INTERVAL '5 minutes') AS window_start,
 		COUNT(*) AS count
 		FROM snapshot_schedule
-		WHERE started_at >= NOW() AND status = 'pending' AND started_at <= NOW() + INTERVAL '10 days'
+		WHERE started_at >= NOW() AND status = 'pending' AND started_at <= NOW() + INTERVAL '14 days'
 		GROUP BY 1
 		ORDER BY window_start
   	`;
@@ -209,7 +209,7 @@ export async function scheduleSnapshot(
 	}
 	if (hasActiveSchedule && !force) return;
 	if (type !== "milestone" && type !== "new" && adjustTime) {
-		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 2000, redis);
+		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 3000, redis);
 	}
 	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
 	return sql`
@@ -246,7 +246,7 @@ export async function adjustSnapshotTime(
 
 	const initialOffset = currentWindow + Math.max(targetOffset, 0);
 
-	const MAX_ITERATIONS = 2880;
+	const MAX_ITERATIONS = 4032; // 10 days
 	for (let i = initialOffset; i < MAX_ITERATIONS; i++) {
 		const offset = i;
 		const count = await getWindowCount(redisClient, offset);
