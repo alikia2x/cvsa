@@ -72,7 +72,7 @@ export async function initMQ() {
 	});
 
 	await MiscQueue.upsertJobScheduler("collectQueueMetrics", {
-		every: 10 * SECOND,
+		every: 3 * SECOND,
 		immediately: true
 	});
 
