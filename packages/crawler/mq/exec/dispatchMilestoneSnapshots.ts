@@ -6,7 +6,7 @@ import { scheduleSnapshot } from "db/snapshotSchedule";
 import logger from "@core/log";
 import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { sql } from "@core/db/dbNew";
-import { jobCounter, jobDuration, jobDurationRaw } from "metrics";
+import { jobCounter, jobDurationRaw } from "metrics";
 
 export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
 	const start = Date.now();

@@ -27,8 +27,3 @@ export const queueJobsCounter = meter.createGauge("queue_jobs_count", {
 export const jobDurationRaw = meter.createGauge("job_duration_raw", {
 	description: "Execution duration of BullMQ jobs in milliseconds"
 });
-
-export const jobDuration = meter.createHistogram("job_duration", {
-	description: "Execution duration of BullMQ jobs in milliseconds",
-	unit: "ms"
-});
