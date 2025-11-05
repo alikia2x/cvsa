@@ -4,7 +4,8 @@
 	"version": "0.0.10",
 	"scripts": {
 		"test": "bun --env-file=.env.test run vitest",
-		"build": "bun build ./index.ts --target node --outdir ./dist"
+		"build": "bun build ./index.ts --target node --outdir ./dist",
+		"drizzle:pull": "drizzle-kit pull"
 	},
 	"dependencies": {
 		"@alicloud/credentials": "^2.4.4",

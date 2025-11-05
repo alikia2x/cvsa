@@ -1,12 +1,15 @@
-import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, bigserial, real, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, bigserial, real, pgSchema, inet, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
+export const credentials = pgSchema("credentials");
+export const userRoleInCredentials = credentials.enum("user_role", ['ADMIN', 'USER', 'OWNER'])
 
 export const allDataIdSeq = pgSequence("all_data_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const labelingResultIdSeq = pgSequence("labeling_result_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const songsIdSeq = pgSequence("songs_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const videoSnapshotIdSeq = pgSequence("video_snapshot_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
+export const usersIdSeqInCredentials = credentials.sequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 
 export const relations = pgTable("relations", {
 	id: serial().primaryKey().notNull(),
@@ -140,17 +143,17 @@ export const videoSnapshot = pgTable("video_snapshot", {
 	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	views: integer().notNull(),
-	coins: integer().notNull(),
-	likes: integer().notNull(),
-	favorites: integer().notNull(),
-	shares: integer().notNull(),
-	danmakus: integer().notNull(),
+	coins: integer(),
+	likes: integer(),
+	favorites: integer(),
+	shares: integer(),
+	danmakus: integer(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	aid: bigint({ mode: "number" }).notNull(),
-	replies: integer().notNull(),
+	replies: integer(),
 }, (table) => [
 	index("idx_vid_snapshot_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("int8_ops")),
+	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_vid_snapshot_time").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_vid_snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("video_snapshot_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
@@ -198,4 +201,33 @@ export const eta = pgTable("eta", {
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	index("idx_eta_eta").using("btree", table.eta.asc().nullsLast().op("float4_ops")),
+]);
+
+export const loginSessionsInCredentials = credentials.table("login_sessions", {
+	id: text().notNull(),
+	uid: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	expireAt: timestamp("expire_at", { withTimezone: true, mode: 'string' }),
+	lastUsedAt: timestamp("last_used_at", { withTimezone: true, mode: 'string' }),
+	ipAddress: inet("ip_address"),
+	userAgent: text("user_agent"),
+	deactivatedAt: timestamp("deactivated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("inx_login-sessions_uid").using("btree", table.uid.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("login_sessions_pkey").using("btree", table.id.asc().nullsLast().op("text_ops")),
+]);
+
+export const usersInCredentials = credentials.table("users", {
+	id: integer().default(sql`nextval('credentials.users_id_seq'::regclass)`).notNull(),
+	nickname: text(),
+	username: text().notNull(),
+	password: text().notNull(),
+	unqId: text("unq_id").notNull(),
+	role: userRoleInCredentials().default('USER').notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	uniqueIndex("users_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("users_pkey1").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("users_unq_id_key").using("btree", table.unqId.asc().nullsLast().op("text_ops")),
+	uniqueIndex("users_username_key").using("btree", table.username.asc().nullsLast().op("text_ops")),
 ]);
