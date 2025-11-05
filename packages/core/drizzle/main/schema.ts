@@ -181,8 +181,10 @@ export const snapshotSchedule = pgTable("snapshot_schedule", {
 	status: text().default('pending').notNull(),
 }, (table) => [
 	index("idx_snapshot_schedule_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	index("idx_snapshot_schedule_started-at_status_type").using("btree", table.startedAt.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("timestamptz_ops"), table.type.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_snapshot_schedule_started_at").using("btree", table.startedAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_snapshot_schedule_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
+	index("idx_snapshot_schedule_status_type_aid").using("btree", table.status.asc().nullsLast().op("int8_ops"), table.type.asc().nullsLast().op("int8_ops"), table.aid.asc().nullsLast().op("text_ops")),
 	index("idx_snapshot_schedule_type").using("btree", table.type.asc().nullsLast().op("text_ops")),
 	uniqueIndex("snapshot_schedule_pkey").using("btree", table.id.asc().nullsLast().op("int8_ops")),
 ]);
