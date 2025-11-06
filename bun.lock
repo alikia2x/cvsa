@@ -84,12 +84,14 @@
       "name": "elysia-api",
       "version": "0.7.0",
       "dependencies": {
+        "@alikia/random-key": "^1.1.1",
         "@elysiajs/cors": "^1.4.0",
         "@elysiajs/openapi": "^1.4.0",
         "@elysiajs/server-timing": "^1.4.0",
         "@rabbit-company/argon2id": "^2.1.0",
         "chalk": "^5.6.2",
         "elysia": "^1.4.0",
+        "elysia-ip": "^1.0.10",
         "zod": "^4.1.11",
       },
       "devDependencies": {
@@ -265,6 +267,8 @@
     "@alicloud/tea-xml": ["@alicloud/tea-xml@0.0.3", "", { "dependencies": { "@alicloud/tea-typescript": "^1", "@types/xml2js": "^0.4.5", "xml2js": "^0.6.0" } }, "sha512-+/9GliugjrLglsXVrd1D80EqqKgGpyA0eQ6+1ZdUOYCaRguaSwz44trX3PaxPu/HhIPJg9PsGQQ3cSLXWZjbAA=="],
 
     "@alikia/dark-theme-hook": ["@alikia/dark-theme-hook@1.0.2", "", { "dependencies": { "react": "^18.3.1" } }, "sha512-OloatZRefHB7Ey3zjhfsKFZoHbfzewPfOeEwA7q9zDXViNKGyTA4CiCF3US5vzqfhpR16wpYcPSmpVabKI3MYg=="],
+
+    "@alikia/random-key": ["@alikia/random-key@1.1.1", "", { "peerDependencies": { "typescript": "^5.0.0" } }, "sha512-B1u15FRJoLBfx+n32YvnvMzxjK5QARJAzqkNbyI+Ve16jxL+SX8Q+hU4J/uEhCYxqdzs/eBKCTf6L5ThGFjxWw=="],
 
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
@@ -1515,6 +1519,8 @@
     "elysia": ["elysia@1.4.7", "", { "dependencies": { "cookie": "^1.0.2", "exact-mirror": "0.2.2", "fast-decode-uri-component": "^1.0.1" }, "optionalDependencies": { "@sinclair/typebox": ">= 0.34.0 < 1", "openapi-types": ">= 12.0.0" }, "peerDependencies": { "file-type": ">= 20.0.0", "typescript": ">= 5.0.0" } }, "sha512-6dZjPO5wBBilZPzqZpuMq/bMiHn7jQ94sweiPTTR9MsofliZJcwcRB0XHAr7AvKblOlU72P+Cu8z6JNhZK8u/A=="],
 
     "elysia-api": ["elysia-api@workspace:packages/elysia"],
+
+    "elysia-ip": ["elysia-ip@1.0.10", "", { "peerDependencies": { "elysia": ">= 1.0.9" } }, "sha512-xmCxPOl4266sq6CLk5d82P3BZOatG9z0gMP473cYEnORssuopbEI8GAwpOhiaz69X76AOrkYgvCdLkqMJC49dQ=="],
 
     "emoji-regex": ["emoji-regex@8.0.0", "", {}, "sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A=="],
 

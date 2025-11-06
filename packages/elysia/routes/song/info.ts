@@ -66,13 +66,13 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 			const songID = await getSongID(id);
 			if (!songID) {
 				return status(404, {
-					message: "song not found"
+					message: "Given song cannot be found."
 				});
 			}
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
-					message: "song not found"
+					message: "Given song cannot be found."
 				});
 			}
 			const singers = await getSingers(info.id);
@@ -117,13 +117,13 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 			const songID = await getSongID(id);
 			if (!songID) {
 				return status(404, {
-					message: "song not found"
+					message: "Given song cannot be found."
 				});
 			}
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
-					message: "song not found"
+					message: "Given song cannot be found."
 				});
 			}
 			if (body.name) {
@@ -133,16 +133,23 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 				await dbMain
 					.update(songs)
 					.set({ producer: body.producer })
-					.where(eq(songs.id, songID));
+					.where(eq(songs.id, songID))
+					.returning();
 			}
+			const updatedData = await dbMain
+				.select()
+				.from(songs)
+				.where(eq(songs.id, songID));
 			return {
-				message: "success"
+				message: "Successfully updated song info.",
+				updated: updatedData.length > 0 ? updatedData[0] : null
 			};
 		},
 		{
 			response: {
 				200: t.Object({
-					message: t.String()
+					message: t.String(),
+					updated: t.Any()
 				}),
 				404: t.Object({
 					message: t.String()

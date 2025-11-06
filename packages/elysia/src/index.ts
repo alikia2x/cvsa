@@ -7,6 +7,7 @@ import { songInfoHandler } from "@elysia/routes/song/info";
 import { rootHandler } from "@elysia/routes/root";
 import { getVideoMetadataHandler } from "@elysia/routes/video/metadata";
 import { closeMileStoneHandler } from "@elysia/routes/song/milestone";
+import { authHandler } from "@elysia/routes/auth/session";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -63,6 +64,7 @@ const app = new Elysia({
 	.use(openapi())
 	.use(rootHandler)
 	.use(pingHandler)
+	.use(authHandler)
 	.use(getVideoMetadataHandler)
 	.use(songInfoHandler)
 	.use(closeMileStoneHandler)
