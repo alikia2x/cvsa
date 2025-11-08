@@ -20,6 +20,15 @@ const app = new Elysia({
 		hostname: host
 	}
 })
+	.onError(({ code, status }) => {
+		if (code === "NOT_FOUND")
+			return status(404, {
+				message: "The requested resource was not found."
+			});
+		return status(500, {
+			message: "An internal server error occurred."
+		});
+	})
 	.use(onAfterHandler)
 	.use(cors())
 	.use(openapi())

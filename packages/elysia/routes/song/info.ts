@@ -3,7 +3,7 @@ import { dbMain } from "@core/drizzle";
 import { relations, singer, songs } from "@core/drizzle/main/schema";
 import { eq, and } from "drizzle-orm";
 import { bv2av } from "@elysia/lib/av_bv";
-import captchaMiddleware from "@elysia/middlewares/captcha";
+import { requireAuth } from "@elysia/middlewares/auth";
 
 async function getSongIDFromBiliID(id: string) {
 	let aid: number;
@@ -113,56 +113,62 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 	}
 );
 
-const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(captchaMiddleware).patch(
-	"/:id/info",
-	async ({ params, status, body }) => {
-		const id = params.id;
-		const songID = await getSongID(id);
-		if (!songID) {
-			return status(404, {
-				code: "SONG_NOT_FOUND",
-				message: "Given song cannot be found."
-			});
-		}
-		const info = await getSongInfo(songID);
-		if (!info) {
-			return status(404, {
-				code: "SONG_NOT_FOUND",
-				message: "Given song cannot be found."
-			});
-		}
-		if (body.name) {
-			await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
-		}
-		if (body.producer) {
-			await dbMain
-				.update(songs)
-				.set({ producer: body.producer })
-				.where(eq(songs.id, songID))
-				.returning();
-		}
-		const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
-		return {
-			message: "Successfully updated song info.",
-			updated: updatedData.length > 0 ? updatedData[0] : null
-		};
-	},
-	{
-		response: {
-			200: t.Object({
-				message: t.String(),
-				updated: t.Any()
-			}),
-			404: t.Object({
-				message: t.String(),
-				code: t.String()
-			})
+const songInfoUpdateHandler = new Elysia({ prefix: "/song" })
+	.use(requireAuth)
+	.patch(
+		"/:id/info",
+		async ({ params, status, body, user }) => {
+			const id = params.id;
+			const songID = await getSongID(id);
+			if (!songID) {
+				return status(404, {
+					code: "SONG_NOT_FOUND",
+					message: "Given song cannot be found."
+				});
+			}
+			const info = await getSongInfo(songID);
+			if (!info) {
+				return status(404, {
+					code: "SONG_NOT_FOUND",
+					message: "Given song cannot be found."
+				});
+			}
+
+			if (body.name) {
+				await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
+			}
+			if (body.producer) {
+				await dbMain
+					.update(songs)
+					.set({ producer: body.producer })
+					.where(eq(songs.id, songID))
+					.returning();
+			}
+			const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
+			return {
+				message: "Successfully updated song info.",
+				updated: updatedData.length > 0 ? updatedData[0] : null
+			};
 		},
-		body: t.Object({
-			name: t.Optional(t.String()),
-			producer: t.Optional(t.String())
-		})
-	}
-);
+		{
+			response: {
+				200: t.Object({
+					message: t.String(),
+					updated: t.Any()
+				}),
+				401: t.Object({
+					message: t.String()
+				}),
+				404: t.Object({
+					message: t.String(),
+					code: t.String()
+				})
+			},
+			body: t.Object({
+				name: t.Optional(t.String()),
+				producer: t.Optional(t.String())
+			})
+		}
+	);
 
 export const songInfoHandler = new Elysia().use(songInfoGetHandler).use(songInfoUpdateHandler);
