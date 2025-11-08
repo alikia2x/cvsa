@@ -1,8 +1,8 @@
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
-
 import type { Route } from "./+types/root";
 import "./app.css";
+import { Error as ErrPage } from "./components/Error";
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -42,27 +42,22 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-	let message = "Oops!";
-	let details = "An unexpected error occurred.";
+	let status = 0;
+	let details = "出错了！";
 	let stack: string | undefined;
 
 	if (isRouteErrorResponse(error)) {
-		message = error.status === 404 ? "404" : "Error";
-		details = error.status === 404 ? "The requested page could not be found." : error.statusText || details;
+		status = error.status
+		details = error.status === 404 ? "找不到页面" : error.statusText || details;
 	} else if (import.meta.env.DEV && error && error instanceof Error) {
 		details = error.message;
 		stack = error.stack;
 	}
 
 	return (
-		<main className="pt-16 p-4 container mx-auto">
-			<h1>{message}</h1>
-			<p>{details}</p>
-			{stack && (
-				<pre className="w-full p-4 overflow-x-auto">
-					<code>{stack}</code>
-				</pre>
-			)}
-		</main>
+		<ErrPage error={{
+			status: status || 500,
+			value: { message: details },
+		}} />
 	);
 }

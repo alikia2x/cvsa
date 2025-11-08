@@ -1,7 +1,9 @@
 import type { SearchResult } from "@/routes/search";
+import { z } from "zod";
 
 interface SearchResultsProps {
 	results: SearchResult;
+	query: string;
 }
 
 const formatDateTime = (date: Date): string => {
@@ -15,11 +17,26 @@ const formatDateTime = (date: Date): string => {
 	return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 };
 
-export function SearchResults({ results }: SearchResultsProps) {
+const biliIDSchema = z.union([z.string().regex(/BV1[0-9A-Za-z]{9}/), z.string().regex(/av[0-9]+/)]);
+
+export function SearchResults({ results, query }: SearchResultsProps) {
 	if (!results || results.length === 0) {
+		if (!biliIDSchema.safeParse(query).success) {
+			return (
+				<div className="text-center pt-6">
+					<p className="text-secondary-foreground">没有找到相关结果</p>
+				</div>
+			);
+		}
 		return (
-			<div className="text-center py-12">
-				<p className="text-gray-500 dark:text-gray-400">没有找到相关结果</p>
+			<div className="text-center pt-6">
+				<p className="text-secondary-foreground">
+					没有找到相关结果。 尝试
+					<a href={`/song/${query}/add`} className="text-primary-foreground">
+						收录
+					</a>
+					?
+				</p>
 			</div>
 		);
 	}

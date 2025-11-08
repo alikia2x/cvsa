@@ -9,6 +9,7 @@
 	"dependencies": {
 		"@alikia/random-key": "^1.1.1",
 		"@elysiajs/cors": "^1.4.0",
+		"@elysiajs/jwt": "^1.4.0",
 		"@elysiajs/openapi": "^1.4.0",
 		"@elysiajs/server-timing": "^1.4.0",
 		"@rabbit-company/argon2id": "^2.1.0",

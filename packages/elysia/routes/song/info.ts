@@ -3,6 +3,7 @@ import { dbMain } from "@core/drizzle";
 import { relations, singer, songs } from "@core/drizzle/main/schema";
 import { eq, and } from "drizzle-orm";
 import { bv2av } from "@elysia/lib/av_bv";
+import captchaMiddleware from "@elysia/middlewares/captcha";
 
 async function getSongIDFromBiliID(id: string) {
 	let aid: number;
@@ -58,111 +59,110 @@ async function getSingers(id: number) {
 	return singers.map((singer) => singer.singers);
 }
 
-export const songInfoHandler = new Elysia({ prefix: "/song" })
-	.get(
-		"/:id/info",
-		async ({ params, status }) => {
-			const id = params.id;
-			const songID = await getSongID(id);
-			if (!songID) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-			const info = await getSongInfo(songID);
-			if (!info) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-			const singers = await getSingers(info.id);
-			return {
-				name: info.name,
-				aid: info.aid,
-				producer: info.producer,
-				duration: info.duration,
-				singers: singers,
-				cover: info.image || undefined
-			};
+const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
+	"/:id/info",
+	async ({ params, status }) => {
+		const id = params.id;
+		const songID = await getSongID(id);
+		if (!songID) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
+		const info = await getSongInfo(songID);
+		if (!info) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
+		const singers = await getSingers(info.id);
+		return {
+			name: info.name,
+			aid: info.aid,
+			producer: info.producer,
+			duration: info.duration,
+			singers: singers,
+			cover: info.image || undefined
+		};
+	},
+	{
+		response: {
+			200: t.Object({
+				name: t.Union([t.String(), t.Null()]),
+				aid: t.Union([t.Number(), t.Null()]),
+				producer: t.Union([t.String(), t.Null()]),
+				duration: t.Union([t.Number(), t.Null()]),
+				singers: t.Array(t.String()),
+				cover: t.Optional(t.String())
+			}),
+			404: t.Object({
+				message: t.String()
+			})
 		},
-		{
-			response: {
-				200: t.Object({
-					name: t.Union([t.String(), t.Null()]),
-					aid: t.Union([t.Number(), t.Null()]),
-					producer: t.Union([t.String(), t.Null()]),
-					duration: t.Union([t.Number(), t.Null()]),
-					singers: t.Array(t.String()),
-					cover: t.Optional(t.String())
-				}),
-				404: t.Object({
-					message: t.String()
-				})
-			},
-			detail: {
-				summary: "Get information of a song",
-				description:
-					"This endpoint retrieves detailed information about a song using its unique ID, \
+		detail: {
+			summary: "Get information of a song",
+			description:
+				"This endpoint retrieves detailed information about a song using its unique ID, \
 			which can be provided in several formats. \
 			The endpoint accepts a song ID in either a numerical format as the internal ID in our database\
 			 or as a bilibili video ID (either av or BV format). \
 			 It responds with the song's name, bilibili ID (av), producer, duration, and associated singers."
-			}
 		}
-	)
-	.patch(
-		"/:id/info",
-		async ({ params, status, body }) => {
-			const id = params.id;
-			const songID = await getSongID(id);
-			if (!songID) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-			const info = await getSongInfo(songID);
-			if (!info) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-			if (body.name) {
-				await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
-			}
-			if (body.producer) {
-				await dbMain
-					.update(songs)
-					.set({ producer: body.producer })
-					.where(eq(songs.id, songID))
-					.returning();
-			}
-			const updatedData = await dbMain
-				.select()
-				.from(songs)
-				.where(eq(songs.id, songID));
-			return {
-				message: "Successfully updated song info.",
-				updated: updatedData.length > 0 ? updatedData[0] : null
-			};
-		},
-		{
-			response: {
-				200: t.Object({
-					message: t.String(),
-					updated: t.Any()
-				}),
-				404: t.Object({
-					message: t.String(),
-					code: t.String()
-				})
-			},
-			body: t.Object({
-				name: t.Optional(t.String()),
-				producer: t.Optional(t.String())
+	}
+);
+
+const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(captchaMiddleware).patch(
+	"/:id/info",
+	async ({ params, status, body }) => {
+		const id = params.id;
+		const songID = await getSongID(id);
+		if (!songID) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
+		const info = await getSongInfo(songID);
+		if (!info) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
+		if (body.name) {
+			await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
+		}
+		if (body.producer) {
+			await dbMain
+				.update(songs)
+				.set({ producer: body.producer })
+				.where(eq(songs.id, songID))
+				.returning();
+		}
+		const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
+		return {
+			message: "Successfully updated song info.",
+			updated: updatedData.length > 0 ? updatedData[0] : null
+		};
+	},
+	{
+		response: {
+			200: t.Object({
+				message: t.String(),
+				updated: t.Any()
+			}),
+			404: t.Object({
+				message: t.String(),
+				code: t.String()
 			})
-		}
-	);
+		},
+		body: t.Object({
+			name: t.Optional(t.String()),
+			producer: t.Optional(t.String())
+		})
+	}
+);
+
+export const songInfoHandler = new Elysia().use(songInfoGetHandler).use(songInfoUpdateHandler);

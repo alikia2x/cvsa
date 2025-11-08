@@ -7,7 +7,7 @@ import { useSearchParams } from "react-router";
 import { SearchBox } from "@/components/Search";
 import { SearchResults } from "@/components/SearchResults";
 import { Title } from "@/components/Title";
-import { Layout, LayoutWithouSearch } from "@/components/Layout";
+import { LayoutWithouSearch } from "@/components/Layout";
 
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
@@ -81,7 +81,7 @@ export default function SearchResult() {
 		<LayoutWithouSearch>
 			<Title title={searchParams.get("q") || ""} />
 			<Search query={query} setQuery={setQuery} onSearch={handleSearch} className="mb-6" />
-			<SearchResults results={data} />
+			<SearchResults results={data} query={query} />
 		</LayoutWithouSearch>
 	);
 }
