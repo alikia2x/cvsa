@@ -24,12 +24,16 @@ export interface SnapshotNumber {
  * - The native `fetch` function threw an error: with error code `FETCH_ERROR`
  * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
  */
-export async function insertVideoSnapshot(sql: Psql, aid: number, task: string): Promise<number | SnapshotNumber> {
-	const data = await getVideoInfo(aid, task);
-	if (typeof data == "number") {
-		return data;
+export async function insertVideoSnapshot(
+	sql: Psql,
+	aid: number,
+	task: string
+): Promise<number | SnapshotNumber> {
+	const r = await getVideoInfo(aid, task);
+	if (typeof r == "number") {
+		return r;
 	}
-	const time = new Date().getTime();
+	const { data, time } = r;
 	const views = data.stat.view;
 	const danmakus = data.stat.danmaku;
 	const replies = data.stat.reply;
@@ -39,8 +43,8 @@ export async function insertVideoSnapshot(sql: Psql, aid: number, task: string):
 	const favorites = data.stat.favorite;
 
 	await sql`
-        INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
-        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites})
+        INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites, created_at)
+        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites}, ${new Date(time).toUTCString()})
     `;
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");

@@ -11,17 +11,29 @@ import logger from "@core/log";
  * - The native `fetch` function threw an error: with error code `FETCH_ERROR`
  * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
  */
-export async function bulkGetVideoStats(aids: number[]): Promise<MediaListInfoData | number> {
+export async function bulkGetVideoStats(aids: number[]): Promise<
+	| {
+			data: MediaListInfoData;
+			time: number;
+	  }
+	| number
+> {
 	// TODO: https://api.bilibili.com/x/v3/fav/resource/infos?resources=20:2
 	let url = `https://api.bilibili.com/medialist/gateway/base/resource/infos?resources=`;
 	for (const aid of aids) {
 		url += `${aid}:2,`;
 	}
-	const data = await networkDelegate.request<MediaListInfoResponse>(url, "bulkSnapshot");
+	const { data, time } = await networkDelegate.request<MediaListInfoResponse>(
+		url,
+		"bulkSnapshot"
+	);
 	const errMessage = `Error fetching metadata for aid list: ${aids.join(",")}:`;
 	if (data.code !== 0) {
 		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");
 		return data.code;
 	}
-	return data.data;
+	return {
+		data: data.data,
+		time: time
+	};
 }

@@ -30,12 +30,13 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			}
 			aidsToFetch.push(aid);
 		}
-		const data = await bulkGetVideoStats(aidsToFetch);
-		if (typeof data === "number") {
+		const r = await bulkGetVideoStats(aidsToFetch);
+		if (typeof r === "number") {
 			await bulkSetSnapshotStatus(sql, ids, "failed");
 			await bulkScheduleSnapshot(sql, aidsToFetch, "normal", Date.now() + 15 * SECOND);
-			return `GET_BILI_STATUS_${data}`;
+			return `GET_BILI_STATUS_${r}`;
 		}
+		const { data, time } = r;
 		for (const video of data) {
 			const aid = video.id;
 			const stat = video.cnt_info;
@@ -58,7 +59,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				await updateETA(sql, aid, eta, speed, views);
 			}
 			await sql`
-                INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites)
+                INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites, created_at)
                 VALUES (
 					${aid},
 					${views},
@@ -67,7 +68,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 					${likes},
 					${coins},
 					${shares},
-					${favorites}
+					${favorites},
+					${new Date(time).toUTCString()}
 				)
 			`;
 

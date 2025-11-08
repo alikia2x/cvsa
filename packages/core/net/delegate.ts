@@ -16,6 +16,7 @@ import { Readable } from "stream";
 interface FCResponse {
 	statusCode: number;
 	body: string;
+	serverTime: number;
 }
 
 interface Proxy {
@@ -167,7 +168,10 @@ class NetworkDelegate {
 	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
 	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
-	async request<R>(url: string, task: string): Promise<R> {
+	async request<R>(url: string, task: string): Promise<{
+		data: R;
+		time: number;
+	}> {
 		// find a available proxy
 		const proxiesNames = this.getTaskProxies(task);
 		for (const proxyName of shuffleArray(proxiesNames)) {
@@ -203,7 +207,10 @@ class NetworkDelegate {
 		proxyName: string,
 		task: string,
 		force: boolean = false
-	): Promise<R> {
+	): Promise<{
+		data: R;
+		time: number;
+	}> {
 		const proxy = this.proxies[proxyName];
 		if (!proxy) {
 			throw new NetSchedulerError(`Proxy "${proxyName}" not found`, "PROXY_NOT_FOUND");
@@ -214,7 +221,10 @@ class NetworkDelegate {
 		return result;
 	}
 
-	private async makeRequest<R>(url: string, proxy: Proxy): Promise<R> {
+	private async makeRequest<R>(url: string, proxy: Proxy): Promise<{
+		data: R;
+		time: number;
+	}> {
 		switch (proxy.type) {
 			case "native":
 				return await this.nativeRequest<R>(url);
@@ -228,7 +238,10 @@ class NetworkDelegate {
 		}
 	}
 
-	private async nativeRequest<R>(url: string): Promise<R> {
+	private async nativeRequest<R>(url: string): Promise<{
+		data: R;
+		time: number;
+	}> {
 		try {
 			const controller = new AbortController();
 			const timeout = setTimeout(() => controller.abort(), 10 * SECOND);
@@ -239,13 +252,26 @@ class NetworkDelegate {
 
 			clearTimeout(timeout);
 
-			return (await response.json()) as R;
+			const start = Date.now();
+			const data = await response.json();
+			const end = Date.now();
+			const serverTime = start + (end - start) / 2;
+			return {
+				data: data as R,
+				time: serverTime
+			};
 		} catch (e) {
 			throw new NetSchedulerError("Fetch error", "FETCH_ERROR", e);
 		}
 	}
 
-	private async alicloudFcRequest<R>(url: string, region: string): Promise<R> {
+	private async alicloudFcRequest<R>(
+		url: string,
+		region: string
+	): Promise<{
+		data: R;
+		time: number;
+	}> {
 		try {
 			const client = getAlicloudClient(region);
 			const bodyStream = Stream.readFromString(JSON.stringify({ url: url }));
@@ -275,7 +301,10 @@ class NetworkDelegate {
 					"ALICLOUD_PROXY_ERR"
 				);
 			} else {
-				return JSON.parse(rawData.body) as R;
+				return {
+					data: JSON.parse(rawData.body) as R,
+					time: rawData.serverTime
+				};
 			}
 		} catch (e) {
 			logger.error(e as Error, "net", "fn:alicloudFcRequest");
