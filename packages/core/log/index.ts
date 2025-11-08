@@ -17,7 +17,7 @@ const customFormat = format.printf((info: TransformableInfo) => {
 		: `${timestamp} [${level}] ${coloredService}${colon}${message}`;
 });
 
-const timestampFormat = format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" });
+const timestampFormat = format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSSZZ" });
 
 const createTransport = (level: string, filename: string) => {
 	const MB = 1000000;
