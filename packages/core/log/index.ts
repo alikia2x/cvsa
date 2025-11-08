@@ -62,7 +62,7 @@ const winstonLogger = winston.createLogger({
 		new transports.Console({
 			level: "debug",
 			format: format.combine(
-				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
+				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSSZZ" }),
 				format.colorize(),
 				format.errors({ stack: true }),
 				customFormat

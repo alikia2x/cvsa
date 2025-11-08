@@ -13,9 +13,9 @@ export const apps = [
         cwd: './packages/crawler',
         interpreter: 'bun',
         env: {
-            LOG_VERBOSE: "logs/crawler/verbose.log",
-            LOG_WARN: "logs/crawler/warn.log",
-            LOG_ERR: "logs/crawler/error.log"
+            LOG_VERBOSE: "logs/verbose.log",
+            LOG_WARN: "logs/warn.log",
+            LOG_ERR: "logs/error.log"
         }
     },
     {
@@ -24,9 +24,9 @@ export const apps = [
         cwd: './packages/crawler',
         interpreter: 'bun',
         env: {
-            LOG_VERBOSE: "logs/crawler/verbose.log",
-            LOG_WARN: "logs/crawler/warn.log",
-            LOG_ERR: "logs/crawler/error.log"
+            LOG_VERBOSE: "logs/verbose.log",
+            LOG_WARN: "logs/warn.log",
+            LOG_ERR: "logs/error.log"
         }
     },
     {
@@ -36,9 +36,9 @@ export const apps = [
         interpreter: process.env.PYTHON_INTERPRETER || 'python3',
         env: {
             PYTHONPATH: './ml/api:./ml/filter',
-            LOG_VERBOSE: "logs/ml/verbose.log",
-            LOG_WARN: "logs/ml/warn.log",
-            LOG_ERR: "logs/ml/error.log"
+            LOG_VERBOSE: "logs/verbose.log",
+            LOG_WARN: "logs/warn.log",
+            LOG_ERR: "logs/error.log"
         }
     },
 ]
