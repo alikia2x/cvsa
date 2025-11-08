@@ -4,6 +4,10 @@ import type { App } from "@elysia/src";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert } from "lucide-react";
+import { Title } from "@/components/Title";
+import { Search } from "@/components/Search";
+import { Error } from "@/components/Error";
+import { Layout } from "@/components/Layout";
 
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
@@ -32,37 +36,34 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 
 	if (!data && !error) {
 		return (
-			<div className="w-screen min-h-screen relative left-0 top-0 flex justify-center">
-				<main className="w-full max-sm:mx-6 pt-14 sm:w-xl xl:w-2xl">
-					<Skeleton className="mt-6 w-full aspect-video rounded-lg" />
-					<div className="mt-6 flex justify-between items-baseline">
-						<Skeleton className="w-60 h-10 rounded-sm" />
-						<Skeleton className="w-25 h-10 rounded-sm" />
+			<Layout>
+				<Title title="加载中" />
+				<Skeleton className="mt-6 w-full aspect-video rounded-lg" />
+				<div className="mt-6 flex justify-between items-baseline">
+					<Skeleton className="w-60 h-10 rounded-sm" />
+					<Skeleton className="w-25 h-10 rounded-sm" />
+				</div>
+			</Layout>
+		);
+	}
+
+	if (error?.status === 404) {
+		return (
+			<div className="w-screen min-h-screen flex items-center justify-center">
+				<Title title="未找到曲目" />
+				<div className="max-w-md w-full bg-gray-100 dark:bg-neutral-900 rounded-2xl shadow-lg p-6 flex flex-col gap-4 items-center text-center">
+					<div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-500 text-white text-3xl">
+						<TriangleAlert size={34} className="-translate-y-0.5" />
 					</div>
-				</main>
+					<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">无法找到曲目</h1>
+					<a href={`/song/${loaderData.id}/add`} className="text-secondary-foreground">点此收录</a>
+				</div>
 			</div>
 		);
 	}
 
 	if (error) {
-		return (
-			<div className="w-screen min-h-screen flex items-center justify-center">
-				<div className="max-w-md w-full bg-gray-100 dark:bg-neutral-900 rounded-2xl shadow-lg p-6 flex flex-col gap-4 items-center text-center">
-					<div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-500 text-white text-3xl">
-						<TriangleAlert size={34} className="-translate-y-0.5" />
-					</div>
-					<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">出错了</h1>
-					<p className="text-neutral-700 dark:text-neutral-300">状态码：{error.status}</p>
-					{error.value.message && (
-						<p className="text-neutral-600 dark:text-neutral-400 break-words">
-							<span className="font-medium text-neutral-700 dark:text-neutral-300">错误信息</span>
-							<br />
-							{error.value.message}
-						</p>
-					)}
-				</div>
-			</div>
-		);
+		return <Error error={error} />;
 	}
 
 	const formatDuration = (duration: number) => {
@@ -78,7 +79,12 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 
 	return (
 		<div className="w-screen min-h-screen relative left-0 top-0 flex justify-center">
+			<Title title={data!.name ? data!.name : "未知歌曲名"} />
 			<main className="w-full max-sm:mx-6 pt-14 sm:w-xl xl:w-2xl">
+				<a href="/">
+					<h1 className="text-4xl mb-5">中V档案馆</h1>
+				</a>
+				<Search />
 				{data!.cover && (
 					<img
 						src={data!.cover}

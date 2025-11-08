@@ -28,7 +28,6 @@ const getSongSearchResult = async (searchQuery: string) => {
 		.from(songs)
 		.innerJoin(latestVideoSnapshot, eq(songs.aid, latestVideoSnapshot.aid))
 		.where(like(songs.name, `%${searchQuery}%`))
-		.limit(10);
 
 	const results = data
 		.map((song) => {
@@ -73,19 +72,26 @@ const getSongSearchResult = async (searchQuery: string) => {
 };
 
 const getVideoSearchResult = async (searchQuery: string) => {
+	const extractAVID = (query: string): number | null => {
+		const avMatch = query.match(/av(\d+)/i);
+		if (avMatch) {
+			return Number.parseInt(avMatch[1]);
+		}
+		return 0;
+	};
 	const results = await db
 		.select()
 		.from(bilibiliMetadata)
+		.innerJoin(latestVideoSnapshot, eq(bilibiliMetadata.aid, latestVideoSnapshot.aid))
 		.where(
 			or(
 				eq(bilibiliMetadata.bvid, searchQuery),
-				eq(bilibiliMetadata.aid, Number.parseInt(searchQuery) || 0)
+				eq(bilibiliMetadata.aid, extractAVID(searchQuery) || 0)
 			)
 		)
-		.limit(10);
 	return results.map((video) => ({
 		type: "bili-video" as "bili-video",
-		data: video,
+		data: { views: video.latest_video_snapshot.views, ...video.bilibili_metadata },
 		rank: 1 // Exact match
 	}));
 };
@@ -102,7 +108,8 @@ const BiliVideoDataSchema = t.Object({
 	tags: t.Union([t.String(), t.Null()]),
 	title: t.Union([t.String(), t.Null()]),
 	status: t.Number(),
-	coverUrl: t.Union([t.String(), t.Null()])
+	coverUrl: t.Union([t.String(), t.Null()]),
+	views: t.Number()
 });
 
 const SongDataSchema = t.Object({
@@ -129,7 +136,7 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 			getVideoSearchResult(searchQuery)
 		]);
 
-		const combinedResults: (SongSearchResult | BiliVideoSearchResult)[] = [
+		const combinedResults = [
 			...songResults,
 			...videoResults
 		];

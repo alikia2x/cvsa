@@ -56,7 +56,8 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 		} else {
 			return c.status(400, {
 				code: "MALFORMED_SLOT",
-				message: "We cannot parse the video ID, or we currently do not support this format.",
+				message:
+					"We cannot parse the video ID, or we currently do not support this format.",
 				errors: []
 			});
 		}
@@ -66,15 +67,17 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 			return cachedData;
 		}
 
-		const data = await getVideoInfo(aid, "getVideoInfo");
+		const r = await getVideoInfo(aid, "getVideoInfo");
 
-		if (typeof data == "number") {
+		if (typeof r == "number") {
 			return c.status(500, {
 				code: "THIRD_PARTY_ERROR",
-				message: `Got status code ${data} from bilibili API.`,
+				message: `Got status code ${r} from bilibili API.`,
 				errors: []
 			});
 		}
+
+		const { data } = r;
 
 		await setCache(aid, JSON.stringify(data));
 		await insertVideoSnapshot(data);
