@@ -8,31 +8,105 @@ import { Title } from "@/components/Title";
 import { Search } from "@/components/Search";
 import { Error } from "@/components/Error";
 import { Layout } from "@/components/Layout";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
+type Snapshots = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["data"];
 type SongInfoError = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["error"];
+type SnapshotsError = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["error"];
 
 export async function clientLoader({ params }: Route.LoaderArgs) {
 	return { id: params.id };
 }
 
+const SnapshotsView = ({ snapshots }: { snapshots: Snapshots | null }) => {
+	if (!snapshots) {
+		return (
+			<>
+				<h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2>
+				<Skeleton className="w-full h-20 rounded-lg" />
+			</>
+		);
+	}
+	return (
+		<div>
+			<h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2>
+			<table>
+				<thead>
+					<tr>
+						<th className="text-left pr-4">日期</th>
+						<th className="text-left pr-4">播放量</th>
+						<th className="text-left pr-4">弹幕数</th>
+						<th className="text-left pr-4">点赞数</th>
+						<th className="text-left pr-4">收藏数</th>
+						<th className="text-left pr-4">硬币数</th>
+					</tr>
+				</thead>
+				<tbody>
+					{snapshots.map((snapshot: Exclude<Snapshots, null>[number]) => (
+						<tr key={snapshot.id}>
+							<td className="pr-4">{new Date(snapshot.createdAt).toLocaleDateString()}</td>
+							<td className="pr-4">{snapshot.views}</td>
+							<td className="pr-4">{snapshot.danmakus}</td>
+							<td className="pr-4">{snapshot.likes}</td>
+							<td className="pr-4">{snapshot.favorites}</td>
+							<td className="pr-4">{snapshot.coins}</td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
+};
+
 export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	const [data, setData] = useState<SongInfo | null>(null);
-	const [error, setError] = useState<SongInfoError | null>(null);
+	const [snapshots, setSnapshots] = useState<Snapshots | null>(null);
+	const [error, setError] = useState<SongInfoError | SnapshotsError | null>(null);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [songName, setSongName] = useState("");
+
+	const getSnapshots = async (aid: number) => {
+		const { data, error } = await app.video({ id: `av${aid}` }).snapshots.get();
+		if (error) {
+			console.log(error);
+			setError(error);
+			return;
+		}
+		setSnapshots(data);
+	};
+
+	const getInfo = async () => {
+		const { data, error } = await app.song({ id: loaderData.id }).info.get();
+		if (error) {
+			console.log(error);
+			setError(error);
+			return;
+		}
+		setData(data);
+	};
 
 	useEffect(() => {
-		(async () => {
-			const { data, error } = await app.song({ id: loaderData.id }).info.get();
-			if (error) {
-				console.log(error);
-				setError(error);
-				return;
-			}
-			setData(data);
-		})();
+		getInfo();
 	}, []);
+
+	useEffect(() => {
+		if (!data) return;
+		const aid = data.aid;
+		if (!aid) return;
+		getSnapshots(aid);
+	}, [data]);
+
+	// Update local song name when data changes
+	useEffect(() => {
+		if (data?.name) {
+			setSongName(data.name);
+		}
+	}, [data?.name]);
 
 	if (!data && !error) {
 		return (
@@ -56,7 +130,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 						<TriangleAlert size={34} className="-translate-y-0.5" />
 					</div>
 					<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">无法找到曲目</h1>
-					<a href={`/song/${loaderData.id}/add`} className="text-secondary-foreground">点此收录</a>
+					<a href={`/song/${loaderData.id}/add`} className="text-secondary-foreground">
+						点此收录
+					</a>
 				</div>
 			</div>
 		);
@@ -72,9 +148,13 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 		return `${minutes}:${seconds}`;
 	};
 
-	const songNameOnChange = async (e: React.FocusEvent<HTMLHeadingElement, Element>) => {
-		const name = e.target.textContent;
-		await app.song({ id: loaderData.id }).info.patch({ name: name || undefined });
+	const handleSongNameChange = async () => {
+		if (songName.trim() === "") return;
+
+		await app.song({ id: loaderData.id }).info.patch({ name: songName });
+		setIsDialogOpen(false);
+		// Refresh the data to show the updated name
+		getInfo();
 	};
 
 	return (
@@ -93,9 +173,32 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 					/>
 				)}
 				<div className="mt-6 flex justify-between">
-					<h1 className="text-4xl font-medium" contentEditable={true} onBlur={songNameOnChange}>
-						{data!.name ? data!.name : "未知歌曲名"}
-					</h1>
+					<div className="flex items-center gap-2">
+						<h1 className="text-4xl font-medium" onDoubleClick={() => setIsDialogOpen(true)}>
+							{data!.name ? data!.name : "未知歌曲名"}
+						</h1>
+						<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+							<DialogContent>
+								<DialogHeader>
+									<DialogTitle>编辑歌曲名称</DialogTitle>
+								</DialogHeader>
+								<div className="space-y-4">
+									<Input
+										value={songName}
+										onChange={(e) => setSongName(e.target.value)}
+										placeholder="请输入歌曲名称"
+										className="w-full"
+									/>
+									<div className="flex justify-end gap-2">
+										<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+											取消
+										</Button>
+										<Button onClick={handleSongNameChange}>保存</Button>
+									</div>
+								</div>
+							</DialogContent>
+						</Dialog>
+					</div>
 					<div className="flex flex-col items-end h-10 whitespace-nowrap">
 						<span className="leading-5 text-neutral-800 dark:text-neutral-200">
 							{data!.duration ? formatDuration(data!.duration) : "未知时长"}
@@ -105,6 +208,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 						</span>
 					</div>
 				</div>
+				<SnapshotsView snapshots={snapshots} />
 			</main>
 		</div>
 	);

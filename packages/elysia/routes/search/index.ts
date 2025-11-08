@@ -1,8 +1,10 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { db } from "@core/drizzle";
 import { bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle/main/schema";
 import { eq, like, or } from "drizzle-orm";
 import type { BilibiliMetadataType, ProducerType, SongType } from "@core/drizzle/outerSchema";
+import { BiliVideoSchema, SongSchema } from "@elysia/lib/schema";
+import { z } from "zod";
 
 interface SongSearchResult {
 	type: "song";
@@ -27,7 +29,7 @@ const getSongSearchResult = async (searchQuery: string) => {
 		.select()
 		.from(songs)
 		.innerJoin(latestVideoSnapshot, eq(songs.aid, latestVideoSnapshot.aid))
-		.where(like(songs.name, `%${searchQuery}%`))
+		.where(like(songs.name, `%${searchQuery}%`));
 
 	const results = data
 		.map((song) => {
@@ -88,7 +90,7 @@ const getVideoSearchResult = async (searchQuery: string) => {
 				eq(bilibiliMetadata.bvid, searchQuery),
 				eq(bilibiliMetadata.aid, extractAVID(searchQuery) || 0)
 			)
-		)
+		);
 	return results.map((video) => ({
 		type: "bili-video" as "bili-video",
 		data: { views: video.latest_video_snapshot.views, ...video.bilibili_metadata },
@@ -96,35 +98,8 @@ const getVideoSearchResult = async (searchQuery: string) => {
 	}));
 };
 
-const BiliVideoDataSchema = t.Object({
-	duration: t.Union([t.Number(), t.Null()]),
-	id: t.Number(),
-	aid: t.Number(),
-	publishedAt: t.Union([t.String(), t.Null()]),
-	createdAt: t.Union([t.String(), t.Null()]),
-	description: t.Union([t.String(), t.Null()]),
-	bvid: t.Union([t.String(), t.Null()]),
-	uid: t.Union([t.Number(), t.Null()]),
-	tags: t.Union([t.String(), t.Null()]),
-	title: t.Union([t.String(), t.Null()]),
-	status: t.Number(),
-	coverUrl: t.Union([t.String(), t.Null()]),
-	views: t.Number()
-});
-
-const SongDataSchema = t.Object({
-	duration: t.Union([t.Number(), t.Null()]),
-	name: t.Union([t.String(), t.Null()]),
-	id: t.Number(),
-	aid: t.Union([t.Number(), t.Null()]),
-	publishedAt: t.Union([t.String(), t.Null()]),
-	type: t.Union([t.Number(), t.Null()]),
-	neteaseId: t.Union([t.Number(), t.Null()]),
-	createdAt: t.String(),
-	updatedAt: t.String(),
-	deleted: t.Boolean(),
-	image: t.Union([t.String(), t.Null()]),
-	producer: t.Union([t.String(), t.Null()])
+const BiliVideoDataSchema = BiliVideoSchema.extend({
+	views: z.number()
 });
 
 export const searchHandler = new Elysia({ prefix: "/search" }).get(
@@ -136,34 +111,31 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 			getVideoSearchResult(searchQuery)
 		]);
 
-		const combinedResults = [
-			...songResults,
-			...videoResults
-		];
+		const combinedResults = [...songResults, ...videoResults];
 		return combinedResults.sort((a, b) => b.rank - a.rank);
 	},
 	{
 		response: {
-			200: t.Array(
-				t.Union([
-					t.Object({
-						type: t.Literal("song"),
-						data: SongDataSchema,
-						rank: t.Number()
+			200: z.array(
+				z.union([
+					z.object({
+						type: z.literal("song"),
+						data: SongSchema,
+						rank: z.number()
 					}),
-					t.Object({
-						type: t.Literal("bili-video"),
+					z.object({
+						type: z.literal("bili-video"),
 						data: BiliVideoDataSchema,
-						rank: t.Number()
+						rank: z.number()
 					})
 				])
 			),
-			404: t.Object({
-				message: t.String()
+			404: z.object({
+				message: z.string()
 			})
 		},
-		query: t.Object({
-			query: t.String()
+		query: z.object({
+			query: z.string()
 		})
 	}
 );

@@ -66,12 +66,14 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 			const songID = await getSongID(id);
 			if (!songID) {
 				return status(404, {
+					code: "SONG_NOT_FOUND",
 					message: "Given song cannot be found."
 				});
 			}
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
+					code: "SONG_NOT_FOUND",
 					message: "Given song cannot be found."
 				});
 			}
@@ -117,12 +119,14 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 			const songID = await getSongID(id);
 			if (!songID) {
 				return status(404, {
+					code: "SONG_NOT_FOUND",
 					message: "Given song cannot be found."
 				});
 			}
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
+					code: "SONG_NOT_FOUND",
 					message: "Given song cannot be found."
 				});
 			}
@@ -152,7 +156,8 @@ export const songInfoHandler = new Elysia({ prefix: "/song" })
 					updated: t.Any()
 				}),
 				404: t.Object({
-					message: t.String()
+					message: t.String(),
+					code: t.String()
 				})
 			},
 			body: t.Object({
