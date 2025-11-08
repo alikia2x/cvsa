@@ -69,7 +69,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 					${coins},
 					${shares},
 					${favorites},
-					${new Date(time).toUTCString()}
+					${new Date(time).toISOString()}
 				)
 			`;
 

@@ -44,7 +44,7 @@ export async function insertVideoSnapshot(
 
 	await sql`
         INSERT INTO video_snapshot (aid, views, danmakus, replies, likes, coins, shares, favorites, created_at)
-        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites}, ${new Date(time).toUTCString()})
+        VALUES (${aid}, ${views}, ${danmakus}, ${replies}, ${likes}, ${coins}, ${shares}, ${favorites}, ${new Date(time).toISOString()})
     `;
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
