@@ -1,4 +1,4 @@
-import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, bigserial, real, pgSchema, inet, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, foreignKey, bigserial, real, pgSchema, inet, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const credentials = pgSchema("credentials");
@@ -9,6 +9,8 @@ export const labelingResultIdSeq = pgSequence("labeling_result_id_seq", {  start
 export const songsIdSeq = pgSequence("songs_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const videoSnapshotIdSeq = pgSequence("video_snapshot_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
+export const relationSingerIdSeq = pgSequence("relation_singer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
+export const relationsProducerIdSeq = pgSequence("relations_producer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const usersIdSeqInCredentials = credentials.sequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 
 export const relations = pgTable("relations", {
@@ -65,6 +67,11 @@ export const humanClassifiedLables = pgTable("human_classified_lables", {
 	index("idx_classified-labels-human_created-at").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_classified-labels-human_label").using("btree", table.label.asc().nullsLast().op("int2_ops")),
 ]);
+
+export const singer = pgTable("singer", {
+	id: serial().primaryKey().notNull(),
+	name: text().notNull(),
+});
 
 export const history = pgTable("history", {
 	id: serial().primaryKey().notNull(),
@@ -129,15 +136,9 @@ export const songs = pgTable("songs", {
 	index("idx_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
 	index("idx_published_at").using("btree", table.publishedAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_type").using("btree", table.type.asc().nullsLast().op("int2_ops")),
-	uniqueIndex("songs_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
 ]);
-
-export const singer = pgTable("singer", {
-	id: serial().primaryKey().notNull(),
-	name: text().notNull(),
-});
 
 export const videoSnapshot = pgTable("video_snapshot", {
 	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
@@ -171,6 +172,30 @@ export const bilibiliUser = pgTable("bilibili_user", {
 }, (table) => [
 	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
 	unique("unq_bili-user_uid").on(table.uid),
+]);
+
+export const producer = pgTable("producer", {
+	id: integer().primaryKey().notNull(),
+	name: text().notNull(),
+});
+
+export const relationSinger = pgTable("relation_singer", {
+	id: integer().default(sql`nextval('relation_singer_id_seq'::regclass)`).primaryKey().notNull(),
+	songId: integer("song_id").notNull(),
+	singerId: integer("singer_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.songId],
+			foreignColumns: [songs.id],
+			name: "fkey_song_id"
+		}),
+	foreignKey({
+			columns: [table.singerId],
+			foreignColumns: [singer.id],
+			name: "fkey_singer_id"
+		}),
 ]);
 
 export const snapshotSchedule = pgTable("snapshot_schedule", {
@@ -230,4 +255,18 @@ export const usersInCredentials = credentials.table("users", {
 	uniqueIndex("users_pkey1").using("btree", table.id.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("users_unq_id_key").using("btree", table.unqId.asc().nullsLast().op("text_ops")),
 	uniqueIndex("users_username_key").using("btree", table.username.asc().nullsLast().op("text_ops")),
+]);
+
+export const relationsProducer = pgTable("relations_producer", {
+	id: integer().default(sql`nextval('relations_producer_id_seq'::regclass)`).primaryKey().notNull(),
+	songId: integer("song_id").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	producerId: integer("producer_id").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.songId],
+			foreignColumns: [songs.id],
+			name: "fkey_relations_producer_songs_id"
+		}),
 ]);

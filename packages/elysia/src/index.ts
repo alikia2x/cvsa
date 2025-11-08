@@ -9,6 +9,7 @@ import { getVideoMetadataHandler } from "@elysia/routes/video/metadata";
 import { closeMileStoneHandler } from "@elysia/routes/song/milestone";
 import { authHandler } from "@elysia/routes/auth";
 import { onAfterHandler } from "./onAfterHandle";
+import { searchHandler } from "@elysia/routes/search";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -27,6 +28,7 @@ const app = new Elysia({
 	.use(getVideoMetadataHandler)
 	.use(songInfoHandler)
 	.use(closeMileStoneHandler)
+	.use(searchHandler)
 	.listen(15412);
 
 export const VERSION = "0.7.0";
