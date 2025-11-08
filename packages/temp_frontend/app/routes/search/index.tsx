@@ -7,8 +7,9 @@ import { useSearchParams } from "react-router";
 import { SearchBox } from "@/components/Search";
 import { SearchResults } from "@/components/SearchResults";
 import { Title } from "@/components/Title";
-import { LayoutWithouSearch } from "@/components/Layout";
+import { LayoutWithoutSearch } from "@/components/Layout";
 
+// @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 export type SearchResult = Awaited<ReturnType<typeof app.search.result.get>>["data"];
@@ -57,19 +58,19 @@ export default function SearchResult() {
 
 	if (!searchParams.get("q")) {
 		return (
-			<LayoutWithouSearch>
+			<LayoutWithoutSearch>
 				<Search query={query} setQuery={setQuery} onSearch={handleSearch} />
-			</LayoutWithouSearch>
+			</LayoutWithoutSearch>
 		);
 	}
 
 	if (!data && !error) {
 		return (
-			<LayoutWithouSearch>
+			<LayoutWithoutSearch>
 				<Title title={searchParams.get("q") || "搜索"} />
 				<Search query={query} setQuery={setQuery} onSearch={handleSearch} className="mb-6" />
 				<Skeleton className="w-full h-24 mb-2" />
-			</LayoutWithouSearch>
+			</LayoutWithoutSearch>
 		);
 	}
 
@@ -78,10 +79,10 @@ export default function SearchResult() {
 	}
 
 	return (
-		<LayoutWithouSearch>
+		<LayoutWithoutSearch>
 			<Title title={searchParams.get("q") || ""} />
 			<Search query={query} setQuery={setQuery} onSearch={handleSearch} className="mb-6" />
 			<SearchResults results={data} query={query} />
-		</LayoutWithouSearch>
+		</LayoutWithoutSearch>
 	);
 }

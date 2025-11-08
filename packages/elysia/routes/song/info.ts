@@ -98,9 +98,13 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 				cover: t.Optional(t.String())
 			}),
 			404: t.Object({
+				code: t.String(),
 				message: t.String()
 			})
 		},
+		headers: t.Object({
+			"Authorization": t.Optional(t.String())
+		}),
 		detail: {
 			summary: "Get information of a song",
 			description:

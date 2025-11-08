@@ -6,7 +6,7 @@ interface SearchResultsProps {
 	query: string;
 }
 
-const formatDateTime = (date: Date): string => {
+export const formatDateTime = (date: Date): string => {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份从0开始，补0
 	const day = String(date.getDate()).padStart(2, "0");
@@ -20,7 +20,7 @@ const formatDateTime = (date: Date): string => {
 const biliIDSchema = z.union([z.string().regex(/BV1[0-9A-Za-z]{9}/), z.string().regex(/av[0-9]+/)]);
 
 export function SearchResults({ results, query }: SearchResultsProps) {
-	if (!results || results.length === 0) {
+	if (!results || results.data.length === 0) {
 		if (!biliIDSchema.safeParse(query).success) {
 			return (
 				<div className="text-center pt-6">
@@ -43,10 +43,12 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 
 	return (
 		<div className="space-y-4 mb-20 mt-5">
-			{results.map((result, index) => (
+			<p>找到 {results.data.length} 个结果（{(results.elapsedMs / 1000).toFixed(3)}秒）：</p>
+			{results.data.map((result, index) => (
 				<div
 					key={`${result.type}-${result.data.id}-${index}`}
-					className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-700 p-4 hover:shadow-md transition-shadow"
+					className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border
+					 border-gray-200 dark:border-neutral-700 p-2 sm:p-4 hover:shadow-md transition-shadow"
 				>
 					{result.type === "song" ? <SongResult result={result} /> : <BiliVideoResult result={result} />}
 				</div>
@@ -55,22 +57,22 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 	);
 }
 
-function SongResult({ result }: { result: Exclude<SearchResult, null>[number] }) {
+function SongResult({ result }: { result: Exclude<SearchResult, null>["data"][number] }) {
 	if (result.type !== "song") return null;
 
 	const { data } = result;
 	return (
-		<div className="flex items-start space-x-4">
+		<div className="flex items-center space-x-4">
 			{data.image && (
 				<img
 					src={data.image}
 					alt="歌曲封面"
-					className="w-42 h-24 rounded-sm object-cover flex-shrink-0"
+					className="h-21 w-36 sm:w-42 sm:h-24 rounded-sm object-cover flex-shrink-0"
 					referrerPolicy="no-referrer"
 				/>
 			)}
-			<div className="flex-1 min-w-0">
-				<h3 className="text-lg font-medium truncate">{data.name}</h3>
+			<div className="flex-col">
+				<h3 className="text-lg font-medium line-clamp-1 text-wrap">{data.name}</h3>
 				{data.producer && <p className="text-sm text-muted-foreground truncate">{data.producer}</p>}
 				<div className="flex items-center space-x-4 my-1 text-xs text-muted-foreground">
 					{data.duration && (
@@ -95,7 +97,7 @@ function SongResult({ result }: { result: Exclude<SearchResult, null>[number] })
 	);
 }
 
-function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>[number] }) {
+function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>["data"][number] }) {
 	if (result.type !== "bili-video") return null;
 
 	const { data } = result;
@@ -116,7 +118,7 @@ function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>[numbe
 						{data.description}
 					</pre>
 				)}
-				<div className="flex items-center space-x-4 my-2 text-xs text-gray-500 dark:text-gray-500">
+				<div className="grid-cols-2 sm:flex items-center space-x-4 my-2 text-xs text-gray-500 dark:text-gray-500">
 					{data.duration && (
 						<span>
 							{Math.floor(data.duration / 60)}:{(data.duration % 60).toString().padStart(2, "0")}

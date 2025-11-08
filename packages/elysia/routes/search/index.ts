@@ -105,6 +105,7 @@ const BiliVideoDataSchema = BiliVideoSchema.extend({
 export const searchHandler = new Elysia({ prefix: "/search" }).get(
 	"/result",
 	async ({ query }) => {
+		const start = performance.now();
 		const searchQuery = query.query;
 		const [songResults, videoResults] = await Promise.all([
 			getSongSearchResult(searchQuery),
@@ -112,24 +113,32 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 		]);
 
 		const combinedResults = [...songResults, ...videoResults];
-		return combinedResults.sort((a, b) => b.rank - a.rank);
+		const data = combinedResults.sort((a, b) => b.rank - a.rank);
+		const end = performance.now();
+		return {
+			data,
+			elapsedMs: end - start
+		};
 	},
 	{
 		response: {
-			200: z.array(
-				z.union([
-					z.object({
-						type: z.literal("song"),
-						data: SongSchema,
-						rank: z.number()
-					}),
-					z.object({
-						type: z.literal("bili-video"),
-						data: BiliVideoDataSchema,
-						rank: z.number()
-					})
-				])
-			),
+			200: z.object({
+				elapsedMs: z.number(),
+				data: z.array(
+					z.union([
+						z.object({
+							type: z.literal("song"),
+							data: SongSchema,
+							rank: z.number()
+						}),
+						z.object({
+							type: z.literal("bili-video"),
+							data: BiliVideoDataSchema,
+							rank: z.number()
+						})
+					])
+				)
+			}),
 			404: z.object({
 				message: z.string()
 			})

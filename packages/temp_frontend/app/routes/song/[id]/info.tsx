@@ -5,13 +5,15 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert } from "lucide-react";
 import { Title } from "@/components/Title";
-import { Search } from "@/components/Search";
+import { toast } from "sonner";
 import { Error } from "@/components/Error";
 import { Layout } from "@/components/Layout";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { formatDateTime } from "@/components/SearchResults";
 
+// @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
@@ -27,14 +29,17 @@ const SnapshotsView = ({ snapshots }: { snapshots: Snapshots | null }) => {
 	if (!snapshots) {
 		return (
 			<>
-				<h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2>
-				<Skeleton className="w-full h-20 rounded-lg" />
+				{/* <h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2> */}
+				<Skeleton className="w-full h-5 rounded-lg mt-4" />
 			</>
 		);
 	}
 	return (
-		<div>
-			<h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2>
+		<div className="mt-4">
+			<p>
+				播放: {snapshots[0].views.toLocaleString()}，更新于{formatDateTime(new Date(snapshots[0].createdAt))}
+			</p>
+			{/* <h2 className="mt-6 text-2xl font-medium mb-4">历史快照</h2>
 			<table>
 				<thead>
 					<tr>
@@ -58,7 +63,7 @@ const SnapshotsView = ({ snapshots }: { snapshots: Snapshots | null }) => {
 						</tr>
 					))}
 				</tbody>
-			</table>
+			</table> */}
 		</div>
 	);
 };
@@ -143,73 +148,75 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	}
 
 	const formatDuration = (duration: number) => {
-		const minutes = Math.floor(duration / 60);
-		const seconds = duration % 60;
-		return `${minutes}:${seconds}`;
+		return `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, "0")}`;
 	};
 
 	const handleSongNameChange = async () => {
 		if (songName.trim() === "") return;
 
-		await app.song({ id: loaderData.id }).info.patch({ name: songName });
+		const { data, error } = await app.song({ id: loaderData.id }).info.patch(
+			{ name: songName },
+			{
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
+				},
+			},
+		);
 		setIsDialogOpen(false);
 		// Refresh the data to show the updated name
-		getInfo();
+		if (error || !data) {
+			toast.error(`无法更新：${error.value.message || "未知错误"}`);
+		}
+		setData(data?.updated);
 	};
 
 	return (
-		<div className="w-screen min-h-screen relative left-0 top-0 flex justify-center">
+		<Layout>
 			<Title title={data!.name ? data!.name : "未知歌曲名"} />
-			<main className="w-full max-sm:mx-6 pt-14 sm:w-xl xl:w-2xl">
-				<a href="/">
-					<h1 className="text-4xl mb-5">中V档案馆</h1>
-				</a>
-				<Search />
-				{data!.cover && (
-					<img
-						src={data!.cover}
-						referrerPolicy="no-referrer"
-						className="w-full aspect-video object-cover rounded-lg mt-6"
-					/>
-				)}
-				<div className="mt-6 flex justify-between">
-					<div className="flex items-center gap-2">
-						<h1 className="text-4xl font-medium" onDoubleClick={() => setIsDialogOpen(true)}>
-							{data!.name ? data!.name : "未知歌曲名"}
-						</h1>
-						<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>编辑歌曲名称</DialogTitle>
-								</DialogHeader>
-								<div className="space-y-4">
-									<Input
-										value={songName}
-										onChange={(e) => setSongName(e.target.value)}
-										placeholder="请输入歌曲名称"
-										className="w-full"
-									/>
-									<div className="flex justify-end gap-2">
-										<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-											取消
-										</Button>
-										<Button onClick={handleSongNameChange}>保存</Button>
-									</div>
+			{data!.cover && (
+				<img
+					src={data!.cover}
+					referrerPolicy="no-referrer"
+					className="w-full aspect-video object-cover rounded-lg mt-6"
+				/>
+			)}
+			<div className="mt-6 flex justify-between">
+				<div className="flex items-center gap-2">
+					<h1 className="text-4xl font-medium" onDoubleClick={() => setIsDialogOpen(true)}>
+						{data!.name ? data!.name : "未知歌曲名"}
+					</h1>
+					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+						<DialogContent>
+							<DialogHeader>
+								<DialogTitle>编辑歌曲名称</DialogTitle>
+							</DialogHeader>
+							<div className="space-y-4">
+								<Input
+									value={songName}
+									onChange={(e) => setSongName(e.target.value)}
+									placeholder="请输入歌曲名称"
+									className="w-full"
+								/>
+								<div className="flex justify-end gap-2">
+									<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+										取消
+									</Button>
+									<Button onClick={handleSongNameChange}>保存</Button>
 								</div>
-							</DialogContent>
-						</Dialog>
-					</div>
-					<div className="flex flex-col items-end h-10 whitespace-nowrap">
-						<span className="leading-5 text-neutral-800 dark:text-neutral-200">
-							{data!.duration ? formatDuration(data!.duration) : "未知时长"}
-						</span>
-						<span className="text-lg leading-5 text-neutral-800 dark:text-neutral-200 font-bold">
-							{data!.producer ? data!.producer : "未知P主"}
-						</span>
-					</div>
+							</div>
+						</DialogContent>
+					</Dialog>
 				</div>
-				<SnapshotsView snapshots={snapshots} />
-			</main>
-		</div>
+				<div className="flex flex-col items-end h-10 whitespace-nowrap">
+					<span className="leading-5 text-neutral-800 dark:text-neutral-200">
+						{data!.duration ? formatDuration(data!.duration) : "未知时长"}
+					</span>
+					<span className="text-lg leading-5 text-neutral-800 dark:text-neutral-200 font-bold">
+						{data!.producer ? data!.producer : "未知P主"}
+					</span>
+				</div>
+			</div>
+			<SnapshotsView snapshots={snapshots} />
+		</Layout>
 	);
 }

@@ -32,7 +32,8 @@ export const loginHandler = new Elysia({ prefix: "/auth" })
 					username: user.username,
 					nickname: user.nickname,
 					role: user.role
-				}
+				},
+				sessionID: sessionId
 			};
 		},
 		{
@@ -44,7 +45,8 @@ export const loginHandler = new Elysia({ prefix: "/auth" })
 						username: t.String(),
 						nickname: t.Optional(t.String()),
 						role: t.String()
-					})
+					}),
+					sessionID: t.String()
 				}),
 				401: t.Object({
 					message: t.String()
