@@ -15,7 +15,6 @@ import { formatDateTime } from "@/components/SearchResults";
 import { ViewsChart } from "./views-chart";
 import { processSnapshots } from "./lib";
 import { DataTable } from "./data-table";
-import { columns, type Snapshot } from "./columns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { If, Then } from "react-if";
 import {
@@ -30,6 +29,7 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { av2bv } from "@elysia/lib/bilibiliID";
+import { columns, type Snapshot } from "./columns";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);

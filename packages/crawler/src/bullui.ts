@@ -21,8 +21,8 @@ const app = express();
 
 app.use("/", serverAdapter.getRouter());
 
-app.listen(3000, () => {
-	console.log("Running on 3000...");
-	console.log("For the UI, open http://localhost:3000/");
+app.listen(5000, () => {
+	console.log("Running on 5000...");
+	console.log("For the UI, open http://localhost:5000/");
 	console.log("Make sure Redis is running on port 6379 by default");
 });

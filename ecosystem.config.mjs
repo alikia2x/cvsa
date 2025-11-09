@@ -41,4 +41,13 @@ export const apps = [
             LOG_ERR: "logs/error.log"
         }
     },
+    {
+        name: 'cvsa-be',
+        script: 'src/index.ts',
+        cwd: './packages/elysia',
+        interpreter: 'bun',
+        env: {
+            NODE_ENV: 'production'
+        }
+    },
 ]
