@@ -1,5 +1,42 @@
 import { z } from "zod";
 
+const videoStatsSchema = z.object({
+	aid: z.number(),
+	view: z.number(),
+	danmaku: z.number(),
+	reply: z.number(),
+	favorite: z.number(),
+	coin: z.number(),
+	share: z.number(),
+	now_rank: z.number(),
+	his_rank: z.number(),
+	like: z.number()
+});
+
+export const BiliAPIVideoMetadataSchema = z.object({
+	bvid: z.string(),
+	aid: z.number(),
+	copyright: z.number(),
+	pic: z.string(),
+	title: z.string(),
+	pubdate: z.number(),
+	ctime: z.number(),
+	desc: z.string(),
+	desc_v2: z.string(),
+	tname: z.string(),
+	tid: z.number(),
+	tid_v2: z.number(),
+	tname_v2: z.string(),
+	state: z.number(),
+	duration: z.number(),
+	owner: z.object({
+		mid: z.number(),
+		name: z.string(),
+		face: z.string()
+	}),
+	stat: videoStatsSchema
+});
+
 export const BiliVideoSchema = z.object({
 	duration: z.number().nullable(),
 	id: z.number(),

@@ -2,27 +2,12 @@ import { Elysia } from "elysia";
 import { db } from "@core/drizzle";
 import { bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle/main/schema";
 import { eq, like, or } from "drizzle-orm";
-import type { BilibiliMetadataType, ProducerType, SongType } from "@core/drizzle/outerSchema";
-import { BiliVideoSchema, SongSchema } from "@elysia/lib/schema";
+import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@elysia/lib/schema";
 import { z } from "zod";
-
-interface SongSearchResult {
-	type: "song";
-	data: SongType;
-	rank: number;
-}
-
-interface ProducerSearchResult {
-	type: "producer";
-	data: ProducerType;
-	rank: number;
-}
-
-interface BiliVideoSearchResult {
-	type: "bili-video";
-	data: BilibiliMetadataType;
-	rank: number; // 0 to 1
-}
+import { getVideoInfo } from "@core/net/getVideoInfo";
+import { biliIDToAID } from "@elysia/lib/bilibiliID";
+import { retrieveVideoInfoFromCache } from "../video/metadata";
+import { redis } from "@core/db/redis";
 
 const getSongSearchResult = async (searchQuery: string) => {
 	const data = await db
@@ -63,7 +48,8 @@ const getSongSearchResult = async (searchQuery: string) => {
 		const normalizedViewsLog = (result.viewsLog - minViewsLog) / viewsLogRange;
 
 		// Weighted combination
-		const rank = normalizedOccurrences * 0.3 + result.lengthRatio * 0.5 + normalizedViewsLog * 0.2;
+		const rank =
+			normalizedOccurrences * 0.3 + result.lengthRatio * 0.5 + normalizedViewsLog * 0.2;
 
 		return {
 			type: result.type,
@@ -75,29 +61,42 @@ const getSongSearchResult = async (searchQuery: string) => {
 	return normalizedResults;
 };
 
-const getVideoSearchResult = async (searchQuery: string) => {
-	const extractAVID = (query: string): number | null => {
-		const avMatch = query.match(/av(\d+)/i);
-		if (avMatch) {
-			return Number.parseInt(avMatch[1]);
-		}
-		return 0;
-	};
+const getDBVideoSearchResult = async (searchQuery: string) => {
+	const aid = biliIDToAID(searchQuery);
+	if (!aid) return [];
 	const results = await db
 		.select()
 		.from(bilibiliMetadata)
 		.innerJoin(latestVideoSnapshot, eq(bilibiliMetadata.aid, latestVideoSnapshot.aid))
-		.where(
-			or(
-				eq(bilibiliMetadata.bvid, searchQuery),
-				eq(bilibiliMetadata.aid, extractAVID(searchQuery) || 0)
-			)
-		);
+		.where(eq(bilibiliMetadata.aid, aid));
 	return results.map((video) => ({
-		type: "bili-video" as "bili-video",
+		type: "bili-video-db" as "bili-video-db",
 		data: { views: video.latest_video_snapshot.views, ...video.bilibili_metadata },
 		rank: 1 // Exact match
 	}));
+};
+
+const getVideoSearchResult = async (searchQuery: string) => {
+	const aid = biliIDToAID(searchQuery);
+	if (!aid) return [];
+	let data;
+	const cachedData = await retrieveVideoInfoFromCache(aid);
+	if (cachedData) {
+		data = cachedData
+	}
+	else {
+		data = await getVideoInfo(aid, "getVideoInfo");
+		if (typeof data === "number") return [];
+		const cacheKey = `cvsa:videoInfo:av${aid}`;
+		await redis.setex(cacheKey, 60, JSON.stringify(data));
+	}
+	return [
+		{
+			type: "bili-video" as "bili-video",
+			data: data.data,
+			rank: 0.99 // Exact match
+		}
+	];
 };
 
 const BiliVideoDataSchema = BiliVideoSchema.extend({
@@ -109,12 +108,13 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 	async ({ query }) => {
 		const start = performance.now();
 		const searchQuery = query.query;
-		const [songResults, videoResults] = await Promise.all([
+		const [songResults, videoResults, dbVideoResults] = await Promise.all([
 			getSongSearchResult(searchQuery),
-			getVideoSearchResult(searchQuery)
+			getVideoSearchResult(searchQuery),
+			getDBVideoSearchResult(searchQuery)
 		]);
 
-		const combinedResults = [...songResults, ...videoResults];
+		const combinedResults = [...songResults, ...videoResults, ...dbVideoResults];
 		const data = combinedResults.sort((a, b) => b.rank - a.rank);
 		const end = performance.now();
 		return {
@@ -134,8 +134,13 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 							rank: z.number()
 						}),
 						z.object({
-							type: z.literal("bili-video"),
+							type: z.literal("bili-video-db"),
 							data: BiliVideoDataSchema,
+							rank: z.number()
+						}),
+						z.object({
+							type: z.literal("bili-video"),
+							data: BiliAPIVideoMetadataSchema,
 							rank: z.number()
 						})
 					])

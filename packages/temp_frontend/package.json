@@ -2,11 +2,12 @@
 	"name": "@cvsa/cvsa-temp",
 	"type": "module",
 	"scripts": {
-		"build": "react-router build",
+		"build": "NODE_ENV=production react-router build",
 		"dev": "react-router dev",
 		"start": "react-router-serve ./build/server/index.js",
 		"typecheck": "react-router typegen && tsc",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"deploy": "wrangler deploy"
 	},
 	"dependencies": {
 		"@alikia/dark-theme-hook": "^1.0.2",
@@ -45,6 +46,7 @@
 		"tw-animate-css": "^1.3.8",
 		"typescript": "^5.8.3",
 		"vite": "^6.3.3",
-		"vite-tsconfig-paths": "^5.1.4"
+		"vite-tsconfig-paths": "^5.1.4",
+		"wrangler": "^4.22.0"
 	}
 }

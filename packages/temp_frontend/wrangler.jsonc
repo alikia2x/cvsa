@@ -1,0 +1,8 @@
+{
+	"name": "cvsa-temp-frontend",
+	"compatibility_date": "2025-06-28",
+	"assets": {
+		"directory": "./build/client",
+		"not_found_handling": "single-page-application"
+	}
+}

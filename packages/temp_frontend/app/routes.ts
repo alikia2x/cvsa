@@ -7,4 +7,5 @@ export default [
 	route("chart-demo", "routes/chartDemo.tsx"),
 	route("search", "routes/search/index.tsx"),
 	route("login", "routes/login.tsx"),
+	route("video/:id/info", "routes/video/[id]/info/index.tsx"),
 ] satisfies RouteConfig;
