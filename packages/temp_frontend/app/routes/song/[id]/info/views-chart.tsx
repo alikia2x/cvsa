@@ -40,16 +40,17 @@ function formatDate(dateStr: string, showYear = false): string {
 	return `${yearStr}${month}-${day} ${hours}:${minutes}`;
 }
 
-const formatYAxisLabel = (value: number, minMax: number) => {
-	if (minMax >= 40000) {
-		return (value / 10000).toFixed() + " 万";
+const formatYAxisLabel = (value: number) => {
+	if (value >= 1000000) {
+		return (value / 10000).toPrecision(4) + "万";
+	} else if (value >= 10000) {
+		return (value / 10000).toPrecision(3) + "万";
 	}
 	return value.toLocaleString();
-}
+};
 
 export function ViewsChart({ chartData }: { chartData: ChartData[] }) {
 	const { isDarkMode } = useDarkMode();
-	const minMax = chartData[chartData.length - 1].views - chartData[0].views;
 	if (!chartData || chartData.length === 0) return <></>;
 	return (
 		<ChartContainer config={isDarkMode ? chartConfigDark : chartConfigLight} className="min-h-[200px] w-full">
@@ -67,17 +68,17 @@ export function ViewsChart({ chartData }: { chartData: ChartData[] }) {
 				<YAxis
 					dataKey="views"
 					tickLine={false}
-					tickMargin={5}
+					tickMargin={0}
 					domain={["auto", "auto"]}
 					className="stat-num"
-					tickFormatter={(value) => formatYAxisLabel(value, minMax)}
+					tickFormatter={formatYAxisLabel}
 					allowDecimals={false}
 				/>
 				<ChartTooltip
 					content={<ChartTooltipContent hideIndicator={true} labelFormatter={(e) => formatDate(e, true)} />}
 				/>
-				<Line dataKey="views" stroke="var(--color-views)" strokeWidth={2} dot={false} />
-				<Line dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} dot={false} />
+				<Line dataKey="views" stroke="var(--color-views)" strokeWidth={2} dot={false} animationDuration={300} />
+				<Line dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} dot={false} animationDuration={300} />
 			</LineChart>
 		</ChartContainer>
 	);

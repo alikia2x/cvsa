@@ -32,7 +32,7 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 			<div className="text-center pt-6">
 				<p className="text-secondary-foreground">
 					没有找到相关结果。 尝试
-					<a href={`/song/${query}/add`} className="text-primary-foreground">
+					<a href={`/song/${query}/add`} className="text-primary">
 						收录
 					</a>
 					?

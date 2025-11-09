@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 					</TableBody>
 				</Table>
 			</div>
-			<div className="flex items-center justify-between py-4">
+			<div className="flex items-center justify-between py-4 stat-num">
 				<div className="text-sm text-muted-foreground">
 					{table.getState().pagination.pageIndex + 1} / {table.getPageCount()} 页
 				</div>

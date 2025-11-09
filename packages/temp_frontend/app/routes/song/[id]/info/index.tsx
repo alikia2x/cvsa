@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { av2bv } from "@elysia/lib/bilibiliID";
 import { columns, type Snapshot } from "./columns";
+import { HOUR } from "@core/lib";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
@@ -48,7 +49,7 @@ export async function clientLoader({ params }: Route.LoaderArgs) {
 
 function formatHours(hours: number): string {
 	if (hours >= 24 * 14) return `${Math.floor(hours / 24)} 天`;
-	if (hours >= 24) return `${Math.floor(hours / 24)} 天 ${hours % 24} 小时`;
+	if (hours >= 24) return `${Math.floor(hours / 24)} 天 ${Math.round(hours) % 24} 小时`;
 	if (hours >= 1) return `${Math.floor(hours)} 时 ${Math.round((hours % 1) * 60)} 分`;
 	return `${Math.round(hours * 60)} 分钟`;
 }
@@ -92,9 +93,7 @@ const SnapshotsView = ({
 	etaData: EtaInfo | null;
 	publishedAt?: string;
 }) => {
-	const [timeRange, setTimeRange] = useState<string>("all");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [pageSize] = useState(10);
+	const [timeRange, setTimeRange] = useState<string>("7d");
 	const [timeOffsetHours, setTimeOffsetHours] = useState(0);
 
 	// Calculate time range in hours
@@ -102,32 +101,50 @@ const SnapshotsView = ({
 		switch (timeRange) {
 			case "6h":
 				return 6;
-			case "12h":
-				return 12;
 			case "24h":
 				return 24;
-			case "3d":
-				return 72;
 			case "7d":
-				return 168;
+				return 7 * 24;
 			case "14d":
-				return 336;
+				return 14 * 24;
 			case "30d":
-				return 720;
+				return 30 * 24;
+			case "90d":
+				return 90 * 24;
+			case "365d":
+				return 365 * 24;
 			default:
 				return undefined; // "all"
 		}
 	}, [timeRange]);
 
-	// Pagination for table data
-	const paginatedSnapshots = useMemo(() => {
-		if (!snapshots) return [];
-		const startIndex = (currentPage - 1) * pageSize;
-		const endIndex = startIndex + pageSize;
-		return snapshots.slice(startIndex, endIndex);
-	}, [snapshots, currentPage, pageSize]);
+	const sortedSnapshots = useMemo(() => {
+		if (!snapshots) return null;
+		return [...snapshots]
+			.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+			.map((s) => ({
+				...s,
+				timestamp: new Date(s.createdAt).getTime(),
+			}));
+	}, [snapshots]);
 
-	const totalPages = snapshots ? Math.ceil(snapshots.length / pageSize) : 0;
+	const canGoBack = useMemo(() => {
+		if (!sortedSnapshots || !timeRangeHours || timeRangeHours <= 0) return false;
+		const oldestTimestamp = sortedSnapshots[0].timestamp;
+		const newestTimestamp = sortedSnapshots[sortedSnapshots.length - 1].timestamp;
+		const timeDiff = newestTimestamp - oldestTimestamp;
+		return timeOffsetHours * HOUR + timeRangeHours * HOUR < timeDiff;
+	}, [snapshots, timeRangeHours, timeOffsetHours]);
+
+	const canGoForward = useMemo(() => {
+		if (!sortedSnapshots || !timeRangeHours || timeRangeHours <= 0 || timeOffsetHours <= 0) return false;
+		return true;
+	}, [snapshots, timeRangeHours, timeOffsetHours]);
+
+	const processedData = useMemo(
+		() => processSnapshots(sortedSnapshots, timeRangeHours, timeOffsetHours),
+		[snapshots, timeRangeHours, timeOffsetHours],
+	);
 
 	if (!snapshots) {
 		return <Skeleton className="w-full h-50 rounded-lg mt-4" />;
@@ -141,20 +158,7 @@ const SnapshotsView = ({
 		);
 	}
 
-	const processedData = processSnapshots(snapshots, timeRangeHours, timeOffsetHours);
 	const milestoneAchievements = detectMilestoneAchievements(snapshots, publishedAt);
-
-	// Handle time range navigation
-	const totalDataHours =
-		snapshots && snapshots.length > 0
-			? (new Date(snapshots[snapshots.length - 1].createdAt).getTime() -
-					new Date(snapshots[0].createdAt).getTime()) /
-				(1000 * 60 * 60)
-			: 0;
-
-	// Simplified logic: always allow navigation if we have a time range
-	const canGoBack = timeRangeHours !== undefined && timeRangeHours > 0;
-	const canGoForward = timeRangeHours !== undefined && timeRangeHours > 0;
 
 	const handleBack = () => {
 		if (timeRangeHours && timeRangeHours > 0) {
@@ -169,7 +173,7 @@ const SnapshotsView = ({
 	};
 
 	return (
-		<div className="mt-4">
+		<div className="mt-4 stat-num">
 			<p>
 				播放: {snapshots[0].views.toLocaleString()}
 				<span className="text-secondary-foreground">
@@ -207,70 +211,42 @@ const SnapshotsView = ({
 			<Tabs defaultValue="chart" className="mt-4">
 				<div className="flex justify-between items-center mb-4">
 					<h2 className="text-2xl font-medium">数据</h2>
-					<div className="flex items-center gap-4">
-						<TabsList>
-							<TabsTrigger value="chart">图表</TabsTrigger>
-							<TabsTrigger value="table">表格</TabsTrigger>
-						</TabsList>
-						<Select value={timeRange} onValueChange={setTimeRange}>
-							<SelectTrigger className="w-32">
-								<SelectValue placeholder="时间范围" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="6h">6小时</SelectItem>
-								<SelectItem value="12h">12小时</SelectItem>
-								<SelectItem value="24h">24小时</SelectItem>
-								<SelectItem value="3d">3天</SelectItem>
-								<SelectItem value="7d">7天</SelectItem>
-								<SelectItem value="14d">14天</SelectItem>
-								<SelectItem value="30d">30天</SelectItem>
-								<SelectItem value="all">全部</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+					<TabsList>
+						<TabsTrigger value="chart">图表</TabsTrigger>
+						<TabsTrigger value="table">表格</TabsTrigger>
+					</TabsList>
 				</div>
 
 				<TabsContent value="chart">
 					<div className="flex flex-col gap-2">
 						<div className="flex justify-between items-center">
 							<Button variant="outline" size="sm" onClick={handleBack} disabled={!canGoBack}>
-								上一个时间段
+								上一页
 							</Button>
-							<span className="text-sm text-secondary-foreground">
-								{timeRangeHours ? `${timeRangeHours}小时范围` : "全部数据"}
-							</span>
+							<Select value={timeRange} onValueChange={setTimeRange}>
+								<SelectTrigger className="w-32">
+									<SelectValue placeholder="时间范围" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="6h">6小时</SelectItem>
+									<SelectItem value="24h">24小时</SelectItem>
+									<SelectItem value="7d">7天</SelectItem>
+									<SelectItem value="14d">14天</SelectItem>
+									<SelectItem value="30d">30天</SelectItem>
+									<SelectItem value="90d">90天</SelectItem>
+									<SelectItem value="365d">1年</SelectItem>
+									<SelectItem value="all">全部</SelectItem>
+								</SelectContent>
+							</Select>
 							<Button variant="outline" size="sm" onClick={handleForward} disabled={!canGoForward}>
-								下一个时间段
+								下一页
 							</Button>
 						</div>
 						<ViewsChart chartData={processedData} />
 					</div>
 				</TabsContent>
 				<TabsContent value="table">
-					<StatsTable snapshots={paginatedSnapshots} />
-					{totalPages > 1 && (
-						<div className="flex justify-center items-center gap-2 mt-4">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-								disabled={currentPage === 1}
-							>
-								上一页
-							</Button>
-							<span className="text-sm text-secondary-foreground">
-								第 {currentPage} 页，共 {totalPages} 页
-							</span>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-								disabled={currentPage === totalPages}
-							>
-								下一页
-							</Button>
-						</div>
-					)}
+					<StatsTable snapshots={snapshots} />
 				</TabsContent>
 			</Tabs>
 		</div>
@@ -457,7 +433,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 					</DialogContent>
 				</Dialog>
 			</div>
-			<div className="flex justify-between mt-3">
+			<div className="flex justify-between mt-3  stat-num">
 				<div>
 					<If condition={songInfo!.aid}>
 						<Then>

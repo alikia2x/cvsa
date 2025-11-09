@@ -10,10 +10,9 @@ export interface MilestoneAchievement {
 }
 
 const getDataIntervalMins = (interval: number, timeRangeHours?: number) => {
-	if (!timeRangeHours ||timeRangeHours >= 7 * 24) {
+	if (!timeRangeHours || timeRangeHours > 90 * 24) {
 		return 24 * 60;
-	}
-	if (interval >= 6 * HOUR) {
+	} else if (interval >= 6 * HOUR) {
 		return 6 * 60;
 	} else if (interval >= 1 * HOUR) {
 		return 60;
@@ -25,122 +24,130 @@ const getDataIntervalMins = (interval: number, timeRangeHours?: number) => {
 	return 1;
 };
 
-export const processSnapshots = (snapshots: Snapshots | null, timeRangeHours?: number, timeOffsetHours: number = 0) => {
-	if (!snapshots || snapshots.length === 0) {
+export const processSnapshots = (
+	snapshotTimestamps: (Exclude<Snapshots, null>[number] & { timestamp: number })[] | null,
+	timeRangeHours?: number,
+	timeOffsetHours: number = 0,
+) => {
+	if (!snapshotTimestamps || snapshotTimestamps.length === 0) {
 		return [];
 	}
 
-	const sortedSnapshots = [...snapshots].sort(
-		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-	);
+	const oldestTimestamp = snapshotTimestamps[0].timestamp;
+	const newestTimestamp = snapshotTimestamps[snapshotTimestamps.length - 1].timestamp;
 
-	const oldestDate = new Date(sortedSnapshots[0].createdAt);
-	const newestDate = new Date(sortedSnapshots[sortedSnapshots.length - 1].createdAt);
+	const targetEndTime = timeRangeHours ? newestTimestamp - timeOffsetHours * HOUR : newestTimestamp;
+	const targetStartTime = timeRangeHours ? targetEndTime - timeRangeHours * HOUR : oldestTimestamp;
 
-	// Calculate the time range with offset
-	const targetEndTime = timeRangeHours ? new Date(newestDate.getTime() - timeOffsetHours * HOUR) : newestDate;
-	const targetStartTime = timeRangeHours ? new Date(targetEndTime.getTime() - timeRangeHours * HOUR) : null;
-
-	const startTime = targetStartTime ? (oldestDate > targetStartTime ? oldestDate : targetStartTime) : oldestDate;
+	const startTime = Math.max(oldestTimestamp, targetStartTime);
 	const endTime = targetEndTime;
 
-	const hourlyTimePoints: Date[] = [];
-	const currentTime = endTime;
-	const timeDiff = currentTime.getTime() - startTime.getTime();
-	const length = sortedSnapshots.filter((s) => {
-		const snapshotTime = new Date(s.createdAt).getTime();
-		return snapshotTime >= startTime.getTime() && snapshotTime <= endTime.getTime();
-	}).length;
-	const avgInterval = timeDiff / length;
-	const dataIntervalMins = getDataIntervalMins(avgInterval, timeRangeHours);
+	const beforeRangeSnapshots = snapshotTimestamps.filter((s) => s.timestamp < startTime);
+	const afterRangeSnapshots = snapshotTimestamps.filter((s) => s.timestamp > endTime);
 
-	for (let time = new Date(startTime); time <= currentTime; time.setMinutes(time.getMinutes() + dataIntervalMins)) {
-		hourlyTimePoints.push(new Date(time));
+	const closestBefore =
+		beforeRangeSnapshots.length > 0 ? beforeRangeSnapshots[beforeRangeSnapshots.length - 1] : null;
+	const closestAfter = afterRangeSnapshots.length > 0 ? afterRangeSnapshots[0] : null;
+
+	const relevantSnapshots = snapshotTimestamps.filter((s) => s.timestamp >= startTime && s.timestamp <= endTime);
+
+	if (relevantSnapshots.length === 0) {
+		if (!closestBefore && !closestAfter) {
+			return [];
+		}
+
+		if (closestBefore && !closestAfter) {
+			return [createSnapshotData(startTime, closestBefore)];
+		}
+		if (!closestBefore && closestAfter) {
+			return [createSnapshotData(startTime, closestAfter)];
+		}
+
+		if (closestBefore && closestAfter) {
+			const timeDiff = closestAfter.timestamp - closestBefore.timestamp;
+			const ratio = (startTime - closestBefore.timestamp) / timeDiff;
+			return [createInterpolatedSnapshot(startTime, closestBefore, closestAfter, ratio)];
+		}
 	}
 
-	const processedData = hourlyTimePoints
-		.map((timePoint) => {
-			const previousSnapshots = sortedSnapshots.filter((s) => {
-				const snapshotTime = new Date(s.createdAt).getTime();
-				return snapshotTime <= timePoint.getTime() && snapshotTime >= startTime.getTime();
-			});
-	
-			const nextSnapshots = sortedSnapshots.filter((s) => {
-				const snapshotTime = new Date(s.createdAt).getTime();
-				return snapshotTime >= timePoint.getTime() && snapshotTime <= endTime.getTime();
-			});
+	const timeDiff = endTime - startTime;
+	const avgInterval = timeDiff / Math.max(relevantSnapshots.length, 1);
+	const dataIntervalMins = getDataIntervalMins(avgInterval, timeRangeHours);
+	const dataIntervalMs = dataIntervalMins * 60 * 1000;
 
-			const previousSnapshot = previousSnapshots[previousSnapshots.length - 1];
-			const nextSnapshot = nextSnapshots[0];
+	const hourlyTimePoints: number[] = [];
+	for (let time = startTime; time <= endTime; time += dataIntervalMs) {
+		hourlyTimePoints.push(time);
+	}
 
-			if (!previousSnapshot && !nextSnapshot) {
-				return null;
+	let snapshotIndex = 0;
+	const processedData = [];
+
+	for (const timePoint of hourlyTimePoints) {
+		while (snapshotIndex < relevantSnapshots.length - 1 && relevantSnapshots[snapshotIndex].timestamp < timePoint) {
+			snapshotIndex++;
+		}
+
+		const currentSnapshot = relevantSnapshots[snapshotIndex];
+		const prevSnapshot = snapshotIndex > 0 ? relevantSnapshots[snapshotIndex - 1] : null;
+
+		let result = null;
+
+		if (currentSnapshot && currentSnapshot.timestamp === timePoint) {
+			result = createSnapshotData(timePoint, currentSnapshot);
+		} else if (prevSnapshot && currentSnapshot && prevSnapshot.timestamp <= timePoint) {
+			const ratio = (timePoint - prevSnapshot.timestamp) / (currentSnapshot.timestamp - prevSnapshot.timestamp);
+			result = createInterpolatedSnapshot(timePoint, prevSnapshot, currentSnapshot, ratio);
+		} else if (!prevSnapshot && currentSnapshot && currentSnapshot.timestamp >= timePoint) {
+			result = createSnapshotData(timePoint, currentSnapshot);
+		} else if (
+			snapshotIndex === relevantSnapshots.length - 1 &&
+			currentSnapshot &&
+			currentSnapshot.timestamp <= timePoint
+		) {
+			result = createSnapshotData(timePoint, currentSnapshot);
+		} else {
+			if (closestBefore && closestAfter) {
+				const timeDiff = closestAfter.timestamp - closestBefore.timestamp;
+				const ratio = (timePoint - closestBefore.timestamp) / timeDiff;
+				result = createInterpolatedSnapshot(timePoint, closestBefore, closestAfter, ratio);
+			} else if (closestBefore) {
+				result = createSnapshotData(timePoint, closestBefore);
+			} else if (closestAfter) {
+				result = createSnapshotData(timePoint, closestAfter);
 			}
+		}
 
-			if (previousSnapshot && new Date(previousSnapshot.createdAt).getTime() === timePoint.getTime()) {
-				return {
-					createdAt: timePoint.toISOString(),
-					views: previousSnapshot.views,
-					likes: previousSnapshot.likes || 0,
-					favorites: previousSnapshot.favorites || 0,
-					coins: previousSnapshot.coins || 0,
-					danmakus: previousSnapshot.danmakus || 0,
-				};
-			}
-
-			if (previousSnapshot && !nextSnapshot) {
-				return {
-					createdAt: timePoint.toISOString(),
-					views: previousSnapshot.views,
-					likes: previousSnapshot.likes || 0,
-					favorites: previousSnapshot.favorites || 0,
-					coins: previousSnapshot.coins || 0,
-					danmakus: previousSnapshot.danmakus || 0,
-				};
-			}
-
-			if (!previousSnapshot && nextSnapshot) {
-				return {
-					createdAt: timePoint.toISOString(),
-					views: nextSnapshot.views,
-					likes: nextSnapshot.likes || 0,
-					favorites: nextSnapshot.favorites || 0,
-					coins: nextSnapshot.coins || 0,
-					danmakus: nextSnapshot.danmakus || 0,
-				};
-			}
-
-			const prevTime = new Date(previousSnapshot.createdAt).getTime();
-			const nextTime = new Date(nextSnapshot.createdAt).getTime();
-			const currentTime = timePoint.getTime();
-
-			const ratio = (currentTime - prevTime) / (nextTime - prevTime);
-
-			return {
-				createdAt: timePoint.toISOString(),
-				views: Math.round(previousSnapshot.views + (nextSnapshot.views - previousSnapshot.views) * ratio),
-				likes: Math.round(
-					(previousSnapshot.likes || 0) + ((nextSnapshot.likes || 0) - (previousSnapshot.likes || 0)) * ratio,
-				),
-				favorites: Math.round(
-					(previousSnapshot.favorites || 0) +
-						((nextSnapshot.favorites || 0) - (previousSnapshot.favorites || 0)) * ratio,
-				),
-				coins: Math.round(
-					(previousSnapshot.coins || 0) + ((nextSnapshot.coins || 0) - (previousSnapshot.coins || 0)) * ratio,
-				),
-				danmakus: Math.round(
-					(previousSnapshot.danmakus || 0) +
-						((nextSnapshot.danmakus || 0) - (previousSnapshot.danmakus || 0)) * ratio,
-				),
-			};
-		})
-		.filter((d) => d !== null);
+		if (result) {
+			processedData.push(result);
+		}
+	}
 
 	return processedData;
 };
 
-export const detectMilestoneAchievements = (snapshots: Snapshots | null, publishedAt?: string): MilestoneAchievement[] => {
+const createSnapshotData = (timestamp: number, snapshot: any) => ({
+	createdAt: new Date(timestamp).toISOString(),
+	views: snapshot.views,
+	likes: snapshot.likes || 0,
+	favorites: snapshot.favorites || 0,
+	coins: snapshot.coins || 0,
+	danmakus: snapshot.danmakus || 0,
+});
+
+const createInterpolatedSnapshot = (timestamp: number, prev: any, next: any, ratio: number) => ({
+	createdAt: new Date(timestamp).toISOString(),
+	views: Math.round(prev.views + (next.views - prev.views) * ratio),
+	likes: Math.round((prev.likes || 0) + ((next.likes || 0) - (prev.likes || 0)) * ratio),
+	favorites: Math.round((prev.favorites || 0) + ((next.favorites || 0) - (prev.favorites || 0)) * ratio),
+	coins: Math.round((prev.coins || 0) + ((next.coins || 0) - (prev.coins || 0)) * ratio),
+	danmakus: Math.round((prev.danmakus || 0) + ((next.danmakus || 0) - (prev.danmakus || 0)) * ratio),
+});
+
+export const detectMilestoneAchievements = (
+	snapshots: Snapshots | null,
+	publishedAt?: string,
+): MilestoneAchievement[] => {
 	if (!snapshots || snapshots.length < 2) {
 		return [];
 	}
@@ -153,7 +160,6 @@ export const detectMilestoneAchievements = (snapshots: Snapshots | null, publish
 	const milestoneNames = ["殿堂", "传说", "神话"];
 	const achievements: MilestoneAchievement[] = [];
 
-	// Find the earliest snapshot for each milestone
 	const earliestAchievements = new Map<number, MilestoneAchievement>();
 
 	for (let i = 1; i < sortedSnapshots.length; i++) {
@@ -164,15 +170,12 @@ export const detectMilestoneAchievements = (snapshots: Snapshots | null, publish
 		const currentTime = new Date(currentSnapshot.createdAt).getTime();
 		const timeDiff = currentTime - prevTime;
 
-		// Check if snapshots are within 10 minutes
 		if (timeDiff <= 10 * 60 * 1000) {
 			for (let j = 0; j < milestones.length; j++) {
 				const milestone = milestones[j];
 				const milestoneName = milestoneNames[j];
 
-				// Check if milestone was crossed between these two snapshots
 				if (prevSnapshot.views < milestone && currentSnapshot.views >= milestone) {
-					// Find the exact time when milestone was reached (linear interpolation)
 					const ratio = (milestone - prevSnapshot.views) / (currentSnapshot.views - prevSnapshot.views);
 					const milestoneTime = new Date(prevTime + ratio * timeDiff);
 
@@ -183,7 +186,6 @@ export const detectMilestoneAchievements = (snapshots: Snapshots | null, publish
 						views: milestone,
 					};
 
-					// Only keep the earliest achievement for each milestone
 					if (
 						!earliestAchievements.has(milestone) ||
 						new Date(achievement.achievedAt) < new Date(earliestAchievements.get(milestone)!.achievedAt)
@@ -192,7 +194,6 @@ export const detectMilestoneAchievements = (snapshots: Snapshots | null, publish
 					}
 				}
 
-				// Check if a snapshot exactly equals a milestone
 				if (prevSnapshot.views === milestone || currentSnapshot.views === milestone) {
 					const exactSnapshot = prevSnapshot.views === milestone ? prevSnapshot : currentSnapshot;
 					const achievement: MilestoneAchievement = {
@@ -213,22 +214,19 @@ export const detectMilestoneAchievements = (snapshots: Snapshots | null, publish
 		}
 	}
 
-	// Convert map to array and sort by milestone value
 	const achievementsWithTime = Array.from(earliestAchievements.values()).sort((a, b) => a.milestone - b.milestone);
 
-	// Calculate time taken for each achievement
 	if (publishedAt) {
 		const publishTime = new Date(publishedAt).getTime();
-		
+
 		for (const achievement of achievementsWithTime) {
 			const achievementTime = new Date(achievement.achievedAt).getTime();
 			const timeDiffMs = achievementTime - publishTime;
-			
-			// Convert to days, hours, minutes
+
 			const days = Math.floor(timeDiffMs / (1000 * 60 * 60 * 24));
 			const hours = Math.floor((timeDiffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 			const minutes = Math.floor((timeDiffMs % (1000 * 60 * 60)) / (1000 * 60));
-			
+
 			achievement.timeTaken = `${days} 天 ${hours} 时 ${minutes} 分`;
 		}
 	}

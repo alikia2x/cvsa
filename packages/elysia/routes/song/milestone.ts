@@ -3,6 +3,8 @@ import { dbMain } from "@core/drizzle";
 import { bilibiliMetadata, eta, latestVideoSnapshot } from "@core/drizzle/main/schema";
 import { eq, and, gte, lt, desc } from "drizzle-orm";
 import serverTiming from "@elysia/middlewares/timing";
+import z from "zod";
+import { BiliVideoSchema } from "@elysia/lib/schema";
 
 type MileStoneType = "dendou" | "densetsu" | "shinwa";
 
@@ -34,7 +36,18 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 	},
 	{
 		response: {
-			200: t.Array(t.Any()),
+			200: z.array(
+				z.object({
+					eta: z.object({
+						aid: z.number(),
+						eta: z.number(),
+						speed: z.number(),
+						currentViews: z.number(),
+						updatedAt: z.string()
+					}),
+					bilibili_metadata: BiliVideoSchema
+				})
+			),
 			404: t.Object({
 				message: t.String()
 			})
