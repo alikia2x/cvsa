@@ -99,13 +99,43 @@ interface Snapshot {
 	views: number;
 }
 
-export async function findClosestSnapshot(sql: Psql, aid: number, targetTime: Date): Promise<Snapshot | null> {
+export async function findClosestSnapshot(
+	sql: Psql,
+	aid: number,
+	targetTime: Date
+): Promise<Snapshot | null> {
 	const result = await sql<{ created_at: string; views: number }[]>`
-        SELECT created_at, views
-        FROM video_snapshot
-        WHERE aid = ${aid}
-        ORDER BY ABS(EXTRACT(EPOCH FROM (created_at - ${targetTime.toISOString()}::timestamptz)))
-        LIMIT 1
+		WITH target_time AS NOT MATERIALIZED (
+			SELECT ${targetTime.toISOString()}::timestamptz AS t
+		),
+		before AS NOT MATERIALIZED (
+			SELECT 
+				created_at, 
+				views,
+				EXTRACT(EPOCH FROM (t - created_at)) AS distance
+			FROM video_snapshot, target_time
+			WHERE aid = ${aid} 
+			AND created_at <= t
+			ORDER BY created_at DESC
+			LIMIT 1
+		),
+		after AS NOT MATERIALIZED (
+			SELECT 
+				created_at, 
+				views,
+				EXTRACT(EPOCH FROM (created_at - t)) AS distance
+			FROM video_snapshot, target_time
+			WHERE aid = ${aid} 
+			AND created_at >= t
+			ORDER BY created_at ASC
+			LIMIT 1
+		)
+		SELECT created_at, views
+		FROM (
+			SELECT *, ROW_NUMBER() OVER (ORDER BY distance) AS rn
+			FROM (SELECT * FROM before UNION ALL SELECT * FROM after) AS combined
+		) AS ranked
+		WHERE rn = 1;
 	`;
 	if (result.length === 0) return null;
 	const row = result[0];
@@ -115,7 +145,11 @@ export async function findClosestSnapshot(sql: Psql, aid: number, targetTime: Da
 	};
 }
 
-export async function findSnapshotBefore(sql: Psql, aid: number, targetTime: Date): Promise<Snapshot | null> {
+export async function findSnapshotBefore(
+	sql: Psql,
+	aid: number,
+	targetTime: Date
+): Promise<Snapshot | null> {
 	const result = await sql<{ created_at: string; views: number }[]>`
         SELECT created_at, views
         FROM video_snapshot
@@ -133,12 +167,15 @@ export async function findSnapshotBefore(sql: Psql, aid: number, targetTime: Dat
 }
 
 export async function hasAtLeast2Snapshots(sql: Psql, aid: number) {
-	const res = await sql<{ count: number }[]>`
-		SELECT COUNT(*)
-		FROM video_snapshot
+	const res = await sql<{ exists: boolean }[]>`
+	  SELECT EXISTS (
+		SELECT 1 
+		FROM video_snapshot 
 		WHERE aid = ${aid}
+		LIMIT 2
+	  ) AS exists
 	`;
-	return res[0].count >= 2;
+	return res[0].exists;
 }
 
 export async function getLatestSnapshot(sql: Psql, aid: number): Promise<Snapshot | null> {
@@ -192,7 +229,9 @@ export async function scheduleSnapshot(
 		if (!latestActiveSchedule) {
 			return;
 		}
-		const latestScheduleStartedAt = new Date(parseTimestampFromPsql(latestActiveSchedule.started_at));
+		const latestScheduleStartedAt = new Date(
+			parseTimestampFromPsql(latestActiveSchedule.started_at)
+		);
 		if (latestScheduleStartedAt > adjustedTime) {
 			await sql`
                 UPDATE snapshot_schedule
@@ -211,7 +250,11 @@ export async function scheduleSnapshot(
 	if (type !== "milestone" && type !== "new" && adjustTime) {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 3000, redis);
 	}
-	logger.log(`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`, "mq", "fn:scheduleSnapshot");
+	logger.log(
+		`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`,
+		"mq",
+		"fn:scheduleSnapshot"
+	);
 	return sql`
 		INSERT INTO snapshot_schedule
 			(aid, type, started_at)

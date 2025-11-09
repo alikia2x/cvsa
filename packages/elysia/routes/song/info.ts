@@ -38,7 +38,11 @@ async function getSongID(id: string) {
 }
 
 async function getSongInfo(id: number) {
-	const songInfo = await dbMain.select().from(songs).where(eq(songs.id, id)).limit(1);
+	const songInfo = await dbMain
+		.select()
+		.from(songs)
+		.where(and(eq(songs.id, id), eq(songs.deleted, false)))
+		.limit(1);
 	return songInfo[0];
 }
 
@@ -79,23 +83,27 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 		}
 		const singers = await getSingers(info.id);
 		return {
+			id: info.id,
 			name: info.name,
 			aid: info.aid,
 			producer: info.producer,
 			duration: info.duration,
 			singers: singers,
-			cover: info.image || undefined
+			cover: info.image || undefined,
+			publishedAt: info.publishedAt
 		};
 	},
 	{
 		response: {
 			200: t.Object({
+				id: t.Number(),
 				name: t.Union([t.String(), t.Null()]),
 				aid: t.Union([t.Number(), t.Null()]),
 				producer: t.Union([t.String(), t.Null()]),
 				duration: t.Union([t.Number(), t.Null()]),
 				singers: t.Array(t.String()),
-				cover: t.Optional(t.String())
+				cover: t.Optional(t.String()),
+				publishedAt: t.Union([t.String(), t.Null()]),
 			}),
 			404: t.Object({
 				code: t.String(),
@@ -103,7 +111,7 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 			})
 		},
 		headers: t.Object({
-			"Authorization": t.Optional(t.String())
+			Authorization: t.Optional(t.String())
 		}),
 		detail: {
 			summary: "Get information of a song",
@@ -117,62 +125,60 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 	}
 );
 
-const songInfoUpdateHandler = new Elysia({ prefix: "/song" })
-	.use(requireAuth)
-	.patch(
-		"/:id/info",
-		async ({ params, status, body, user }) => {
-			const id = params.id;
-			const songID = await getSongID(id);
-			if (!songID) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-			const info = await getSongInfo(songID);
-			if (!info) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
-
-			if (body.name) {
-				await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
-			}
-			if (body.producer) {
-				await dbMain
-					.update(songs)
-					.set({ producer: body.producer })
-					.where(eq(songs.id, songID))
-					.returning();
-			}
-			const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
-			return {
-				message: "Successfully updated song info.",
-				updated: updatedData.length > 0 ? updatedData[0] : null
-			};
-		},
-		{
-			response: {
-				200: t.Object({
-					message: t.String(),
-					updated: t.Any()
-				}),
-				401: t.Object({
-					message: t.String()
-				}),
-				404: t.Object({
-					message: t.String(),
-					code: t.String()
-				})
-			},
-			body: t.Object({
-				name: t.Optional(t.String()),
-				producer: t.Optional(t.String())
-			})
+const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(requireAuth).patch(
+	"/:id/info",
+	async ({ params, status, body }) => {
+		const id = params.id;
+		const songID = await getSongID(id);
+		if (!songID) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
 		}
-	);
+		const info = await getSongInfo(songID);
+		if (!info) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
+
+		if (body.name) {
+			await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
+		}
+		if (body.producer) {
+			await dbMain
+				.update(songs)
+				.set({ producer: body.producer })
+				.where(eq(songs.id, songID))
+				.returning();
+		}
+		const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
+		return {
+			message: "Successfully updated song info.",
+			updated: updatedData.length > 0 ? updatedData[0] : null
+		};
+	},
+	{
+		response: {
+			200: t.Object({
+				message: t.String(),
+				updated: t.Any()
+			}),
+			401: t.Object({
+				message: t.String()
+			}),
+			404: t.Object({
+				message: t.String(),
+				code: t.String()
+			})
+		},
+		body: t.Object({
+			name: t.Optional(t.String()),
+			producer: t.Optional(t.String())
+		})
+	}
+);
 
 export const songInfoHandler = new Elysia().use(songInfoGetHandler).use(songInfoUpdateHandler);

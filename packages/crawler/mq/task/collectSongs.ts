@@ -17,6 +17,21 @@ export async function collectSongs() {
 }
 
 export async function insertIntoSongs(sql: Psql, aid: number) {
+	const songExistsAndDeleted = await sql`
+		SELECT EXISTS (
+			SELECT 1
+			FROM songs
+			WHERE aid = ${aid}
+			AND deleted = true
+		);
+	`;
+	if (songExistsAndDeleted[0].exists) {
+		await sql`
+			UPDATE songs
+			SET deleted = false
+			WHERE aid = ${aid}
+		`;
+	}
 	await sql`
 		INSERT INTO songs (aid, published_at, duration, image, producer)
 		VALUES (

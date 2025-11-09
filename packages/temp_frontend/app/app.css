@@ -12,6 +12,25 @@ input[type="search"]::-webkit-search-results-decoration {
 	display: none;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+.stat-num {
+	font-family: "Inter", sans-serif;
+	font-feature-settings: "tnum";
+}
+
+.xAxis .recharts-cartesian-axis-ticks {
+	transform: translateX(-7px);
+}
+
 @theme inline {
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);

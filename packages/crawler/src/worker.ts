@@ -17,6 +17,7 @@ import logger from "@core/log";
 import { lockManager } from "@core/mq/lockManager";
 import { WorkerError } from "mq/schema";
 import { collectQueueMetrics } from "mq/exec/collectQueueMetrics";
+import { directSnapshotWorker } from "mq/exec/directSnapshot";
 
 const releaseLockForJob = async (name: string) => {
 	await lockManager.releaseLock(name);
@@ -77,6 +78,8 @@ const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
 		switch (job.name) {
+			case "directSnapshot": 
+				return await directSnapshotWorker(job);
 			case "snapshotVideo":
 				return await snapshotVideoWorker(job);
 			case "snapshotTick":

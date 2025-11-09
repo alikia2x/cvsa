@@ -2,13 +2,18 @@ import { getVideoDetails } from "net/getVideoDetails";
 import { formatTimestampToPsql } from "utils/formatTimestampToPostgre";
 import logger from "@core/log";
 import { ClassifyVideoQueue } from "mq/index";
-import { userExistsInBiliUsers, videoExistsInAllData } from "../../db/bilibili_metadata";
+import { userExistsInBiliUsers, videoExistsInAllData } from "db/bilibili_metadata";
 import { HOUR, SECOND } from "@core/lib";
 import type { Psql } from "@core/db/psql.d";
+import { insertIntoSongs } from "./collectSongs";
 
-export async function insertVideoInfo(sql: Psql, aid: number) {
+export async function insertVideoInfo(sql: Psql, aid: number, insertSongs = false) {
 	const videoExists = await videoExistsInAllData(sql, aid);
-	if (videoExists) {
+	if (videoExists && !insertSongs) {
+		return;
+	}
+	if (videoExists && insertSongs) {
+		await insertIntoSongs(sql, aid);
 		return;
 	}
 	const data = await getVideoDetails(aid);
@@ -58,5 +63,10 @@ export async function insertVideoInfo(sql: Psql, aid: number) {
 	`;
 
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
-	await ClassifyVideoQueue.add("classifyVideo", { aid });
+	
+	if (!insertSongs) {
+		await ClassifyVideoQueue.add("classifyVideo", { aid });
+		return;
+	}
+	await insertIntoSongs(sql, aid);
 }

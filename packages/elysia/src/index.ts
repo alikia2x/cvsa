@@ -11,6 +11,8 @@ import { authHandler } from "@elysia/routes/auth";
 import { onAfterHandler } from "./onAfterHandle";
 import { searchHandler } from "@elysia/routes/search";
 import { getVideoSnapshotsHandler } from "@elysia/routes/video/snapshots";
+import { addSongHandler } from "@elysia/routes/song/add";
+import { deleteSongHandler } from "@elysia/routes/song/delete";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -20,14 +22,13 @@ const app = new Elysia({
 		hostname: host
 	}
 })
-	.onError(({ code, status }) => {
+	.onError(({ code, status, error }) => {
 		if (code === "NOT_FOUND")
 			return status(404, {
 				message: "The requested resource was not found."
 			});
-		return status(500, {
-			message: "An internal server error occurred."
-		});
+		if (code === "VALIDATION") return error.detail(error.message);
+		return error;
 	})
 	.use(onAfterHandler)
 	.use(cors())
@@ -40,6 +41,8 @@ const app = new Elysia({
 	.use(closeMileStoneHandler)
 	.use(searchHandler)
 	.use(getVideoSnapshotsHandler)
+	.use(addSongHandler)
+	.use(deleteSongHandler)
 	.listen(15412);
 
 export const VERSION = "0.7.0";

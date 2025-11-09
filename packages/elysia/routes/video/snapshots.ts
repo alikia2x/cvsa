@@ -5,6 +5,7 @@ import { bv2av } from "@elysia/lib/bilibiliID";
 import { ErrorResponseSchema } from "@elysia/src/schema";
 import { eq, desc } from "drizzle-orm";
 import z from "zod";
+import { SnapshotQueue } from "@elysia/lib/mq";
 
 export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/snapshots",
@@ -30,6 +31,12 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 			.from(videoSnapshot)
 			.where(eq(videoSnapshot.aid, aid))
 			.orderBy(desc(videoSnapshot.createdAt));
+
+		if (data.length === 0) {
+			await SnapshotQueue.add("directSnapshot", {
+				aid
+			});
+		}
 
 		return data;
 	},
