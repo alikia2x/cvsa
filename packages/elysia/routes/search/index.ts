@@ -35,12 +35,14 @@ const getSongSearchResult = async (searchQuery: string) => {
 		.map((song) => {
 			if (!song.songs.name) return null;
 			const occurrences = (song.songs.name.match(new RegExp(searchQuery, "gi")) || []).length;
+			const lengthRatio = searchQuery.length / song.songs.name.length;
 			const viewsLog = Math.log10(song.latest_video_snapshot.views + 1);
 			return {
 				type: "song" as "song",
 				data: song,
 				occurrences,
-				viewsLog
+				viewsLog,
+				lengthRatio
 			};
 		})
 		.filter((d) => d !== null);
@@ -61,7 +63,7 @@ const getSongSearchResult = async (searchQuery: string) => {
 		const normalizedViewsLog = (result.viewsLog - minViewsLog) / viewsLogRange;
 
 		// Weighted combination
-		const rank = normalizedOccurrences * 0.6 + normalizedViewsLog * 0.4;
+		const rank = normalizedOccurrences * 0.3 + result.lengthRatio * 0.5 + normalizedViewsLog * 0.2;
 
 		return {
 			type: result.type,

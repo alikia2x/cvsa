@@ -167,7 +167,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 		if (error || !data) {
 			toast.error(`无法更新：${error.value.message || "未知错误"}`);
 		}
-		setData(data?.updated);
+		getInfo();
 	};
 
 	return (
