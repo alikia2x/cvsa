@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { dbMain } from "@core/drizzle";
 import { videoSnapshot } from "@core/drizzle/main/schema";
-import { bv2av } from "@elysia/lib/av_bv";
+import { bv2av } from "@elysia/lib/bilibiliID";
 import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
 import { ErrorResponseSchema } from "@elysia/src/schema";

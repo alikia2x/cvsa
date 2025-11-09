@@ -2,7 +2,7 @@ import { Elysia, t } from "elysia";
 import { dbMain } from "@core/drizzle";
 import { relations, singer, songs } from "@core/drizzle/main/schema";
 import { eq, and } from "drizzle-orm";
-import { bv2av } from "@elysia/lib/av_bv";
+import { bv2av } from "@elysia/lib/bilibiliID";
 import { requireAuth } from "@elysia/middlewares/auth";
 
 async function getSongIDFromBiliID(id: string) {

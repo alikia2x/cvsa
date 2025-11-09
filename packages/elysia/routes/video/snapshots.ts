@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { dbMain } from "@core/drizzle";
 import { videoSnapshot } from "@core/drizzle/main/schema";
-import { bv2av } from "@elysia/lib/av_bv";
+import { bv2av } from "@elysia/lib/bilibiliID";
 import { ErrorResponseSchema } from "@elysia/src/schema";
 import { eq, desc } from "drizzle-orm";
 import z from "zod";
