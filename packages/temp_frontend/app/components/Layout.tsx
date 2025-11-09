@@ -4,7 +4,7 @@ import { Search } from "./Search";
 export function Layout({ children }: { children?: React.ReactNode }) {
 	return (
 		<div className="w-screen min-h-screen relative left-0 top-0 flex justify-center">
-			<main className="w-full max-sm:mx-3 pt-14 sm:w-xl xl:w-2xl">
+			<main className="w-full max-sm:mx-3 pt-14 sm:w-xl xl:w-2xl 2xl:w-3xl mb-20">
 				<div className="flex items-center justify-between">
 					<a href="/">
 						<h1 className="text-3xl mb-5">中V档案馆</h1>
@@ -41,7 +41,7 @@ const LoginOrLogout = () => {
 export function LayoutWithoutSearch({ children }: { children?: React.ReactNode }) {
 	return (
 		<div className="w-screen min-h-screen relative left-0 top-0 flex justify-center">
-			<main className="w-full max-sm:mx-3 pt-14 sm:w-xl xl:w-2xl">
+			<main className="w-full max-sm:mx-3 pt-14 sm:w-xl xl:w-2xl 2xl:w-3xl mb-20">
 				<div className="flex items-center justify-between">
 					<a href="/">
 						<h1 className="text-3xl mb-5">中V档案馆</h1>

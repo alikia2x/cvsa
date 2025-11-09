@@ -11,6 +11,7 @@ import logger from "@core/log";
 import { SnapshotQueue } from "mq/index";
 import { sql } from "@core/db/dbNew";
 import { jobCounter, jobDurationRaw } from "metrics";
+import { getClosetMilestone as closetMilestone } from "@core/lib/milestone";
 
 const priorityMap: { [key: string]: number } = {
 	milestone: 1,
@@ -88,11 +89,4 @@ export const snapshotTickWorker = async (_job: Job) => {
 	}
 };
 
-export const closetMilestone = (views: number, strict: boolean = false) => {
-	if (views < 100000) return 100000;
-	if (views < 1000000) return 1000000;
-	if (views < 10000000) {
-		return strict ? 10000000 : Math.ceil(views / 1000000) * 1000000;
-	}
-	return Math.ceil(views / 1000000) * 1000000;
-};
+export { closetMilestone };

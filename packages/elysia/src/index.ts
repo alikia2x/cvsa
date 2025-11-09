@@ -13,6 +13,7 @@ import { searchHandler } from "@elysia/routes/search";
 import { getVideoSnapshotsHandler } from "@elysia/routes/video/snapshots";
 import { addSongHandler } from "@elysia/routes/song/add";
 import { deleteSongHandler } from "@elysia/routes/song/delete";
+import { songEtaHandler } from "@elysia/routes/video/eta";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -43,6 +44,7 @@ const app = new Elysia({
 	.use(getVideoSnapshotsHandler)
 	.use(addSongHandler)
 	.use(deleteSongHandler)
+	.use(songEtaHandler)
 	.listen(15412);
 
 export const VERSION = "0.7.0";
