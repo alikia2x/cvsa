@@ -80,6 +80,7 @@ export default function Home() {
 							alt="视频封面"
 							className="h-25 w-40 rounded-sm object-cover flex-shrink-0"
 							referrerPolicy="no-referrer"
+							loading="lazy"
 						/>
 					)}
 					<div className="flex flex-col w-full justify-between">
@@ -208,7 +209,7 @@ export default function Home() {
 				</div>
 			</div>
 
-			<h2 className="text-2xl mb-4">即将达成里程碑</h2>
+			<h2 className="text-2xl mb-4">即将达成成就</h2>
 			<div className="flex items-center gap-4 mb-6">
 				<Select value={milestoneType} onValueChange={(value: MilestoneType) => setMilestoneType(value)}>
 					<SelectTrigger className="w-20">
