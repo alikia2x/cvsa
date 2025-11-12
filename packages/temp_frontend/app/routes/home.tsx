@@ -11,6 +11,7 @@ import { formatDateTime } from "@/components/SearchResults";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { addHoursToNow, formatHours } from "./song/[id]/info";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
@@ -29,19 +30,6 @@ const milestoneConfig = {
 	densetsu: { name: "传说", range: [900000, 999999], target: 1000000 },
 	shinwa: { name: "神话", range: [5000000, 9999999], target: 10000000 },
 };
-
-function formatHours(hours: number): string {
-	if (hours >= 24 * 14) return `${Math.floor(hours / 24)} 天`;
-	if (hours >= 24) return `${Math.floor(hours / 24)} 天 ${Math.floor(hours % 24)} 小时`;
-	if (hours >= 1) return `${Math.floor(hours)} 时 ${Math.round((hours % 1) * 60)} 分`;
-	return `${Math.round(hours * 60)} 分钟`;
-}
-
-function addHoursToNow(hours: number): string {
-	const d = new Date();
-	d.setHours(d.getHours() + hours);
-	return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")} ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
-}
 
 export default function Home() {
 	const [input, setInput] = useState("");
@@ -78,7 +66,7 @@ export default function Home() {
 						<img
 							src={video.bilibili_metadata.coverUrl}
 							alt="视频封面"
-							className="h-25 w-40 rounded-sm object-cover flex-shrink-0"
+							className="h-25 w-40 rounded-sm object-cover shrink-0"
 							referrerPolicy="no-referrer"
 							loading="lazy"
 						/>

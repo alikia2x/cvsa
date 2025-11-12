@@ -47,16 +47,16 @@ export async function clientLoader({ params }: Route.LoaderArgs) {
 	return { id: params.id };
 }
 
-function formatHours(hours: number): string {
+export function formatHours(hours: number): string {
 	if (hours >= 24 * 14) return `${Math.floor(hours / 24)} 天`;
 	if (hours >= 24) return `${Math.floor(hours / 24)} 天 ${Math.round(hours) % 24} 小时`;
 	if (hours >= 1) return `${Math.floor(hours)} 时 ${Math.round((hours % 1) * 60)} 分`;
 	return `${Math.round(hours * 60)} 分钟`;
 }
 
-function addHoursToNow(hours: number): string {
+export function addHoursToNow(hours: number): string {
 	const d = new Date();
-	d.setHours(d.getHours() + hours);
+	d.setSeconds(d.getSeconds() + hours * 3600);
 	return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")} ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
 }
 
