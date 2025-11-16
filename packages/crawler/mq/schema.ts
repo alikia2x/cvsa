@@ -10,3 +10,9 @@ export class WorkerError extends Error {
 		this.rawError = rawError;
 	}
 }
+
+export interface GetVideoInfoJobData {
+	aid: number;
+	insertSongs?: boolean;
+	uid?: string;
+}

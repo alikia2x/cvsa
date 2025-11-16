@@ -1,4 +1,4 @@
-import Elysia from "elysia";
+import Elysia, { ElysiaFile } from "elysia";
 
 const encoder = new TextEncoder();
 
@@ -11,20 +11,14 @@ export const onAfterHandler = new Elysia().onAfterHandle(
 		const requestJson = contentType.includes("application/json");
 		const isBrowser =
 			!requestJson && (accept.includes("text/html") || secFetchMode === "navigate");
-		const responseValueType = typeof responseValue;
-		const isObject = responseValueType === "object";
+		const isObject = typeof responseValue === "object";
 		if (!isObject) {
-			const response = {
-				message: responseValue
-			};
-			const text = isBrowser ? JSON.stringify(response, null, 2) : JSON.stringify(response);
-			return new Response(encoder.encode(text), {
-				headers: {
-					"Content-Type": "application/json; charset=utf-8"
-				}
-			});
+			return;
 		}
-		const realResponse = responseValue as Record<string, unknown>;
+		if (responseValue instanceof ElysiaFile || responseValue instanceof Response) {
+			return;
+		}
+		const realResponse = responseValue as Record<string, any>;
 		if (realResponse.code) {
 			const text = isBrowser
 				? JSON.stringify(realResponse.response, null, 2)

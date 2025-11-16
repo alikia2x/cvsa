@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, file } from "elysia";
 import { getBindingInfo, logStartup } from "./startMessage";
 import { pingHandler } from "@elysia/routes/ping";
 import openapi from "@elysiajs/openapi";
@@ -14,6 +14,7 @@ import { getVideoSnapshotsHandler } from "@elysia/routes/video/snapshots";
 import { addSongHandler } from "@elysia/routes/song/add";
 import { deleteSongHandler } from "@elysia/routes/song/delete";
 import { songEtaHandler } from "@elysia/routes/video/eta";
+import "./mq";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -45,6 +46,14 @@ const app = new Elysia({
 	.use(addSongHandler)
 	.use(deleteSongHandler)
 	.use(songEtaHandler)
+	.get("/a", () => file("public/background.jpg"))
+	.get("/song/:id", ({ redirect, params }) => {
+		console.log(`/song/${params.id}/info`);
+		return redirect(`/song/${params.id}/info`, 302);
+	})
+	.get("/video/:id", ({ redirect, params }) => {
+		return redirect(`/video/${params.id}/info`, 302);
+	})
 	.listen(15412);
 
 export const VERSION = "0.7.0";

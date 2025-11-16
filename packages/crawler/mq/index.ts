@@ -1,5 +1,5 @@
-import { Queue, ConnectionOptions } from "bullmq";
-import { redis } from "@core/db/redis";
+import { Queue, ConnectionOptions, QueueEventsProducer } from "bullmq";
+import { redis } from "bun";
 
 export const LatestVideosQueue = new Queue("latestVideos", {
 	connection: redis as ConnectionOptions
@@ -14,5 +14,9 @@ export const SnapshotQueue = new Queue("snapshot", {
 });
 
 export const MiscQueue = new Queue("misc", {
+	connection: redis as ConnectionOptions
+});
+
+export const latestVideosEventsProducer = new QueueEventsProducer("latestVideos", {
 	connection: redis as ConnectionOptions
 });

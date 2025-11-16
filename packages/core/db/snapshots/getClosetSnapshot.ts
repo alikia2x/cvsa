@@ -1,8 +1,8 @@
-import { dbMain } from "@core/drizzle";
+import { db } from "@core/drizzle";
 import { sql } from "drizzle-orm";
 
 export const getClosestSnapshot = async (aid: number, targetTime: Date) => {
-	const closest = await dbMain.execute<{ created_at: Date; views: number }>(sql`
+	const closest = await db.execute<{ created_at: Date; views: number }>(sql`
 		SELECT created_at, views
 		FROM (
 			(SELECT created_at, views, 'later' AS type

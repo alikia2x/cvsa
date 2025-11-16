@@ -1,4 +1,4 @@
-import { pgTable, index, unique, serial, bigint, text, timestamp, uniqueIndex, integer, varchar, smallint, jsonb, boolean, foreignKey, bigserial, real, pgSchema, inet, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, uniqueIndex, check, integer, text, timestamp, foreignKey, serial, bigint, jsonb, index, inet, varchar, smallint, real, unique, boolean, bigserial, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const credentials = pgSchema("credentials");
@@ -6,28 +6,69 @@ export const userRoleInCredentials = credentials.enum("user_role", ['ADMIN', 'US
 
 export const allDataIdSeq = pgSequence("all_data_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const labelingResultIdSeq = pgSequence("labeling_result_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
+export const relationSingerIdSeq = pgSequence("relation_singer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
+export const relationsProducerIdSeq = pgSequence("relations_producer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const songsIdSeq = pgSequence("songs_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const videoSnapshotIdSeq = pgSequence("video_snapshot_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
-export const relationSingerIdSeq = pgSequence("relation_singer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
-export const relationsProducerIdSeq = pgSequence("relations_producer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const usersIdSeqInCredentials = credentials.sequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 
-export const relations = pgTable("relations", {
+export const usersInCredentials = credentials.table("users", {
+	id: integer().default(sql`nextval('credentials.users_id_seq'::regclass)`).notNull(),
+	nickname: text(),
+	username: text().notNull(),
+	password: text().notNull(),
+	unqId: text("unq_id").notNull(),
+	role: userRoleInCredentials().default('USER').notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	uniqueIndex("users_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("users_pkey1").using("btree", table.id.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("users_username_key").using("btree", table.username.asc().nullsLast().op("text_ops")),
+	check("users_id_not_null", sql`NOT NULL id`),
+	check("users_username_not_null", sql`NOT NULL username`),
+	check("users_password_not_null", sql`NOT NULL password`),
+	check("users_unq_id_not_null", sql`NOT NULL unq_id`),
+	check("users_role_not_null", sql`NOT NULL role`),
+	check("users_created_at_not_null", sql`NOT NULL created_at`),
+]);
+
+export const history = pgTable("history", {
 	id: serial().primaryKey().notNull(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	sourceId: bigint("source_id", { mode: "number" }).notNull(),
-	sourceType: text("source_type").notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	targetId: bigint("target_id", { mode: "number" }).notNull(),
-	targetType: text("target_type").notNull(),
-	relation: text().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	objectId: bigint("object_id", { mode: "number" }).notNull(),
+	changeType: text("change_type").notNull(),
+	changedAt: timestamp("changed_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	changedBy: text("changed_by").notNull(),
+	data: jsonb(),
 }, (table) => [
-	index("idx_relations_source_id_source_type_relation").using("btree", table.sourceId.asc().nullsLast().op("int8_ops"), table.sourceType.asc().nullsLast().op("int8_ops"), table.relation.asc().nullsLast().op("text_ops")),
-	index("idx_relations_target_id_target_type_relation").using("btree", table.targetId.asc().nullsLast().op("text_ops"), table.targetType.asc().nullsLast().op("text_ops"), table.relation.asc().nullsLast().op("text_ops")),
-	unique("unq_relations").on(table.sourceId, table.sourceType, table.targetId, table.targetType, table.relation),
+	foreignKey({
+			columns: [table.changedBy],
+			foreignColumns: [usersInCredentials.unqId],
+			name: "rel_history_changed_by"
+		}),
+	check("history_id_not_null", sql`NOT NULL id`),
+	check("history_object_id_not_null", sql`NOT NULL object_id`),
+	check("history_change_type_not_null", sql`NOT NULL change_type`),
+	check("history_changed_at_not_null", sql`NOT NULL changed_at`),
+	check("history_changed_by_not_null", sql`NOT NULL changed_by`),
+]);
+
+export const loginSessionsInCredentials = credentials.table("login_sessions", {
+	id: text().notNull(),
+	uid: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	expireAt: timestamp("expire_at", { withTimezone: true, mode: 'string' }),
+	lastUsedAt: timestamp("last_used_at", { withTimezone: true, mode: 'string' }),
+	ipAddress: inet("ip_address"),
+	userAgent: text("user_agent"),
+	deactivatedAt: timestamp("deactivated_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("inx_login-sessions_uid").using("btree", table.uid.asc().nullsLast().op("int4_ops")),
+	uniqueIndex("login_sessions_pkey").using("btree", table.id.asc().nullsLast().op("text_ops")),
+	check("login_sessions_id_not_null", sql`NOT NULL id`),
+	check("login_sessions_uid_not_null", sql`NOT NULL uid`),
+	check("login_sessions_created_at_not_null", sql`NOT NULL created_at`),
 ]);
 
 export const bilibiliMetadata = pgTable("bilibili_metadata", {
@@ -52,6 +93,9 @@ export const bilibiliMetadata = pgTable("bilibili_metadata", {
 	index("idx_all-data_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
 	index("idx_bili-meta_status").using("btree", table.status.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("unq_all-data_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
+	check("bilibili_metadata_id_not_null", sql`NOT NULL id`),
+	check("bilibili_metadata_aid_not_null", sql`NOT NULL aid`),
+	check("bilibili_metadata_status_not_null", sql`NOT NULL status`),
 ]);
 
 export const humanClassifiedLables = pgTable("human_classified_lables", {
@@ -66,22 +110,41 @@ export const humanClassifiedLables = pgTable("human_classified_lables", {
 	index("idx_classified-labels-human_author").using("btree", table.uid.asc().nullsLast().op("int4_ops")),
 	index("idx_classified-labels-human_created-at").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_classified-labels-human_label").using("btree", table.label.asc().nullsLast().op("int2_ops")),
+	check("human_classified_lables_id_not_null", sql`NOT NULL id`),
+	check("human_classified_lables_aid_not_null", sql`NOT NULL aid`),
+	check("human_classified_lables_uid_not_null", sql`NOT NULL uid`),
+	check("human_classified_lables_label_not_null", sql`NOT NULL label`),
+	check("human_classified_lables_created_at_not_null", sql`NOT NULL created_at`),
 ]);
 
-export const singer = pgTable("singer", {
-	id: serial().primaryKey().notNull(),
-	name: text().notNull(),
-});
-
-export const history = pgTable("history", {
-	id: serial().primaryKey().notNull(),
+export const videoSnapshot = pgTable("video_snapshot", {
+	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	views: integer().notNull(),
+	coins: integer(),
+	likes: integer(),
+	favorites: integer(),
+	shares: integer(),
+	danmakus: integer(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	objectId: bigint("object_id", { mode: "number" }).notNull(),
-	changeType: text("change_type").notNull(),
-	changedAt: timestamp("changed_at", { withTimezone: true, mode: 'string' }).notNull(),
-	changedBy: integer("changed_by").notNull(),
-	data: jsonb().notNull(),
-});
+	aid: bigint({ mode: "number" }).notNull(),
+	replies: integer(),
+}, (table) => [
+	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("int8_ops")),
+	index("idx_vid_snapshot_time").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
+	check("video_snapshot_id_not_null", sql`NOT NULL id`),
+	check("video_snapshot_created_at_not_null", sql`NOT NULL created_at`),
+	check("video_snapshot_views_not_null", sql`NOT NULL views`),
+	check("video_snapshot_aid_not_null", sql`NOT NULL aid`),
+]);
+
+export const producer = pgTable("producer", {
+	id: integer().primaryKey().notNull(),
+	name: text().notNull(),
+}, (table) => [
+	check("producer_id_not_null", sql`NOT NULL id`),
+	check("producer_name_not_null", sql`NOT NULL name`),
+]);
 
 export const labellingResult = pgTable("labelling_result", {
 	id: integer().default(sql`nextval('labeling_result_id_seq'::regclass)`).notNull(),
@@ -97,6 +160,11 @@ export const labellingResult = pgTable("labelling_result", {
 	index("idx_labelling_aid-label").using("btree", table.aid.asc().nullsLast().op("int2_ops"), table.label.asc().nullsLast().op("int2_ops")),
 	uniqueIndex("labeling_result_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
 	uniqueIndex("unq_labelling-result_aid_model-version").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.modelVersion.asc().nullsLast().op("int8_ops")),
+	check("labelling_result_id_not_null", sql`NOT NULL id`),
+	check("labelling_result_aid_not_null", sql`NOT NULL aid`),
+	check("labelling_result_label_not_null", sql`NOT NULL label`),
+	check("labelling_result_model_version_not_null", sql`NOT NULL model_version`),
+	check("labelling_result_created_at_not_null", sql`NOT NULL created_at`),
 ]);
 
 export const latestVideoSnapshot = pgTable("latest_video_snapshot", {
@@ -113,6 +181,80 @@ export const latestVideoSnapshot = pgTable("latest_video_snapshot", {
 }, (table) => [
 	index("idx_latest-video-snapshot_time").using("btree", table.time.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_latest-video-snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
+	check("latest_video_snapshot_aid_not_null", sql`NOT NULL aid`),
+	check("latest_video_snapshot_time_not_null", sql`NOT NULL "time"`),
+	check("latest_video_snapshot_views_not_null", sql`NOT NULL views`),
+	check("latest_video_snapshot_coins_not_null", sql`NOT NULL coins`),
+	check("latest_video_snapshot_likes_not_null", sql`NOT NULL likes`),
+	check("latest_video_snapshot_favorites_not_null", sql`NOT NULL favorites`),
+	check("latest_video_snapshot_replies_not_null", sql`NOT NULL replies`),
+	check("latest_video_snapshot_danmakus_not_null", sql`NOT NULL danmakus`),
+	check("latest_video_snapshot_shares_not_null", sql`NOT NULL shares`),
+]);
+
+export const relationsProducer = pgTable("relations_producer", {
+	id: integer().default(sql`nextval('relations_producer_id_seq'::regclass)`).primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	songId: bigint("song_id", { mode: "number" }).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	producerId: integer("producer_id").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.songId],
+			foreignColumns: [songs.id],
+			name: "fkey_relations_producer_songs_id"
+		}),
+	check("relations_producer_id_not_null", sql`NOT NULL id`),
+	check("relations_producer_song_id_not_null", sql`NOT NULL song_id`),
+	check("relations_producer_created_at_not_null", sql`NOT NULL created_at`),
+	check("relations_producer_producer_id_not_null", sql`NOT NULL producer_id`),
+	check("relations_producer_updated_at_not_null", sql`NOT NULL updated_at`),
+]);
+
+export const eta = pgTable("eta", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }).primaryKey().notNull(),
+	eta: real().notNull(),
+	speed: real().notNull(),
+	currentViews: integer("current_views").notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("idx_eta_eta_current_views").using("btree", table.eta.asc().nullsLast().op("int4_ops"), table.currentViews.asc().nullsLast().op("int4_ops")),
+	check("eta_aid_not_null", sql`NOT NULL aid`),
+	check("eta_eta_not_null", sql`NOT NULL eta`),
+	check("eta_speed_not_null", sql`NOT NULL speed`),
+	check("eta_current_views_not_null", sql`NOT NULL current_views`),
+	check("eta_updated_at_not_null", sql`NOT NULL updated_at`),
+]);
+
+export const bilibiliUser = pgTable("bilibili_user", {
+	id: serial().primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	uid: bigint({ mode: "number" }).notNull(),
+	username: text().notNull(),
+	desc: text().notNull(),
+	fans: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
+	unique("unq_bili-user_uid").on(table.uid),
+	check("bilibili_user_id_not_null", sql`NOT NULL id`),
+	check("bilibili_user_uid_not_null", sql`NOT NULL uid`),
+	check("bilibili_user_username_not_null", sql`NOT NULL username`),
+	check("bilibili_user_desc_not_null", sql`NOT NULL "desc"`),
+	check("bilibili_user_fans_not_null", sql`NOT NULL fans`),
+	check("bilibili_user_created_at_not_null", sql`NOT NULL created_at`),
+	check("bilibili_user_updated_at_not_null", sql`NOT NULL updated_at`),
+]);
+
+export const singer = pgTable("singer", {
+	id: serial().primaryKey().notNull(),
+	name: text().notNull(),
+}, (table) => [
+	check("singer_id_not_null", sql`NOT NULL id`),
+	check("singer_name_not_null", sql`NOT NULL name`),
 ]);
 
 export const songs = pgTable("songs", {
@@ -131,71 +273,16 @@ export const songs = pgTable("songs", {
 	image: text(),
 	producer: text(),
 }, (table) => [
-	index("idx_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	index("idx_hash_songs_aid").using("hash", table.aid.asc().nullsLast().op("int8_ops")),
 	index("idx_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
 	index("idx_published_at").using("btree", table.publishedAt.asc().nullsLast().op("timestamptz_ops")),
 	index("idx_type").using("btree", table.type.asc().nullsLast().op("int2_ops")),
 	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
-]);
-
-export const videoSnapshot = pgTable("video_snapshot", {
-	id: integer().default(sql`nextval('video_snapshot_id_seq'::regclass)`).notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	views: integer().notNull(),
-	coins: integer(),
-	likes: integer(),
-	favorites: integer(),
-	shares: integer(),
-	danmakus: integer(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }).notNull(),
-	replies: integer(),
-}, (table) => [
-	index("idx_vid_snapshot_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_vid_snapshot_aid_created_at").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.createdAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_vid_snapshot_time").using("btree", table.createdAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_vid_snapshot_views").using("btree", table.views.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("video_snapshot_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
-]);
-
-export const bilibiliUser = pgTable("bilibili_user", {
-	id: serial().primaryKey().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	uid: bigint({ mode: "number" }).notNull(),
-	username: text().notNull(),
-	desc: text().notNull(),
-	fans: integer().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
-	unique("unq_bili-user_uid").on(table.uid),
-]);
-
-export const producer = pgTable("producer", {
-	id: integer().primaryKey().notNull(),
-	name: text().notNull(),
-});
-
-export const relationSinger = pgTable("relation_singer", {
-	id: integer().default(sql`nextval('relation_singer_id_seq'::regclass)`).primaryKey().notNull(),
-	songId: integer("song_id").notNull(),
-	singerId: integer("singer_id").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-	foreignKey({
-			columns: [table.songId],
-			foreignColumns: [songs.id],
-			name: "fkey_song_id"
-		}),
-	foreignKey({
-			columns: [table.singerId],
-			foreignColumns: [singer.id],
-			name: "fkey_singer_id"
-		}),
+	check("songs_id_not_null", sql`NOT NULL id`),
+	check("songs_created_at_not_null", sql`NOT NULL created_at`),
+	check("songs_updated_at_not_null", sql`NOT NULL updated_at`),
+	check("songs_deleted_not_null", sql`NOT NULL deleted`),
 ]);
 
 export const snapshotSchedule = pgTable("snapshot_schedule", {
@@ -208,65 +295,58 @@ export const snapshotSchedule = pgTable("snapshot_schedule", {
 	finishedAt: timestamp("finished_at", { withTimezone: true, mode: 'string' }),
 	status: text().default('pending').notNull(),
 }, (table) => [
-	index("idx_snapshot_schedule_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
-	index("idx_snapshot_schedule_started-at_status_type").using("btree", table.startedAt.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("timestamptz_ops"), table.type.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_snapshot_schedule_started_at").using("btree", table.startedAt.asc().nullsLast().op("timestamptz_ops")),
-	index("idx_snapshot_schedule_status").using("btree", table.status.asc().nullsLast().op("text_ops")),
-	index("idx_snapshot_schedule_status_type_aid").using("btree", table.status.asc().nullsLast().op("int8_ops"), table.type.asc().nullsLast().op("int8_ops"), table.aid.asc().nullsLast().op("text_ops")),
-	index("idx_snapshot_schedule_type").using("btree", table.type.asc().nullsLast().op("text_ops")),
+	index("idx_snapshot_schedule_aid_status_type").using("btree", table.aid.asc().nullsLast().op("int8_ops"), table.status.asc().nullsLast().op("text_ops"), table.type.asc().nullsLast().op("text_ops")),
+	index("idx_snapshot_schedule_status_started_at").using("btree", table.status.asc().nullsLast().op("timestamptz_ops"), table.startedAt.asc().nullsLast().op("text_ops")),
 	uniqueIndex("snapshot_schedule_pkey").using("btree", table.id.asc().nullsLast().op("int8_ops")),
+	check("snapshot_schedule_id_not_null", sql`NOT NULL id`),
+	check("snapshot_schedule_aid_not_null", sql`NOT NULL aid`),
+	check("snapshot_schedule_created_at_not_null", sql`NOT NULL created_at`),
+	check("snapshot_schedule_status_not_null", sql`NOT NULL status`),
 ]);
 
-export const eta = pgTable("eta", {
+export const relationSinger = pgTable("relation_singer", {
+	id: integer().default(sql`nextval('relation_singer_id_seq'::regclass)`).primaryKey().notNull(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	aid: bigint({ mode: "number" }).primaryKey().notNull(),
-	eta: real().notNull(),
-	speed: real().notNull(),
-	currentViews: integer("current_views").notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	index("idx_eta_eta").using("btree", table.eta.asc().nullsLast().op("float4_ops")),
-]);
-
-export const loginSessionsInCredentials = credentials.table("login_sessions", {
-	id: text().notNull(),
-	uid: integer().notNull(),
+	songId: bigint("song_id", { mode: "number" }).notNull(),
+	singerId: integer("singer_id").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	expireAt: timestamp("expire_at", { withTimezone: true, mode: 'string' }),
-	lastUsedAt: timestamp("last_used_at", { withTimezone: true, mode: 'string' }),
-	ipAddress: inet("ip_address"),
-	userAgent: text("user_agent"),
-	deactivatedAt: timestamp("deactivated_at", { withTimezone: true, mode: 'string' }),
-}, (table) => [
-	index("inx_login-sessions_uid").using("btree", table.uid.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("login_sessions_pkey").using("btree", table.id.asc().nullsLast().op("text_ops")),
-]);
-
-export const usersInCredentials = credentials.table("users", {
-	id: integer().default(sql`nextval('credentials.users_id_seq'::regclass)`).notNull(),
-	nickname: text(),
-	username: text().notNull(),
-	password: text().notNull(),
-	unqId: text("unq_id").notNull(),
-	role: userRoleInCredentials().default('USER').notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-	uniqueIndex("users_pkey").using("btree", table.id.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("users_pkey1").using("btree", table.id.asc().nullsLast().op("int4_ops")),
-	uniqueIndex("users_unq_id_key").using("btree", table.unqId.asc().nullsLast().op("text_ops")),
-	uniqueIndex("users_username_key").using("btree", table.username.asc().nullsLast().op("text_ops")),
-]);
-
-export const relationsProducer = pgTable("relations_producer", {
-	id: integer().default(sql`nextval('relations_producer_id_seq'::regclass)`).primaryKey().notNull(),
-	songId: integer("song_id").notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	producerId: integer("producer_id").notNull(),
 	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 }, (table) => [
 	foreignKey({
+			columns: [table.singerId],
+			foreignColumns: [singer.id],
+			name: "fkey_singer_id"
+		}),
+	foreignKey({
 			columns: [table.songId],
 			foreignColumns: [songs.id],
-			name: "fkey_relations_producer_songs_id"
+			name: "fkey_song_id"
 		}),
+	check("relation_singer_id_not_null", sql`NOT NULL id`),
+	check("relation_singer_song_id_not_null", sql`NOT NULL song_id`),
+	check("relation_singer_singer_id_not_null", sql`NOT NULL singer_id`),
+	check("relation_singer_created_at_not_null", sql`NOT NULL created_at`),
+	check("relation_singer_updated_at_not_null", sql`NOT NULL updated_at`),
+]);
+
+export const relations = pgTable("relations", {
+	id: integer().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	sourceId: bigint("source_id", { mode: "number" }).notNull(),
+	sourceType: text("source_type").notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	targetId: bigint("target_id", { mode: "number" }).notNull(),
+	targetType: text("target_type").notNull(),
+	relation: text().notNull(),
+	createdAt: timestamp("created_at", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+}, (table) => [
+	check("relations_id_not_null", sql`NOT NULL id`),
+	check("relations_source_id_not_null", sql`NOT NULL source_id`),
+	check("relations_source_type_not_null", sql`NOT NULL source_type`),
+	check("relations_target_id_not_null", sql`NOT NULL target_id`),
+	check("relations_target_type_not_null", sql`NOT NULL target_type`),
+	check("relations_relation_not_null", sql`NOT NULL relation`),
+	check("relations_created_at_not_null", sql`NOT NULL created_at`),
+	check("relations_updated_at_not_null", sql`NOT NULL updated_at`),
 ]);

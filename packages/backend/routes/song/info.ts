@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
-import { dbMain } from "@core/drizzle";
-import { relations, singer, songs } from "@core/drizzle/main/schema";
+import { db, history, songs } from "@core/drizzle";
 import { eq, and } from "drizzle-orm";
 import { bv2av } from "@elysia/lib/bilibiliID";
 import { requireAuth } from "@elysia/middlewares/auth";
@@ -14,11 +13,7 @@ async function getSongIDFromBiliID(id: string) {
 	} else {
 		return null;
 	}
-	const songID = await dbMain
-		.select({ id: songs.id })
-		.from(songs)
-		.where(eq(songs.aid, aid))
-		.limit(1);
+	const songID = await db.select({ id: songs.id }).from(songs).where(eq(songs.aid, aid)).limit(1);
 	if (songID.length > 0) {
 		return songID[0].id;
 	}
@@ -38,29 +33,12 @@ async function getSongID(id: string) {
 }
 
 async function getSongInfo(id: number) {
-	const songInfo = await dbMain
+	const songInfo = await db
 		.select()
 		.from(songs)
 		.where(and(eq(songs.id, id), eq(songs.deleted, false)))
 		.limit(1);
 	return songInfo[0];
-}
-
-async function getSingers(id: number) {
-	const singers = await dbMain
-		.select({
-			singers: singer.name
-		})
-		.from(relations)
-		.innerJoin(singer, eq(relations.targetId, singer.id))
-		.where(
-			and(
-				eq(relations.sourceId, id),
-				eq(relations.sourceType, "song"),
-				eq(relations.relation, "sing")
-			)
-		);
-	return singers.map((singer) => singer.singers);
 }
 
 const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
@@ -81,14 +59,12 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 				message: "Given song cannot be found."
 			});
 		}
-		const singers = await getSingers(info.id);
 		return {
 			id: info.id,
 			name: info.name,
 			aid: info.aid,
 			producer: info.producer,
 			duration: info.duration,
-			singers: singers,
 			cover: info.image || undefined,
 			publishedAt: info.publishedAt
 		};
@@ -101,9 +77,8 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 				aid: t.Union([t.Number(), t.Null()]),
 				producer: t.Union([t.String(), t.Null()]),
 				duration: t.Union([t.Number(), t.Null()]),
-				singers: t.Array(t.String()),
 				cover: t.Optional(t.String()),
-				publishedAt: t.Union([t.String(), t.Null()]),
+				publishedAt: t.Union([t.String(), t.Null()])
 			}),
 			404: t.Object({
 				code: t.String(),
@@ -127,7 +102,7 @@ const songInfoGetHandler = new Elysia({ prefix: "/song" }).get(
 
 const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(requireAuth).patch(
 	"/:id/info",
-	async ({ params, status, body }) => {
+	async ({ params, status, body, user }) => {
 		const id = params.id;
 		const songID = await getSongID(id);
 		if (!songID) {
@@ -145,16 +120,22 @@ const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(requireAuth).p
 		}
 
 		if (body.name) {
-			await dbMain.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
+			await db.update(songs).set({ name: body.name }).where(eq(songs.id, songID));
 		}
 		if (body.producer) {
-			await dbMain
+			await db
 				.update(songs)
 				.set({ producer: body.producer })
 				.where(eq(songs.id, songID))
 				.returning();
 		}
-		const updatedData = await dbMain.select().from(songs).where(eq(songs.id, songID));
+		const updatedData = await db.select().from(songs).where(eq(songs.id, songID));
+		await db.insert(history).values({
+			objectId: songID,
+			changeType: "update-song",
+			changedBy: user!.unqId,
+			data: updatedData.length > 0 ? updatedData[0] : null
+		});
 		return {
 			message: "Successfully updated song info.",
 			updated: updatedData.length > 0 ? updatedData[0] : null

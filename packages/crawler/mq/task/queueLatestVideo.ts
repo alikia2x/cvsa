@@ -20,7 +20,7 @@ export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 		let allExists = true;
 		let delay = 0;
 		for (const aid of aids) {
-			const videoExists = await videoExistsInAllData(sql, aid);
+			const videoExists = await videoExistsInAllData(aid);
 			if (videoExists) {
 				continue;
 			}

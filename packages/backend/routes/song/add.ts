@@ -2,15 +2,14 @@ import { Elysia, t } from "elysia";
 import { biliIDToAID } from "@elysia/lib/bilibiliID";
 import { requireAuth } from "@elysia/middlewares/auth";
 import { LatestVideosQueue } from "@elysia/lib/mq";
-import { db } from "@core/drizzle";
-import { songs } from "@core/drizzle/main/schema";
+import { db, songs } from "@core/drizzle";
 import { eq, and } from "drizzle-orm";
 
 export const addSongHandler = new Elysia()
 	.use(requireAuth)
 	.post(
 		"/song/import/bilibili",
-		async ({ body, status }) => {
+		async ({ body, status, user }) => {
 			const id = body.id;
 			const aid = biliIDToAID(id);
 			if (!aid) {
@@ -32,7 +31,8 @@ export const addSongHandler = new Elysia()
 			}
 			const job = await LatestVideosQueue.add("getVideoInfo", {
 				aid: aid,
-				insertSongs: true
+				insertSongs: true,
+				uid: user!.unqId
 			});
 			if (!job.id) {
 				return status(500, {
@@ -76,7 +76,7 @@ export const addSongHandler = new Elysia()
 					result: {
 						message: "Video already exists in the songs table."
 					}
-				}
+				};
 			}
 			const job = await LatestVideosQueue.getJob(jobID);
 			if (!job) {

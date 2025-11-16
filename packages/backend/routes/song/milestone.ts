@@ -1,7 +1,6 @@
 import { Elysia, t } from "elysia";
-import { dbMain } from "@core/drizzle";
-import { bilibiliMetadata, eta, latestVideoSnapshot } from "@core/drizzle/main/schema";
-import { eq, and, gte, lt, desc } from "drizzle-orm";
+import { db, bilibiliMetadata, eta } from "@core/drizzle";
+import { eq, and, gte, lt } from "drizzle-orm";
 import serverTiming from "@elysia/middlewares/timing";
 import z from "zod";
 import { BiliVideoSchema } from "@elysia/lib/schema";
@@ -9,9 +8,9 @@ import { BiliVideoSchema } from "@elysia/lib/schema";
 type MileStoneType = "dendou" | "densetsu" | "shinwa";
 
 const range = {
-	dendou: [90000, 99999, 2160],
-	densetsu: [900000, 999999, 8760],
-	shinwa: [5000000, 9999999, 87600]
+	dendou: [0, 100000, 2160],
+	densetsu: [100000, 1000000, 8760],
+	shinwa: [1000000, 10000000, 43800]
 };
 
 export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(serverTiming()).get(
@@ -21,7 +20,7 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 		const type = params.type;
 		const min = range[type as MileStoneType][0];
 		const max = range[type as MileStoneType][1];
-		return dbMain
+		return db
 			.select()
 			.from(eta)
 			.innerJoin(bilibiliMetadata, eq(bilibiliMetadata.aid, eta.aid))

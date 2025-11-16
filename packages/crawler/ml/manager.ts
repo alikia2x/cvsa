@@ -22,7 +22,11 @@ export class AIManager {
 
 	public getModelSession(key: string): ort.InferenceSession {
 		if (this.sessions[key] === undefined) {
-			throw new WorkerError(new Error(`Model ${key} not found / not initialized.`), "ml", "fn:getModelSession");
+			throw new WorkerError(
+				new Error(`Model ${key} not found / not initialized.`),
+				"ml",
+				"fn:getModelSession"
+			);
 		}
 		return this.sessions[key];
 	}

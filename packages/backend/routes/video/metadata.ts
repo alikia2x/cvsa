@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
-import { dbMain } from "@core/drizzle";
-import { videoSnapshot } from "@core/drizzle/main/schema";
+import { db, videoSnapshot } from "@core/drizzle";
 import { bv2av } from "@elysia/lib/bilibiliID";
 import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
@@ -31,7 +30,7 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 	const favorites = data.stat.favorite;
 	const aid = data.aid;
 
-	await dbMain.insert(videoSnapshot).values({
+	await db.insert(videoSnapshot).values({
 		aid,
 		views,
 		danmakus,

@@ -78,7 +78,7 @@ const snapshotWorker = new Worker(
 	"snapshot",
 	async (job: Job) => {
 		switch (job.name) {
-			case "directSnapshot": 
+			case "directSnapshot":
 				return await directSnapshotWorker(job);
 			case "snapshotVideo":
 				return await snapshotVideoWorker(job);

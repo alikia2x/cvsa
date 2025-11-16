@@ -1,30 +1,56 @@
 import { LatestSnapshotType } from "@core/db/schema";
 import { SnapshotNumber } from "mq/task/getVideoStats";
 import type { Psql } from "@core/db/psql.d";
+import {
+	db,
+	eta,
+	latestVideoSnapshot as lv,
+	songs,
+	videoSnapshot,
+	VideoSnapshotType
+} from "@core/drizzle";
+import { PartialBy } from "@core/lib";
+import { and, eq, getTableColumns, gte, lte, lt, or } from "drizzle-orm";
+import { union } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
-export async function getVideosNearMilestone(sql: Psql) {
-	const queryResult = await sql<LatestSnapshotType[]>`
-    	SELECT ls.*
-		FROM latest_video_snapshot ls
-			RIGHT JOIN songs ON songs.aid = ls.aid
-		WHERE
-			(views >= 60000 AND views < 100000) OR
-			(views >= 900000 AND views < 1000000) OR
-			views > 1000000
-		UNION
-		SELECT ls.*
-		FROM latest_video_snapshot ls
-		WHERE
-			(views >= 90000 AND views < 100000) OR
-			(views >= 900000 AND views < 1000000) OR
-			(views >= CEIL(views::float/1000000::float)*1000000-100000 AND views < CEIL(views::float/1000000::float)*1000000)
-		UNION
-		SELECT ls.*
-		FROM latest_video_snapshot ls
-		JOIN eta ON eta.aid = ls.aid
-		WHERE eta.eta < 2300
-    `;
-	return queryResult.map((row) => {
+export async function insertVideoSnapshot(data: PartialBy<VideoSnapshotType, "id">) {
+	await db.insert(videoSnapshot).values(data);
+}
+
+export async function getVideosNearMilestone() {
+	const results = await union(
+		db
+			.select({ ...getTableColumns(lv) })
+			.from(lv)
+			.rightJoin(songs, eq(lv.aid, songs.aid))
+			.where(
+				or(
+					and(gte(lv.views, 60000), lt(lv.views, 100000)),
+					and(gte(lv.views, 900000), lt(lv.views, 1000000)),
+					gte(lv.views, 1000000)
+				)
+			),
+		db
+			.select({ ...getTableColumns(lv) })
+			.from(lv)
+			.where(
+				or(
+					and(gte(lv.views, 60000), lt(lv.views, 100000)),
+					and(gte(lv.views, 900000), lt(lv.views, 1000000)),
+					and(
+						sql`views >= CEIL(views::float/1000000::float)*1000000-100000`,
+						sql`views < CEIL(views::float/1000000::float)*1000000)`
+					)
+				)
+			),
+		db
+			.select({ ...getTableColumns(lv) })
+			.from(lv)
+			.innerJoin(eta, eq(lv.aid, eta.aid))
+			.where(lte(eta.eta, 2300))
+	);
+	return results.map((row) => {
 		return {
 			...row,
 			aid: Number(row.aid)
@@ -32,7 +58,10 @@ export async function getVideosNearMilestone(sql: Psql) {
 	});
 }
 
-export async function getLatestVideoSnapshot(sql: Psql, aid: number): Promise<null | SnapshotNumber> {
+export async function getLatestVideoSnapshot(
+	sql: Psql,
+	aid: number
+): Promise<null | SnapshotNumber> {
 	const queryResult = await sql<LatestSnapshotType[]>`
 	    SELECT *
 	    FROM latest_video_snapshot

@@ -1,0 +1,21 @@
+import { db, history } from "@core/drizzle";
+import { ConnectionOptions, QueueEvents, QueueEventsListener } from "bullmq";
+import { redis } from "bun";
+
+interface CustomListener extends QueueEventsListener {
+	addSong: (args: { uid: string; songID: number }, id: string) => void;
+}
+const queueEvents = new QueueEvents("latestVideos", {
+	connection: redis as ConnectionOptions
+});
+queueEvents.on<CustomListener>(
+	"addSong",
+	async ({ uid, songID }: { uid: string; songID: number }) => {
+		await db.insert(history).values({
+			objectId: songID,
+			changeType: "add-song",
+			changedBy: uid,
+			data: null
+		});
+	}
+);

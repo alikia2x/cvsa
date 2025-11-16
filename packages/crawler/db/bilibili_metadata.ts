@@ -1,67 +1,95 @@
-import type { Psql } from "@core/db/psql.d";
-import { BiliUserType, BiliVideoMetadataType } from "@core/db/schema";
+import {
+	bilibiliMetadata,
+	BilibiliMetadataType,
+	bilibiliUser,
+	db,
+	labellingResult
+} from "@core/drizzle";
 import { AkariModelVersion } from "ml/const";
+import { eq, isNull } from "drizzle-orm";
+import { PartialBy } from "@core/lib";
 
-export async function videoExistsInAllData(sql: Psql, aid: number) {
-	const rows = await sql<{ exists: boolean }[]>`
-        SELECT EXISTS(SELECT 1 FROM bilibili_metadata WHERE aid = ${aid})
-    `;
-	return rows[0].exists;
+export async function insertIntoMetadata(
+	data: PartialBy<BilibiliMetadataType, "id" | "createdAt" | "status">
+) {
+	await db.insert(bilibiliMetadata).values(data);
 }
 
-export async function userExistsInBiliUsers(sql: Psql, uid: number) {
-	const rows = await sql<{ exists: boolean }[]>`
-        SELECT EXISTS(SELECT 1 FROM bilibili_user WHERE uid = ${uid})
-    `;
-	return rows[0].exists;
+export async function videoExistsInAllData(aid: number) {
+	const rows = await db
+		.select({
+			id: bilibiliMetadata.id
+		})
+		.from(bilibiliMetadata)
+		.where(eq(bilibiliMetadata.aid, aid))
+		.limit(1);
+
+	return rows.length > 0;
 }
 
-export async function getUnlabelledVideos(sql: Psql) {
-	const rows = await sql<{ aid: number }[]>`
-        SELECT a.aid FROM bilibili_metadata a LEFT JOIN labelling_result l ON a.aid = l.aid WHERE l.aid IS NULL
-    `;
+export async function userExistsInBiliUsers(uid: number) {
+	const rows = await db
+		.select({ id: bilibiliUser.id })
+		.from(bilibiliUser)
+		.where(eq(bilibiliUser.uid, uid))
+		.limit(1);
+
+	return rows.length > 0;
+}
+
+export async function getUnlabelledVideos() {
+	const rows = await db
+		.select({ aid: bilibiliMetadata.aid })
+		.from(bilibiliMetadata)
+		.leftJoin(labellingResult, eq(bilibiliMetadata.aid, labellingResult.aid))
+		.where(isNull(labellingResult.aid));
+
 	return rows.map((row) => row.aid);
 }
 
-export async function insertVideoLabel(sql: Psql, aid: number, label: number) {
-	await sql`
-        INSERT INTO labelling_result (aid, label, model_version) VALUES (${aid}, ${label}, ${AkariModelVersion}) ON CONFLICT (aid, model_version) DO NOTHING
-    `;
+export async function insertVideoLabel(aid: number, label: number) {
+	await db
+		.insert(labellingResult)
+		.values({
+			aid,
+			label,
+			modelVersion: AkariModelVersion
+		})
+		.onConflictDoNothing({
+			target: [labellingResult.aid, labellingResult.modelVersion]
+		});
 }
 
-export async function getVideoInfoFromAllData(sql: Psql, aid: number) {
-	const rows = await sql<BiliVideoMetadataType[]>`
-        SELECT * FROM bilibili_metadata WHERE aid = ${aid}
-  `;
-	const row = rows[0];
-	let authorInfo = "";
-	if (row.uid && (await userExistsInBiliUsers(sql, row.uid))) {
-		const userRows = await sql<BiliUserType[]>`
-            SELECT * FROM bilibili_user WHERE uid = ${row.uid}
-        `;
-		const userRow = userRows[0];
-		if (userRow) {
-			authorInfo = userRow.desc;
-		}
+export async function getVideoInfoFromAllData(aid: number) {
+	const rows = await db
+		.select()
+		.from(bilibiliMetadata)
+		.where(eq(bilibiliMetadata.aid, aid))
+		.limit(1);
+
+	if (rows.length === 0) {
+		return null;
 	}
+
+	const row = rows[0];
 	return {
 		title: row.title,
 		description: row.description,
-		tags: row.tags,
-		author_info: authorInfo
+		tags: row.tags
 	};
 }
 
-export async function setBiliVideoStatus(sql: Psql, aid: number, status: number) {
-	await sql`
-        UPDATE bilibili_metadata SET status = ${status} WHERE aid = ${aid}
-    `;
+export async function setBiliVideoStatus(aid: number, status: number) {
+	await db.update(bilibiliMetadata).set({ status }).where(eq(bilibiliMetadata.aid, aid));
 }
 
-export async function getBiliVideoStatus(sql: Psql, aid: number) {
-	const rows = await sql<{ status: number }[]>`
-        SELECT status FROM bilibili_metadata WHERE aid = ${aid}
-    `;
+export async function getBiliVideoStatus(aid: number) {
+	const rows = await db
+		.select({ status: bilibiliMetadata.status })
+		.from(bilibiliMetadata)
+		.where(eq(bilibiliMetadata.aid, aid))
+		.limit(1);
+
 	if (rows.length === 0) return 0;
 	return rows[0].status;
 }

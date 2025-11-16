@@ -1,7 +1,10 @@
 import { Job } from "bullmq";
 import { getLatestVideoSnapshot } from "db/snapshot";
 import { truncate } from "utils/truncate";
-import { getVideosWithoutActiveSnapshotScheduleByType, scheduleSnapshot } from "db/snapshotSchedule";
+import {
+	getVideosWithoutActiveSnapshotScheduleByType,
+	scheduleSnapshot
+} from "db/snapshotSchedule";
 import logger from "@core/log";
 import { HOUR, MINUTE, WEEK } from "@core/lib";
 import { lockManager } from "@core/mq/lockManager";
@@ -25,7 +28,11 @@ export const dispatchRegularSnapshotsWorker = async (_job: Job): Promise<void> =
 			const lastSnapshotedAt = latestSnapshot?.time ?? now;
 			const interval = await getRegularSnapshotInterval(sql, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
-			const targetTime = truncate(lastSnapshotedAt + interval * HOUR, now + 1, now + 100000 * WEEK);
+			const targetTime = truncate(
+				lastSnapshotedAt + interval * HOUR,
+				now + 1,
+				now + 100000 * WEEK
+			);
 			await scheduleSnapshot(sql, aid, "normal", targetTime);
 			if (now - startedAt > 25 * MINUTE) {
 				return;

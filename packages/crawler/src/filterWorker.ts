@@ -12,7 +12,7 @@ const shutdown = async (signal: string, filterWorker: Worker<any, any, string>) 
 	process.exit(0);
 };
 
-await Akari.init()
+await Akari.init();
 
 const filterWorker = new Worker(
 	"classifyVideo",

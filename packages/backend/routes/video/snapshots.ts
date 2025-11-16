@@ -1,6 +1,5 @@
 import { Elysia } from "elysia";
-import { dbMain } from "@core/drizzle";
-import { videoSnapshot } from "@core/drizzle/main/schema";
+import { db, videoSnapshot } from "@core/drizzle";
 import { bv2av } from "@elysia/lib/bilibiliID";
 import { ErrorResponseSchema } from "@elysia/src/schema";
 import { eq, desc } from "drizzle-orm";
@@ -26,7 +25,7 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 			});
 		}
 
-		const data = await dbMain
+		const data = await db
 			.select()
 			.from(videoSnapshot)
 			.where(eq(videoSnapshot.aid, aid))

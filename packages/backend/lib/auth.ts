@@ -1,7 +1,6 @@
 import Argon2id from "@rabbit-company/argon2id";
-import { dbMain } from "@core/drizzle";
-import { usersInCredentials, loginSessionsInCredentials } from "@core/drizzle/main/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { db, usersInCredentials, loginSessionsInCredentials } from "@core/drizzle";
+import { eq, and, isNull, getTableColumns } from "drizzle-orm";
 import { generate as generateId } from "@alikia/random-key";
 import logger from "@core/log";
 
@@ -10,10 +9,11 @@ export interface User {
 	username: string;
 	nickname: string | null;
 	role: string;
+	unqId: string;
 }
 
 export async function verifyUser(username: string, password: string): Promise<User | null> {
-	const user = await dbMain
+	const user = await db
 		.select()
 		.from(usersInCredentials)
 		.where(eq(usersInCredentials.username, username))
@@ -33,7 +33,8 @@ export async function verifyUser(username: string, password: string): Promise<Us
 		id: foundUser.id,
 		username: foundUser.username,
 		nickname: foundUser.nickname,
-		role: foundUser.role
+		role: foundUser.role,
+		unqId: foundUser.unqId
 	};
 }
 
@@ -48,7 +49,7 @@ export async function createSession(
 	expireAt.setDate(expireAt.getDate() + expiresInDays);
 
 	try {
-		await dbMain.insert(loginSessionsInCredentials).values({
+		await db.insert(loginSessionsInCredentials).values({
 			id: sessionId,
 			uid: userId,
 			ipAddress,
@@ -67,9 +68,13 @@ export async function createSession(
 export async function validateSession(
 	sessionId: string
 ): Promise<{ user: User; session: any } | null> {
-	const session = await dbMain
-		.select()
+	const session = await db
+		.select({
+			...getTableColumns(usersInCredentials),
+			...getTableColumns(loginSessionsInCredentials)
+		})
 		.from(loginSessionsInCredentials)
+		.innerJoin(usersInCredentials, eq(loginSessionsInCredentials.uid, usersInCredentials.id))
 		.where(
 			and(
 				eq(loginSessionsInCredentials.id, sessionId),
@@ -88,7 +93,7 @@ export async function validateSession(
 		return null;
 	}
 
-	const user = await dbMain
+	const user = await db
 		.select()
 		.from(usersInCredentials)
 		.where(eq(usersInCredentials.id, foundSession.uid))
@@ -98,24 +103,19 @@ export async function validateSession(
 		return null;
 	}
 
-	await dbMain
+	await db
 		.update(loginSessionsInCredentials)
 		.set({ lastUsedAt: new Date().toISOString() })
 		.where(eq(loginSessionsInCredentials.id, sessionId));
 
 	return {
-		user: {
-			id: user[0].id,
-			username: user[0].username,
-			nickname: user[0].nickname,
-			role: user[0].role
-		},
+		user: user[0],
 		session: foundSession
 	};
 }
 
 export async function deactivateSession(sessionId: string): Promise<boolean> {
-	const result = await dbMain
+	const result = await db
 		.update(loginSessionsInCredentials)
 		.set({
 			deactivatedAt: new Date().toISOString()

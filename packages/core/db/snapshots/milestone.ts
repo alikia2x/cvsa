@@ -1,5 +1,4 @@
-import { dbMain } from "@core/drizzle";
-import { eta as etaTable } from "@core/drizzle/main/schema";
+import { db, eta as etaTable } from "@core/drizzle";
 import { eq } from "drizzle-orm";
 import { MINUTE, HOUR, getClosetMilestone } from "@core/lib";
 import { getLatestSnapshot, getClosestSnapshot } from "@core/db";
@@ -34,7 +33,7 @@ export const getGroundTruthMilestoneETA = async (
 };
 
 export const getMilestoneETA = async (aid: number) => {
-	const data = await dbMain.select().from(etaTable).where(eq(etaTable.aid, aid)).limit(1);
+	const data = await db.select().from(etaTable).where(eq(etaTable.aid, aid)).limit(1);
 	if (data.length > 0) {
 		return data[0].eta;
 	}

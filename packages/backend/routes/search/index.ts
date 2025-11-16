@@ -1,7 +1,6 @@
 import { Elysia } from "elysia";
-import { db } from "@core/drizzle";
-import { bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle/main/schema";
-import { eq, like, or } from "drizzle-orm";
+import { db, bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle";
+import { eq, like } from "drizzle-orm";
 import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@elysia/lib/schema";
 import { z } from "zod";
 import { getVideoInfo } from "@core/net/getVideoInfo";
@@ -82,9 +81,8 @@ const getVideoSearchResult = async (searchQuery: string) => {
 	let data;
 	const cachedData = await retrieveVideoInfoFromCache(aid);
 	if (cachedData) {
-		data = cachedData
-	}
-	else {
+		data = cachedData;
+	} else {
 		data = await getVideoInfo(aid, "getVideoInfo");
 		if (typeof data === "number") return [];
 		const cacheKey = `cvsa:videoInfo:av${aid}`;

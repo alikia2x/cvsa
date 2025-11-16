@@ -1,24 +1,15 @@
 import { relations } from "drizzle-orm/relations";
-import { songs, relationSinger, singer, relationsProducer } from "./schema";
+import { usersInCredentials, history, songs, relationsProducer, singer, relationSinger } from "./schema";
 
-export const relationSingerRelations = relations(relationSinger, ({one}) => ({
-	song: one(songs, {
-		fields: [relationSinger.songId],
-		references: [songs.id]
-	}),
-	singer: one(singer, {
-		fields: [relationSinger.singerId],
-		references: [singer.id]
+export const historyRelations = relations(history, ({one}) => ({
+	usersInCredential: one(usersInCredentials, {
+		fields: [history.changedBy],
+		references: [usersInCredentials.unqId]
 	}),
 }));
 
-export const songsRelations = relations(songs, ({many}) => ({
-	relationSingers: many(relationSinger),
-	relationsProducers: many(relationsProducer),
-}));
-
-export const singerRelations = relations(singer, ({many}) => ({
-	relationSingers: many(relationSinger),
+export const usersInCredentialsRelations = relations(usersInCredentials, ({many}) => ({
+	histories: many(history),
 }));
 
 export const relationsProducerRelations = relations(relationsProducer, ({one}) => ({
@@ -26,4 +17,24 @@ export const relationsProducerRelations = relations(relationsProducer, ({one}) =
 		fields: [relationsProducer.songId],
 		references: [songs.id]
 	}),
+}));
+
+export const songsRelations = relations(songs, ({many}) => ({
+	relationsProducers: many(relationsProducer),
+	relationSingers: many(relationSinger),
+}));
+
+export const relationSingerRelations = relations(relationSinger, ({one}) => ({
+	singer: one(singer, {
+		fields: [relationSinger.singerId],
+		references: [singer.id]
+	}),
+	song: one(songs, {
+		fields: [relationSinger.songId],
+		references: [songs.id]
+	}),
+}));
+
+export const singerRelations = relations(singer, ({many}) => ({
+	relationSingers: many(relationSinger),
 }));

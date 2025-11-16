@@ -1,6 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "@core/drizzle";
-import { eta } from "@core/drizzle/main/schema";
+import { db, eta } from "@core/drizzle";
 import { eq } from "drizzle-orm";
 import { biliIDToAID } from "@elysia/lib/bilibiliID";
 
