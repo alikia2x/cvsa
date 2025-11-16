@@ -88,6 +88,14 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 			200: t.Any(),
 			400: ErrorResponseSchema,
 			500: ErrorResponseSchema
+		},
+		detail: {
+			summary: "Get video metadata",
+			description:
+				"This endpoint retrieves comprehensive metadata for a bilibili video. It accepts video IDs in av or BV format \
+			and returns detailed information including title, description, uploader, statistics (views, likes, coins, etc.), \
+			and publication date. The data is cached for 60 seconds to reduce API calls. If the video is not in cache, \
+			it fetches fresh data from bilibili API and stores a snapshot in the database."
 		}
 	}
 );

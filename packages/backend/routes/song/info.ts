@@ -158,7 +158,15 @@ const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(requireAuth).p
 		body: t.Object({
 			name: t.Optional(t.String()),
 			producer: t.Optional(t.String())
-		})
+		}),
+		detail: {
+			summary: "Update song information",
+			description:
+				"This endpoint allows authenticated users to update song metadata. It accepts partial updates \
+			for song name and producer fields. The endpoint validates the song ID (accepting both internal database IDs \
+			and bilibili video IDs in av/BV format), applies the requested changes, and logs the update in the history table \
+			for audit purposes. Requires authentication."
+		}
 	}
 );
 

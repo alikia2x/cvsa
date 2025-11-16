@@ -32,6 +32,13 @@ export const deleteSongHandler = new Elysia({ prefix: "/song" }).use(requireAuth
 		},
 		params: t.Object({
 			id: t.String()
-		})
+		}),
+		detail: {
+			summary: "Delete song",
+			description:
+				"This endpoint allows authenticated users to soft-delete a song from the database. \
+			The song is marked as deleted rather than being permanently removed, preserving data integrity. \
+			The deletion is logged in the history table for audit purposes. Requires authentication and appropriate permissions."
+		}
 	}
 );

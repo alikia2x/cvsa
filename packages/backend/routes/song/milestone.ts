@@ -50,6 +50,14 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 			404: t.Object({
 				message: t.String()
 			})
+		},
+		detail: {
+			summary: "Get songs close to milestones",
+			description:
+				"This endpoint retrieves songs that are approaching significant view count milestones. \
+			It supports three milestone types: 'dendou' (0-100k views), 'densetsu' (100k-1M views), and 'shinwa' (1M-10M views). \
+			For each type, it returns videos that are within the specified view range and have an estimated time to reach \
+			the next milestone below the threshold. Results are ordered by estimated time to milestone."
 		}
 	}
 );

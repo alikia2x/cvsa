@@ -30,6 +30,8 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 			const authHeader = headers.authorization;
 			if (authHeader.startsWith("Bearer ")) {
 				sessionId = authHeader.substring(7);
+			} else if (authHeader.startsWith("Token ")) {
+				sessionId = authHeader.substring(6);
 			}
 		}
 

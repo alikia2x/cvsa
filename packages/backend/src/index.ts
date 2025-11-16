@@ -16,6 +16,8 @@ import { deleteSongHandler } from "@backend/routes/song/delete";
 import { songEtaHandler } from "@backend/routes/video/eta";
 import "./mq";
 import pkg from "../package.json";
+import * as z from "zod";
+import { fromTypes } from "@elysiajs/openapi";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -35,7 +37,25 @@ const app = new Elysia({
 	})
 	.use(onAfterHandler)
 	.use(cors())
-	.use(openapi())
+	.use(
+		openapi({
+			documentation: {
+				info: {
+					title: "CVSA API Docs",
+					version: pkg.version
+				}
+			},
+			mapJsonSchema: {
+				zod: z.toJSONSchema
+			},
+			references: fromTypes(),
+			scalar: {
+				theme: "kepler",
+				hideClientButton: true,
+				hideDarkModeToggle: true
+			}
+		})
+	)
 	.use(rootHandler)
 	.use(pingHandler)
 	.use(authHandler)
@@ -47,13 +67,29 @@ const app = new Elysia({
 	.use(addSongHandler)
 	.use(deleteSongHandler)
 	.use(songEtaHandler)
-	.get("/song/:id", ({ redirect, params }) => {
-		console.log(`/song/${params.id}/info`);
-		return redirect(`/song/${params.id}/info`, 302);
-	})
-	.get("/video/:id", ({ redirect, params }) => {
-		return redirect(`/video/${params.id}/info`, 302);
-	})
+	.get(
+		"/song/:id",
+		({ redirect, params }) => {
+			console.log(`/song/${params.id}/info`);
+			return redirect(`/song/${params.id}/info`, 302);
+		},
+		{
+			detail: {
+				hide: true
+			}
+		}
+	)
+	.get(
+		"/video/:id",
+		({ redirect, params }) => {
+			return redirect(`/video/${params.id}/info`, 302);
+		},
+		{
+			detail: {
+				hide: true
+			}
+		}
+	)
 	.listen(15412);
 
 export const VERSION = pkg.version;

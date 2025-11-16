@@ -49,6 +49,14 @@ export const songEtaHandler = new Elysia({ prefix: "/video" }).get(
 		},
 		headers: t.Object({
 			Authorization: t.Optional(t.String())
-		})
+		}),
+		detail: {
+			summary: "Get video milestone ETA",
+			description:
+				"This endpoint retrieves the estimated time to reach the next milestone for a given video. \
+			It accepts video IDs in av or BV format and returns the current view count, estimated time to \
+			reach the next milestone (in hours), view growth speed, and last update timestamp. Useful for \
+			tracking video growth and milestone predictions."
+		}
 	}
 );

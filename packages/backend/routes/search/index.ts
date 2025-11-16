@@ -150,6 +150,14 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 		},
 		query: z.object({
 			query: z.string()
-		})
+		}),
+		detail: {
+			summary: "Search songs and videos",
+			description:
+				"This endpoint performs a comprehensive search across songs and videos in the database. \
+			It searches for songs by name and videos by bilibili ID (av/BV format). The results are ranked \
+			by relevance using a weighted algorithm that considers search term frequency, title length, \
+			and view count. Returns search results with performance timing information."
+		}
 	}
 );

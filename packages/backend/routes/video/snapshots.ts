@@ -57,6 +57,14 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 			),
 			400: ErrorResponseSchema,
 			500: ErrorResponseSchema
+		},
+		detail: {
+			summary: "Get video snapshots",
+			description:
+				"This endpoint retrieves historical view count snapshots for a bilibili video. It accepts video IDs in av or BV format \
+			and returns a chronological list of snapshots showing how the video's statistics (views, likes, coins, favorites, etc.) \
+			have changed over time. If no snapshots exist for the video, it automatically queues a snapshot job to collect initial data. \
+			Results are ordered by creation date in descending order."
 		}
 	}
 );

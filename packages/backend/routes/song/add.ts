@@ -62,7 +62,15 @@ export const addSongHandler = new Elysia()
 			},
 			body: t.Object({
 				id: t.String()
-			})
+			}),
+			detail: {
+				summary: "Import song from bilibili",
+				description:
+					"This endpoint allows authenticated users to import a song from bilibili by providing a video ID. \
+				The video ID can be in av or BV format. The system validates the ID format, checks if the video already \
+				exists in the database, and if not, creates a background job to fetch video metadata and add it to the songs collection. \
+				Returns the job ID for tracking the import progress."
+			}
 		}
 	)
 	.get(
@@ -106,6 +114,13 @@ export const addSongHandler = new Elysia()
 			},
 			params: t.Object({
 				id: t.String()
-			})
+			}),
+			detail: {
+				summary: "Check import job status",
+				description:
+					"This endpoint retrieves the current status of a song import job. It returns the job state \
+				(completed, failed, active, etc.), the result if completed, and any failure reason if the job failed. \
+				Use this endpoint to monitor the progress of song imports initiated through the import endpoint."
+			}
 		}
 	);

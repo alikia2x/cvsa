@@ -68,13 +68,9 @@ export async function createSession(
 export async function validateSession(
 	sessionId: string
 ): Promise<{ user: User; session: any } | null> {
-	const session = await db
-		.select({
-			...getTableColumns(usersInCredentials),
-			...getTableColumns(loginSessionsInCredentials)
-		})
+	const sessions = await db
+		.select()
 		.from(loginSessionsInCredentials)
-		.innerJoin(usersInCredentials, eq(loginSessionsInCredentials.uid, usersInCredentials.id))
 		.where(
 			and(
 				eq(loginSessionsInCredentials.id, sessionId),
@@ -83,23 +79,23 @@ export async function validateSession(
 		)
 		.limit(1);
 
-	if (session.length === 0) {
+	if (sessions.length === 0) {
 		return null;
 	}
 
-	const foundSession = session[0];
+	const session = sessions[0];
 
-	if (foundSession.expireAt && new Date(foundSession.expireAt) < new Date()) {
+	if (session.expireAt && new Date(session.expireAt) < new Date()) {
 		return null;
 	}
 
-	const user = await db
+	const users = await db
 		.select()
 		.from(usersInCredentials)
-		.where(eq(usersInCredentials.id, foundSession.uid))
+		.where(eq(usersInCredentials.id, session.uid))
 		.limit(1);
 
-	if (user.length === 0) {
+	if (users.length === 0) {
 		return null;
 	}
 
@@ -109,8 +105,8 @@ export async function validateSession(
 		.where(eq(loginSessionsInCredentials.id, sessionId));
 
 	return {
-		user: user[0],
-		session: foundSession
+		user: users[0],
+		session: session
 	};
 }
 
