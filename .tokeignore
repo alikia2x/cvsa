@@ -4,10 +4,6 @@ data
 *.txt
 *.md
 *config*
-Inter.css
-MiSans.css
 *.yaml
 *.yml
 *.mdx
-packages/core/drizzle/cred
-packages/core/drizzle/main
