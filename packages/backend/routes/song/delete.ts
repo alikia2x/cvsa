@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { requireAuth } from "@elysia/middlewares/auth";
+import { requireAuth } from "@backend/middlewares/auth";
 import { songs, history, db } from "@core/drizzle";
 import { eq } from "drizzle-orm";
 

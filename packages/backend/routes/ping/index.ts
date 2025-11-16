@@ -1,4 +1,4 @@
-import { VERSION } from "@elysia/src";
+import { VERSION } from "@backend/src";
 import { Elysia, t } from "elysia";
 
 export const pingHandler = new Elysia({ prefix: "/ping" }).get(

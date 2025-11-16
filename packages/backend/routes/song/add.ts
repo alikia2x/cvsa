@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
-import { biliIDToAID } from "@elysia/lib/bilibiliID";
-import { requireAuth } from "@elysia/middlewares/auth";
-import { LatestVideosQueue } from "@elysia/lib/mq";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
+import { requireAuth } from "@backend/middlewares/auth";
+import { LatestVideosQueue } from "@backend/lib/mq";
 import { db, songs } from "@core/drizzle";
 import { eq, and } from "drizzle-orm";
 

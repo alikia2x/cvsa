@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { db, eta } from "@core/drizzle";
 import { eq } from "drizzle-orm";
-import { biliIDToAID } from "@elysia/lib/bilibiliID";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
 
 export const songEtaHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/eta",

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
+import type { App } from "@backend/src";
 
 // @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);

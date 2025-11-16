@@ -1,10 +1,10 @@
 import { Elysia } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { bv2av } from "@elysia/lib/bilibiliID";
-import { ErrorResponseSchema } from "@elysia/src/schema";
+import { bv2av } from "@backend/lib/bilibiliID";
+import { ErrorResponseSchema } from "@backend/src/schema";
 import { eq, desc } from "drizzle-orm";
 import z from "zod";
-import { SnapshotQueue } from "@elysia/lib/mq";
+import { SnapshotQueue } from "@backend/lib/mq";
 
 export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/snapshots",

@@ -1,6 +1,6 @@
 import type { Route } from "./+types/index";
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
+import type { App } from "@backend/src";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert } from "lucide-react";
@@ -10,7 +10,7 @@ import { Error } from "@/components/Error";
 import { Layout } from "@/components/Layout";
 import { formatDateTime } from "@/components/SearchResults";
 import { Button } from "@/components/ui/button";
-import { av2bv } from "@elysia/lib/bilibiliID";
+import { av2bv } from "@backend/lib/bilibiliID";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);

@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { ip } from "elysia-ip";
-import { verifyUser, createSession, getSessionExpirationDate } from "@elysia/lib/auth";
+import { verifyUser, createSession, getSessionExpirationDate } from "@backend/lib/auth";
 
 export const loginHandler = new Elysia({ prefix: "/auth" }).use(ip()).post(
 	"/session",

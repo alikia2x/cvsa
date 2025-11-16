@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { db, bilibiliMetadata, eta } from "@core/drizzle";
 import { eq, and, gte, lt } from "drizzle-orm";
-import serverTiming from "@elysia/middlewares/timing";
+import serverTiming from "@backend/middlewares/timing";
 import z from "zod";
-import { BiliVideoSchema } from "@elysia/lib/schema";
+import { BiliVideoSchema } from "@backend/lib/schema";
 
 type MileStoneType = "dendou" | "densetsu" | "shinwa";
 

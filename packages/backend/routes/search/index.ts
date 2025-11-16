@@ -1,10 +1,10 @@
 import { Elysia } from "elysia";
 import { db, bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle";
 import { eq, like } from "drizzle-orm";
-import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@elysia/lib/schema";
+import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@backend/lib/schema";
 import { z } from "zod";
 import { getVideoInfo } from "@core/net/getVideoInfo";
-import { biliIDToAID } from "@elysia/lib/bilibiliID";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
 import { retrieveVideoInfoFromCache } from "../video/metadata";
 import { redis } from "@core/db/redis";
 

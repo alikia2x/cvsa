@@ -1,6 +1,6 @@
 import type { Route } from "./+types/add";
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
+import type { App } from "@backend/src";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert, CheckCircle, Clock, AlertCircle } from "lucide-react";

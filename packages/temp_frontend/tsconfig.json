@@ -11,7 +11,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./app/*"],
-			"@elysia/*": ["../elysia/*"],
+			"@backend/*": ["../backend/*"],
 			"@core/*": ["../core/*"]
 		},
 		"esModuleInterop": true,

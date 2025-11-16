@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
+import type { App } from "@backend/src";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateTime } from "@/components/SearchResults";

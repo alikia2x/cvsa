@@ -1,6 +1,6 @@
 import type { Route } from "./+types/index";
 import { treaty } from "@elysiajs/eden";
-import type { App } from "@elysia/src";
+import type { App } from "@backend/src";
 import { memo, useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TriangleAlert } from "lucide-react";
@@ -29,7 +29,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { av2bv } from "@elysia/lib/bilibiliID";
+import { av2bv } from "@backend/lib/bilibiliID";
 import { columns, type Snapshot } from "./columns";
 import { HOUR } from "@core/lib";
 

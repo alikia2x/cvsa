@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { bv2av } from "@elysia/lib/bilibiliID";
+import { bv2av } from "@backend/lib/bilibiliID";
 import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
-import { ErrorResponseSchema } from "@elysia/src/schema";
+import { ErrorResponseSchema } from "@backend/src/schema";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
 
 export async function retrieveVideoInfoFromCache(aid: number) {

@@ -1,5 +1,5 @@
-import { getSingerForBirthday, pickSinger, pickSpecialSinger, Singer } from "@elysia/lib/singers";
-import { VERSION } from "@elysia/src";
+import { getSingerForBirthday, pickSinger, pickSpecialSinger, Singer } from "@backend/lib/singers";
+import { VERSION } from "@backend/src";
 import { Elysia, t } from "elysia";
 
 const SingerObj = t.Object({

@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { validateSession, User } from "@elysia/lib/auth";
+import { validateSession, User } from "@backend/lib/auth";
 
 export interface AuthenticatedContext {
 	user: User;

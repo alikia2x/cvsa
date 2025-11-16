@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { deactivateSession } from "@elysia/lib/auth";
+import { deactivateSession } from "@backend/lib/auth";
 
 export const logoutHandler = new Elysia({ prefix: "/auth" })
 	.delete(
