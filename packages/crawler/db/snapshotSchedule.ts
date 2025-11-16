@@ -154,7 +154,7 @@ export async function findSnapshotBefore(
         SELECT created_at, views
         FROM video_snapshot
         WHERE aid = ${aid}
-		AND created_at <= ${targetTime}::timestamptz
+		AND created_at <= ${targetTime.toISOString()}::timestamptz
         ORDER BY created_at DESC
         LIMIT 1
 	`;

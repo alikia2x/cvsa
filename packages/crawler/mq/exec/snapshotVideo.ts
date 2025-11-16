@@ -34,7 +34,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 			return;
 		}
 
-		const status = await getBiliVideoStatus(sql, aid);
+		const status = await getBiliVideoStatus(aid);
 		if (status !== 0) {
 			logger.warn(
 				`Video ${aid} has status ${status} in the database. Abort snapshoting.`,
@@ -47,7 +47,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		await setSnapshotStatus(sql, id, "processing");
 		const stat = await insertVideoSnapshot(sql, aid, task);
 		if (typeof stat === "number") {
-			await setBiliVideoStatus(sql, aid, stat);
+			await setBiliVideoStatus(aid, stat);
 			await setSnapshotStatus(sql, id, "bili_error");
 			logger.warn(
 				`Bilibili return status ${status} when snapshoting for ${aid}.`,
