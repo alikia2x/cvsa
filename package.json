@@ -1,6 +1,6 @@
 {
 	"name": "cvsa",
-	"version": "3.15.34",
+	"version": "5.5.0",
 	"private": false,
 	"type": "module",
 	"workspaces": {

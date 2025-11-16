@@ -15,6 +15,7 @@ import { addSongHandler } from "@backend/routes/song/add";
 import { deleteSongHandler } from "@backend/routes/song/delete";
 import { songEtaHandler } from "@backend/routes/video/eta";
 import "./mq";
+import pkg from "../package.json";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -46,7 +47,6 @@ const app = new Elysia({
 	.use(addSongHandler)
 	.use(deleteSongHandler)
 	.use(songEtaHandler)
-	.get("/a", () => file("public/background.jpg"))
 	.get("/song/:id", ({ redirect, params }) => {
 		console.log(`/song/${params.id}/info`);
 		return redirect(`/song/${params.id}/info`, 302);
@@ -56,6 +56,6 @@ const app = new Elysia({
 	})
 	.listen(15412);
 
-export const VERSION = "0.7.0";
+export const VERSION = pkg.version;
 
 export type App = typeof app;
