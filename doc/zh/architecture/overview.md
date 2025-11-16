@@ -1,17 +1,3 @@
----
-layout:
-  title:
-    visible: true
-  description:
-    visible: false
-  tableOfContents:
-    visible: true
-  outline:
-    visible: true
-  pagination:
-    visible: true
----
-
 # 概览
 
 CVSA 是一个 [monorepo](https://en.wikipedia.org/wiki/Monorepo) 代码库，使用 [Deno workspace](https://docs.deno.com/runtime/fundamentals/workspaces/) 作为monorepo管理工具，TypeScript 是主要的开发语言。

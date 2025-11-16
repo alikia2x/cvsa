@@ -19,13 +19,10 @@
 ## API 文档 <a href="#api-doc" id="api-doc"></a>
 
 * [目录](api-doc/catalog.md)
-* [视频快照](api-doc/video-snapshot.md)
-
-## 参考 <a href="#references" id="references"></a>
-
-* [颜色系统](references/color-system.md)
-* [关于 APCA](references/about-apca.md)
+* [视频快照](api-doc/shi-pin-kuai-zhao.md)
+* [用户身份认证](api-doc/yong-hu-shen-fen-ren-zheng.md)
 
 ## 开发指南 <a href="#dev-guide" id="dev-guide"></a>
 
 * [版本控制](dev-guide/version-control.md)
+* [部署指南](dev-guide/deployment-guide.md)

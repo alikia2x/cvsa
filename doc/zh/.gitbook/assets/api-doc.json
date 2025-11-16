@@ -1,0 +1,2132 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CVSA API Docs",
+    "description": "Development documentation",
+    "version": "1.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root route",
+        "description": "The root path. It returns a JSON object containing a random virtual singer, \t\t\tbackend version, current server time and other miscellaneous information.",
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "project": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "mascot": {
+                          "type": "string"
+                        },
+                        "quote": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "mascot",
+                        "quote"
+                      ]
+                    },
+                    "status": {
+                      "type": "number"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "number"
+                    },
+                    "singer": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "color": {
+                              "type": "string"
+                            },
+                            "birthday": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "color": {
+                                "type": "string"
+                              },
+                              "birthday": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "project",
+                    "status",
+                    "version",
+                    "time",
+                    "singer"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getIndex"
+      }
+    },
+    "/ping/": {
+      "get": {
+        "summary": "Send a ping",
+        "description": "This endpoint returns a 'pong' message along with comprehensive information about the incoming request and the server's current status, including request headers, IP address, and server version. It's useful for monitoring API availability and debugging.",
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "request": {
+                      "type": "object",
+                      "properties": {
+                        "headers": {},
+                        "ip": {
+                          "type": "string"
+                        },
+                        "method": {
+                          "type": "string"
+                        },
+                        "body": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "url": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "headers",
+                        "method",
+                        "url"
+                      ]
+                    },
+                    "response": {
+                      "type": "object",
+                      "properties": {
+                        "time": {
+                          "type": "number"
+                        },
+                        "status": {
+                          "type": "number"
+                        },
+                        "version": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "time",
+                        "status",
+                        "version"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "request",
+                    "response"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getPing"
+      }
+    },
+    "/auth/session": {
+      "post": {
+        "summary": "User login",
+        "description": "This endpoint authenticates users by verifying their credentials and creates a new session. \t\t\tUpon successful authentication, it returns user information and sets a secure HTTP-only cookie \t\t\tfor session management. The session includes IP address and user agent tracking for security purposes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "anyOf": [
+                            {
+                              "format": "integer",
+                              "default": 0,
+                              "type": "string"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ]
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "nickname": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "username",
+                        "role"
+                      ]
+                    },
+                    "sessionID": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "user",
+                    "sessionID"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postAuthSession"
+      },
+      "delete": {
+        "summary": "Logout current session",
+        "description": "This endpoint logs out the current user by deactivating their session and removing the session cookie. \t\t\t\tIt requires an active session cookie to be present in the request. After successful logout, the session \t\t\t\tis invalidated and cannot be used again.",
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "deleteAuthSession"
+      }
+    },
+    "/video/{id}/info": {
+      "get": {
+        "summary": "Get video metadata",
+        "description": "This endpoint retrieves comprehensive metadata for a bilibili video. It accepts video IDs in av or BV format \t\t\tand returns detailed information including title, description, uploader, statistics (views, likes, coins, etc.), \t\t\tand publication date. The data is cached for 60 seconds to reduce API calls. If the video is not in cache, \t\t\tit fetches fresh data from bilibili API and stores a snapshot in the database.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "pattern": "^(INVALID_QUERY_PARAMS|UNKNOWN_ERROR|INVALID_PAYLOAD|MALFORMED_SLOT|INVALID_HEADER|BODY_TOO_LARGE|UNAUTHORIZED|INVALID_CREDENTIALS|ENTITY_NOT_FOUND|SERVER_ERROR|RATE_LIMIT_EXCEEDED|ENTITY_EXISTS|THIRD_PARTY_ERROR)$",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "i18n": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^(.*)$": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "Date"
+                                    },
+                                    {
+                                      "format": "date-time",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "format": "date",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Response for status 500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "pattern": "^(INVALID_QUERY_PARAMS|UNKNOWN_ERROR|INVALID_PAYLOAD|MALFORMED_SLOT|INVALID_HEADER|BODY_TOO_LARGE|UNAUTHORIZED|INVALID_CREDENTIALS|ENTITY_NOT_FOUND|SERVER_ERROR|RATE_LIMIT_EXCEEDED|ENTITY_EXISTS|THIRD_PARTY_ERROR)$",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "i18n": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^(.*)$": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "Date"
+                                    },
+                                    {
+                                      "format": "date-time",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "format": "date",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getVideoByIdInfo"
+      }
+    },
+    "/song/{id}/info": {
+      "get": {
+        "summary": "Get information of a song",
+        "description": "This endpoint retrieves detailed information about a song using its unique ID, \t\t\twhich can be provided in several formats. \t\t\tThe endpoint accepts a song ID in either a numerical format as the internal ID in our database\t\t\t or as a bilibili video ID (either av or BV format). \t\t\t It responds with the song's name, bilibili ID (av), producer, duration, and associated singers.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "number"
+                    },
+                    "name": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "aid": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "producer": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "duration": {
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "cover": {
+                      "type": "string"
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "aid",
+                    "producer",
+                    "duration",
+                    "publishedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getSongByIdInfo"
+      },
+      "patch": {
+        "summary": "Update song information",
+        "description": "This endpoint allows authenticated users to update song metadata. It accepts partial updates \t\t\tfor song name and producer fields. The endpoint validates the song ID (accepting both internal database IDs \t\t\tand bilibili video IDs in av/BV format), applies the requested changes, and logs the update in the history table \t\t\tfor audit purposes. Requires authentication.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "producer": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "producer": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "producer": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "updated": {}
+                  },
+                  "required": [
+                    "message",
+                    "updated"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "code"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "patchSongByIdInfo"
+      }
+    },
+    "/songs/close-milestone/{type}": {
+      "get": {
+        "summary": "Get songs close to milestones",
+        "description": "This endpoint retrieves songs that are approaching significant view count milestones. \t\t\tIt supports three milestone types: 'dendou' (0-100k views), 'densetsu' (100k-1M views), and 'shinwa' (1M-10M views). \t\t\tFor each type, it returns videos that are within the specified view range and have an estimated time to reach \t\t\tthe next milestone below the threshold. Results are ordered by estimated time to milestone.",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "eta": {
+                        "type": "object",
+                        "properties": {
+                          "aid": {
+                            "type": "number"
+                          },
+                          "eta": {
+                            "type": "number"
+                          },
+                          "speed": {
+                            "type": "number"
+                          },
+                          "currentViews": {
+                            "type": "number"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "aid",
+                          "eta",
+                          "speed",
+                          "currentViews",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "bilibili_metadata": {
+                        "type": "object",
+                        "properties": {
+                          "duration": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "id": {
+                            "type": "number"
+                          },
+                          "aid": {
+                            "type": "number"
+                          },
+                          "publishedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "bvid": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "uid": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "tags": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "title": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "number"
+                          },
+                          "coverUrl": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "duration",
+                          "id",
+                          "aid",
+                          "publishedAt",
+                          "createdAt",
+                          "description",
+                          "bvid",
+                          "uid",
+                          "tags",
+                          "title",
+                          "status",
+                          "coverUrl"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "eta",
+                      "bilibili_metadata"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getSongsClose-milestoneByType"
+      }
+    },
+    "/search/result": {
+      "get": {
+        "summary": "Search songs and videos",
+        "description": "This endpoint performs a comprehensive search across songs and videos in the database. \t\t\tIt searches for songs by name and videos by bilibili ID (av/BV format). The results are ranked \t\t\tby relevance using a weighted algorithm that considers search term frequency, title length, \t\t\tand view count. Returns search results with performance timing information.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "elapsedMs": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "song"
+                              },
+                              "data": {
+                                "type": "object",
+                                "properties": {
+                                  "duration": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "name": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "aid": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "publishedAt": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "type": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "neteaseId": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "createdAt": {
+                                    "type": "string"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string"
+                                  },
+                                  "deleted": {
+                                    "type": "boolean"
+                                  },
+                                  "image": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "producer": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "duration",
+                                  "name",
+                                  "id",
+                                  "aid",
+                                  "publishedAt",
+                                  "type",
+                                  "neteaseId",
+                                  "createdAt",
+                                  "updatedAt",
+                                  "deleted",
+                                  "image",
+                                  "producer"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rank": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "data",
+                              "rank"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "bili-video-db"
+                              },
+                              "data": {
+                                "type": "object",
+                                "properties": {
+                                  "duration": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "id": {
+                                    "type": "number"
+                                  },
+                                  "aid": {
+                                    "type": "number"
+                                  },
+                                  "publishedAt": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "createdAt": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "description": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "bvid": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "uid": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "tags": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "title": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "status": {
+                                    "type": "number"
+                                  },
+                                  "coverUrl": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "views": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "duration",
+                                  "id",
+                                  "aid",
+                                  "publishedAt",
+                                  "createdAt",
+                                  "description",
+                                  "bvid",
+                                  "uid",
+                                  "tags",
+                                  "title",
+                                  "status",
+                                  "coverUrl",
+                                  "views"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rank": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "data",
+                              "rank"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "bili-video"
+                              },
+                              "data": {
+                                "type": "object",
+                                "properties": {
+                                  "bvid": {
+                                    "type": "string"
+                                  },
+                                  "aid": {
+                                    "type": "number"
+                                  },
+                                  "copyright": {
+                                    "type": "number"
+                                  },
+                                  "pic": {
+                                    "type": "string"
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "pubdate": {
+                                    "type": "number"
+                                  },
+                                  "ctime": {
+                                    "type": "number"
+                                  },
+                                  "desc": {
+                                    "type": "string"
+                                  },
+                                  "desc_v2": {
+                                    "type": "string"
+                                  },
+                                  "tname": {
+                                    "type": "string"
+                                  },
+                                  "tid": {
+                                    "type": "number"
+                                  },
+                                  "tid_v2": {
+                                    "type": "number"
+                                  },
+                                  "tname_v2": {
+                                    "type": "string"
+                                  },
+                                  "state": {
+                                    "type": "number"
+                                  },
+                                  "duration": {
+                                    "type": "number"
+                                  },
+                                  "owner": {
+                                    "type": "object",
+                                    "properties": {
+                                      "mid": {
+                                        "type": "number"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "face": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "mid",
+                                      "name",
+                                      "face"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "stat": {
+                                    "type": "object",
+                                    "properties": {
+                                      "aid": {
+                                        "type": "number"
+                                      },
+                                      "view": {
+                                        "type": "number"
+                                      },
+                                      "danmaku": {
+                                        "type": "number"
+                                      },
+                                      "reply": {
+                                        "type": "number"
+                                      },
+                                      "favorite": {
+                                        "type": "number"
+                                      },
+                                      "coin": {
+                                        "type": "number"
+                                      },
+                                      "share": {
+                                        "type": "number"
+                                      },
+                                      "now_rank": {
+                                        "type": "number"
+                                      },
+                                      "his_rank": {
+                                        "type": "number"
+                                      },
+                                      "like": {
+                                        "type": "number"
+                                      }
+                                    },
+                                    "required": [
+                                      "aid",
+                                      "view",
+                                      "danmaku",
+                                      "reply",
+                                      "favorite",
+                                      "coin",
+                                      "share",
+                                      "now_rank",
+                                      "his_rank",
+                                      "like"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "bvid",
+                                  "aid",
+                                  "copyright",
+                                  "pic",
+                                  "title",
+                                  "pubdate",
+                                  "ctime",
+                                  "desc",
+                                  "desc_v2",
+                                  "tname",
+                                  "tid",
+                                  "tid_v2",
+                                  "tname_v2",
+                                  "state",
+                                  "duration",
+                                  "owner",
+                                  "stat"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "rank": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "data",
+                              "rank"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "elapsedMs",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getSearchResult"
+      }
+    },
+    "/video/{id}/snapshots": {
+      "get": {
+        "summary": "Get video snapshots",
+        "description": "This endpoint retrieves historical view count snapshots for a bilibili video. It accepts video IDs in av or BV format \t\t\tand returns a chronological list of snapshots showing how the video's statistics (views, likes, coins, favorites, etc.) \t\t\thave changed over time. If no snapshots exist for the video, it automatically queues a snapshot job to collect initial data. \t\t\tResults are ordered by creation date in descending order.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "views": {
+                        "type": "number"
+                      },
+                      "coins": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "likes": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "favorites": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "shares": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "danmakus": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "aid": {
+                        "type": "number"
+                      },
+                      "replies": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "createdAt",
+                      "views",
+                      "coins",
+                      "likes",
+                      "favorites",
+                      "shares",
+                      "danmakus",
+                      "aid",
+                      "replies"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "pattern": "^(INVALID_QUERY_PARAMS|UNKNOWN_ERROR|INVALID_PAYLOAD|MALFORMED_SLOT|INVALID_HEADER|BODY_TOO_LARGE|UNAUTHORIZED|INVALID_CREDENTIALS|ENTITY_NOT_FOUND|SERVER_ERROR|RATE_LIMIT_EXCEEDED|ENTITY_EXISTS|THIRD_PARTY_ERROR)$",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "i18n": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^(.*)$": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "Date"
+                                    },
+                                    {
+                                      "format": "date-time",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "format": "date",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Response for status 500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "pattern": "^(INVALID_QUERY_PARAMS|UNKNOWN_ERROR|INVALID_PAYLOAD|MALFORMED_SLOT|INVALID_HEADER|BODY_TOO_LARGE|UNAUTHORIZED|INVALID_CREDENTIALS|ENTITY_NOT_FOUND|SERVER_ERROR|RATE_LIMIT_EXCEEDED|ENTITY_EXISTS|THIRD_PARTY_ERROR)$",
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "i18n": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "values": {
+                          "type": "object",
+                          "patternProperties": {
+                            "^(.*)$": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "anyOf": [
+                                    {
+                                      "type": "Date"
+                                    },
+                                    {
+                                      "format": "date-time",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "format": "date",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "key"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "errors"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getVideoByIdSnapshots"
+      }
+    },
+    "/song/import/bilibili": {
+      "post": {
+        "summary": "Import song from bilibili",
+        "description": "This endpoint allows authenticated users to import a song from bilibili by providing a video ID. \t\t\t\tThe video ID can be in av or BV format. The system validates the ID format, checks if the video already \t\t\t\texists in the database, and if not, creates a background job to fetch video metadata and add it to the songs collection. \t\t\t\tReturns the job ID for tracking the import progress.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Response for status 201",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "jobID": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message",
+                    "jobID"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Response for status 500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "postSongImportBilibili"
+      }
+    },
+    "/song/import/{id}/status": {
+      "get": {
+        "summary": "Check import job status",
+        "description": "This endpoint retrieves the current status of a song import job. It returns the job state \t\t\t\t(completed, failed, active, etc.), the result if completed, and any failure reason if the job failed. \t\t\t\tUse this endpoint to monitor the progress of song imports initiated through the import endpoint.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "result": {},
+                    "failedReason": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "state"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getSongImportByIdStatus"
+      }
+    },
+    "/song/{id}": {
+      "delete": {
+        "summary": "Delete song",
+        "description": "This endpoint allows authenticated users to soft-delete a song from the database. \t\t\tThe song is marked as deleted rather than being permanently removed, preserving data integrity. \t\t\tThe deletion is logged in the history table for audit purposes. Requires authentication and appropriate permissions.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Response for status 401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Response for status 500",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "deleteSongById"
+      }
+    },
+    "/video/{id}/eta": {
+      "get": {
+        "summary": "Get video milestone ETA",
+        "description": "This endpoint retrieves the estimated time to reach the next milestone for a given video. \t\t\tIt accepts video IDs in av or BV format and returns the current view count, estimated time to \t\t\treach the next milestone (in hours), view growth speed, and last update timestamp. Useful for \t\t\ttracking video growth and milestone predictions.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aid": {
+                      "type": "number"
+                    },
+                    "eta": {
+                      "type": "number"
+                    },
+                    "views": {
+                      "type": "number"
+                    },
+                    "speed": {
+                      "type": "number"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "aid",
+                    "eta",
+                    "views",
+                    "speed",
+                    "updatedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Response for status 400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Response for status 404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "operationId": "getVideoByIdEta"
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}

@@ -1,17 +1,6 @@
 ---
 description: 「中V档案馆」 (CVSA) 是一个收录中文歌声合成文化圈有关信息的网站。
 icon: hand-wave
-layout:
-  title:
-    visible: true
-  description:
-    visible: true
-  tableOfContents:
-    visible: false
-  outline:
-    visible: false
-  pagination:
-    visible: false
 ---
 
 # 欢迎
