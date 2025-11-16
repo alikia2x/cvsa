@@ -5,14 +5,12 @@
 	"type": "module",
 	"workspaces": {
 		"packages": [
-			"packages/frontend",
 			"packages/core",
 			"packages/backend",
 			"packages/crawler",
-			"packages/elysia",
+			"packages/palette",
 			"packages/temp_frontend",
-			"packages/solid",
-			"packages/palette"
+			"packages/tracker"
 		],
 		"catalog": {
 			"elysia": "^1.4.15"

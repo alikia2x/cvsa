@@ -1,30 +1,27 @@
 {
-	"name": "@cvsa/backend",
-	"private": false,
-	"version": "0.6.0",
+	"name": "elysia-api",
+	"version": "0.7.0",
 	"scripts": {
-		"format": "prettier --write .",
-		"dev": "NODE_ENV=development bun run --hot src/main.ts",
-		"start": "NODE_ENV=production bun run src/main.ts",
-		"build": "bun build ./src/main.ts --target bun --outdir ./dist"
+		"dev": "NODE_ENV=development bun run --watch src/index.ts",
+		"start": "NODE_ENV=production bun run src/index.ts",
+		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@koshnic/ratelimit": "^1.0.3",
+		"@alikia/random-key": "^1.1.1",
+		"@elysiajs/cors": "^1.4.0",
+		"@elysiajs/jwt": "^1.4.0",
+		"@elysiajs/openapi": "^1.4.11",
+		"@elysiajs/server-timing": "^1.4.0",
 		"@rabbit-company/argon2id": "^2.1.0",
-		"chalk": "^5.4.1",
-		"hono": "^4.7.8",
-		"hono-rate-limiter": "^0.4.2",
-		"ioredis": "^5.6.1",
-		"limiter": "^3.0.0",
-		"postgres": "^3.4.5",
-		"rate-limit-redis": "^4.2.0",
-		"yup": "^1.6.1",
-		"zod": "^3.24.3"
+		"bullmq": "^5.63.0",
+		"chalk": "^5.6.2",
+		"elysia": "catalog:",
+		"elysia-ip": "^1.0.10",
+		"zod": "^4.1.12"
 	},
 	"devDependencies": {
-		"@types/bun": "^1.2.11",
+		"bun-types": "latest",
 		"prettier": "^3.5.3"
 	},
-	"main": "./dist/main.js",
-	"types": "./src/types.d.ts"
+	"module": "src/index.js"
 }

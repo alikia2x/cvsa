@@ -44,7 +44,7 @@ export const apps = [
     {
         name: 'cvsa-be',
         script: 'src/index.ts',
-        cwd: './packages/elysia',
+        cwd: './packages/backend',
         interpreter: 'bun',
         env: {
             NODE_ENV: 'production'
