@@ -61,7 +61,7 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 			.map((tag) => tag.tag_name)
 			.join(","),
 		title: data.View.title,
-		publishedAt: new Date(data.View.pubdate).toISOString(),
+		publishedAt: new Date(data.View.pubdate * 1000).toISOString(),
 		duration: data.View.duration,
 		coverUrl: data.View.pic
 	});
