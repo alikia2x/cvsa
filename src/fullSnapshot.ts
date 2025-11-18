@@ -50,7 +50,8 @@ async function addCandidates() {
     for (const aid of newAids) {
         stmt += `INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (${aid}, 'pending');\n`;
     }
-	sqlite.prepare(stmt).run();
+    await Bun.file("1.sql").write(stmt);
+	sqlite.exec(stmt);
 	logger.log(`Added ${newAids.length} to local DB.`);
 }
 

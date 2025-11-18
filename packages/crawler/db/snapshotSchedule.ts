@@ -235,7 +235,7 @@ export async function scheduleSnapshot(
 		if (latestScheduleStartedAt > adjustedTime) {
 			await sql`
                 UPDATE snapshot_schedule
-                SET started_at = ${adjustedTime}
+                SET started_at = ${adjustedTime.toISOString()}
                 WHERE id = ${latestActiveSchedule.id}
 			`;
 			logger.log(
@@ -251,7 +251,7 @@ export async function scheduleSnapshot(
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 3000, redis);
 	}
 	logger.log(
-		`Scheduled snapshot for ${aid} at ${adjustedTime.toISOString()}`,
+		`Scheduled ${type} snapshot for ${aid} at ${adjustedTime.toISOString()}`,
 		"mq",
 		"fn:scheduleSnapshot"
 	);

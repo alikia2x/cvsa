@@ -11,7 +11,7 @@ import { jobCounter, jobDurationRaw } from "metrics";
 export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
 	const start = Date.now();
 	try {
-		const videos = await getVideosNearMilestone(sql);
+		const videos = await getVideosNearMilestone();
 		for (const video of videos) {
 			const aid = Number(video.aid);
 			const eta = await getAdjustedShortTermETA(sql, aid);
