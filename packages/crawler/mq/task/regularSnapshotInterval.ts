@@ -11,7 +11,6 @@ export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	if (!oldSnapshot || !latestSnapshot) return 0;
 	if (oldSnapshot.created_at === latestSnapshot.created_at) return 0;
 	const hoursDiff = (latestSnapshot.created_at - oldSnapshot.created_at) / HOUR;
-	if (hoursDiff < 8) return 24;
 	const viewsDiff = latestSnapshot.views - oldSnapshot.views;
 	if (viewsDiff === 0) return 72;
 	const speedPerDay = (viewsDiff / (hoursDiff + 0.001)) * 24;
