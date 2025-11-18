@@ -28,11 +28,9 @@ async function fixTimezoneError() {
 	const candidates = await pg`
         SELECT aid, published_at
         FROM
-          bilibili_metadata
+          songs
         WHERE
-          published_at >= '2025-04-26'
-          AND published_at <= '2025-06-01'
-          AND status = 0
+          published_at <= '2000-01-01'
     `;
 	const query = sqlite.query(`SELECT data FROM bili_info_crawl WHERE aid = $aid`);
 	for (const video of candidates) {

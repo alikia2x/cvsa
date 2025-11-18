@@ -35,6 +35,9 @@ export const classifyVideoWorker = async (job: Job) => {
 
 	const exists = await aidExistsInSongs(sql, aid);
 	if (!exists && label !== 0) {
+		await scheduleSnapshot(sql, aid, "new", Date.now() + 1.5 * MINUTE, true);
+		await scheduleSnapshot(sql, aid, "new", Date.now() + 3 * MINUTE, true);
+		await scheduleSnapshot(sql, aid, "new", Date.now() + 5 * MINUTE, true);
 		await scheduleSnapshot(sql, aid, "new", Date.now() + 10 * MINUTE, true);
 		await insertIntoSongs(aid);
 	}

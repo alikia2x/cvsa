@@ -82,7 +82,7 @@ function SongResult({ result }: { result: Exclude<SearchResult, null>["data"][nu
 				<img
 					src={data.image}
 					alt="歌曲封面"
-					className="h-21 w-36 sm:w-42 sm:h-24 rounded-sm object-cover flex-shrink-0"
+					className="h-21 w-36 sm:w-42 sm:h-24 rounded-sm object-cover shrink-0"
 					referrerPolicy="no-referrer"
 				/>
 			)}

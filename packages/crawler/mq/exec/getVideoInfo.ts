@@ -1,5 +1,5 @@
 import { Job } from "bullmq";
-import { getVideoDetails } from "net/getVideoDetails";
+import { getVideoDetails } from "@core/net/getVideoDetails";
 import logger from "@core/log";
 import { ClassifyVideoQueue, latestVideosEventsProducer } from "mq/index";
 import {
