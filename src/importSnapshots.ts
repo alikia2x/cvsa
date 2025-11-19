@@ -1,4 +1,4 @@
-import logger from "@core/log/logger";
+import logger from "@core/log";
 import { sql } from "@core/index";
 import arg from "arg";
 import fs from "fs/promises";
