@@ -134,7 +134,10 @@ const songInfoUpdateHandler = new Elysia({ prefix: "/song" }).use(requireAuth).p
 			objectId: songID,
 			changeType: "update-song",
 			changedBy: user!.unqId,
-			data: updatedData.length > 0 ? updatedData[0] : null
+			data: updatedData.length > 0 ? {
+				old: info,
+				new: updatedData[0]
+			} : null
 		});
 		return {
 			message: "Successfully updated song info.",

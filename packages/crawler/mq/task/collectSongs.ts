@@ -34,23 +34,24 @@ export async function insertIntoSongs(aid: number) {
 			.returning();
 		return data;
 	}
-	const data = await db
-		.insert(songs)
-		.values({
-			aid,
-			publishedAt: drizzleSQL`SELECT published_at FROM bilibili_metadata WHERE aid = ${aid}`,
-			duration: drizzleSQL`SELECT duration FROM bilibili_metadata WHERE aid = ${aid}`,
-			image: drizzleSQL`SELECT cover_url FROM bilibili_metadata WHERE aid = ${aid}`,
-			producer: drizzleSQL`
-			SELECT username
-			FROM bilibili_user bu
-			JOIN bilibili_metadata bm
-			ON bm.uid = bu.uid
-			WHERE bm.aid = ${aid}
-		`
-		})
-		.onConflictDoNothing()
-		.returning();
+	const data = await sql`
+		INSERT INTO songs (aid, published_at, duration, image, producer)
+		VALUES (
+			$1,
+			(SELECT published_at FROM bilibili_metadata WHERE aid = ${aid}),
+			(SELECT duration FROM bilibili_metadata WHERE aid = ${aid}),
+			(SELECT cover_url FROM bilibili_metadata WHERE aid = ${aid}),
+			(
+				SELECT username
+				FROM bilibili_user bu
+				JOIN bilibili_metadata bm
+				ON bm.uid = bu.uid
+				WHERE bm.aid = ${aid}
+			)
+		)
+		ON CONFLICT DO NOTHING
+		RETURNING *
+	`
 
 	return data;
 }
