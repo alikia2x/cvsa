@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { bv2av } from "@backend/lib/bilibiliID";
+import { biliIDToAID, bv2av } from "@backend/lib/bilibiliID";
 import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
 import { ErrorResponseSchema } from "@backend/src/schema";
@@ -46,13 +46,9 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/info",
 	async (c) => {
 		const id = c.params.id;
-		let aid: number | null = null;
+		const aid = biliIDToAID(id);
 
-		if (id.startsWith("BV1")) {
-			aid = bv2av(id as `BV1${string}`);
-		} else if (id.startsWith("av")) {
-			aid = Number.parseInt(id.slice(2));
-		} else {
+		if (!aid) {
 			return c.status(400, {
 				code: "MALFORMED_SLOT",
 				message:
@@ -63,7 +59,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 
 		const cachedData = await retrieveVideoInfoFromCache(aid);
 		if (cachedData) {
-			return cachedData;
+			return cachedData.data;
 		}
 
 		const r = await getVideoInfo(aid, "getVideoInfo");

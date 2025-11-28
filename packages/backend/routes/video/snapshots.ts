@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { bv2av } from "@backend/lib/bilibiliID";
+import { biliIDToAID, bv2av } from "@backend/lib/bilibiliID";
 import { ErrorResponseSchema } from "@backend/src/schema";
 import { eq, desc } from "drizzle-orm";
 import z from "zod";
@@ -10,13 +10,9 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/snapshots",
 	async (c) => {
 		const id = c.params.id;
-		let aid: number | null = null;
+		const aid = biliIDToAID(id);
 
-		if (id.startsWith("BV1")) {
-			aid = bv2av(id as `BV1${string}`);
-		} else if (id.startsWith("av")) {
-			aid = Number.parseInt(id.slice(2));
-		} else {
+		if (!aid) {
 			return c.status(400, {
 				code: "MALFORMED_SLOT",
 				message:

@@ -8,7 +8,7 @@ import {
 import logger from "@core/log";
 import { HOUR, MINUTE, SECOND } from "@core/lib";
 import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata";
-import { insertVideoSnapshot } from "mq/task/getVideoStats";
+import { takeVideoSnapshot } from "mq/task/getVideoStats";
 import { getSongsPublihsedAt } from "db/songs";
 import { getAdjustedShortTermETA } from "mq/scheduling";
 import { NetSchedulerError } from "@core/net/delegate";
@@ -45,7 +45,7 @@ export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 		}
 
 		await setSnapshotStatus(sql, id, "processing");
-		const stat = await insertVideoSnapshot(sql, aid, task);
+		const stat = await takeVideoSnapshot(sql, aid, task);
 		if (typeof stat === "number") {
 			await setBiliVideoStatus(aid, stat);
 			await setSnapshotStatus(sql, id, "bili_error");
