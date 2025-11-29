@@ -2,23 +2,19 @@ import type { Route } from "./+types/add";
 import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
 import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { TriangleAlert, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Title } from "@/components/Title";
-import { Search } from "@/components/Search";
-import { Error } from "@/components/Error";
 import { Layout } from "@/components/Layout";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
+import { Error } from "@/components/Error";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
-type SongInfoError = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["error"];
 type ImportStatus = {
 	id: string;
 	state: string;
@@ -34,6 +30,10 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	const [isImporting, setIsImporting] = useState(false);
 	const [importStatus, setImportStatus] = useState<ImportStatus | null>(null);
 	const [importInterval, setImportInterval] = useState<NodeJS.Timeout | null>(null);
+	const aid = biliIDToAID(loaderData.id);
+	if (!aid) {
+		return <Error error={{ status: 404, value: { message: "找不到页面" } }} />;
+	}
 
 	const importSong = async () => {
 		const response = await app.song.import.bilibili.post(
@@ -51,7 +51,6 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 			return;
 		}
 
-		// @ts-ignore - Type issues with Eden treaty
 		const jobID = response.data?.jobID;
 		if (!jobID) {
 			toast.error("导入失败：未收到任务ID");
@@ -89,8 +88,8 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 			// Redirect to song info page after successful import
 			setTimeout(() => {
 				window.location.href = `/song/${loaderData.id}/info`;
-			}, 2000);
-		}, 2000);
+			}, 1200);
+		}, 500);
 		setImportInterval(interval);
 	};
 
@@ -106,9 +105,8 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 
 	useEffect(() => {
 		return () => {
-			if (importInterval) {
-				clearInterval(importInterval);
-			}
+			if (!importInterval) return;
+			clearInterval(importInterval);
 		};
 	}, [importInterval]);
 

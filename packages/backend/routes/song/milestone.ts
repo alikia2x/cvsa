@@ -8,30 +8,27 @@ import { BiliVideoSchema } from "@backend/lib/schema";
 type MileStoneType = "dendou" | "densetsu" | "shinwa";
 
 const range = {
-	dendou: [0, 100000, 2160],
-	densetsu: [100000, 1000000, 8760],
-	shinwa: [1000000, 10000000, 43800]
+	dendou: [0, 100000],
+	densetsu: [100000, 1000000],
+	shinwa: [1000000, 10000000]
 };
 
 export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(serverTiming()).get(
 	"/close-milestone/:type",
-	async ({ params, timeLog }) => {
-		timeLog.startTime("retrieveCandidates");
+	async ({ params }) => {
 		const type = params.type;
+		const offset = params.offset;
+		const limit = params.limit;
 		const min = range[type as MileStoneType][0];
 		const max = range[type as MileStoneType][1];
-		return db
+		const query = db
 			.select()
 			.from(eta)
 			.innerJoin(bilibiliMetadata, eq(bilibiliMetadata.aid, eta.aid))
-			.where(
-				and(
-					gte(eta.currentViews, min),
-					lt(eta.currentViews, max),
-					lt(eta.eta, range[type as MileStoneType][2])
-				)
-			)
-			.orderBy(eta.eta);
+			.where(and(gte(eta.currentViews, min), lt(eta.currentViews, max)))
+			.orderBy(eta.eta)
+			.$dynamic();
+		return query.limit(limit || 20).offset(offset || 0);
 	},
 	{
 		response: {
@@ -51,6 +48,11 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 				message: t.String()
 			})
 		},
+		params: t.Object({
+			type: t.String({ enum: ["dendou", "densetsu", "shinwa"] }),
+			offset: t.Optional(t.Number()),
+			limit: t.Optional(t.Number())
+		}),
 		detail: {
 			summary: "Get songs close to milestones",
 			description:
