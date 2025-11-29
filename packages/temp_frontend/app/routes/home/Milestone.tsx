@@ -90,7 +90,7 @@ export const MilestoneVideos: React.FC = () => {
 			const target = e.currentTarget;
 			const { scrollHeight, scrollTop, clientHeight } = target;
 
-			if (scrollTop + clientHeight >= scrollHeight - 400 && !isLoadingMore && hasMore) {
+			if (scrollTop + clientHeight >= scrollHeight - 500 && !isLoadingMore && hasMore) {
 				setOffset((prev) => prev + 20);
 			}
 		},
@@ -146,8 +146,8 @@ export const MilestoneVideos: React.FC = () => {
 						/>
 					))}
 					{isLoadingMore && (
-						<div className="rounded-xl my-4 px-3 py-4">
-							<Skeleton className="h-40 rounded-xl" />
+						<div className="rounded-xl my-4 shadow-sm border border-gray-200 dark:border-neutral-700">
+							<Skeleton className="h-49 sm:h-55 w-full rounded-xl" />
 						</div>
 					)}
 				</ScrollArea>

@@ -15,20 +15,20 @@ const range = {
 
 export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(serverTiming()).get(
 	"/close-milestone/:type",
-	async ({ params }) => {
+	async ({ params, query }) => {
 		const type = params.type;
-		const offset = params.offset;
-		const limit = params.limit;
+		const offset = query.offset;
+		const limit = query.limit;
 		const min = range[type as MileStoneType][0];
 		const max = range[type as MileStoneType][1];
-		const query = db
+		const q = db
 			.select()
 			.from(eta)
 			.innerJoin(bilibiliMetadata, eq(bilibiliMetadata.aid, eta.aid))
 			.where(and(gte(eta.currentViews, min), lt(eta.currentViews, max)))
 			.orderBy(eta.eta)
 			.$dynamic();
-		return query.limit(limit || 20).offset(offset || 0);
+		return q.limit(limit || 20).offset(offset || 0);
 	},
 	{
 		response: {
@@ -49,7 +49,9 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 			})
 		},
 		params: t.Object({
-			type: t.String({ enum: ["dendou", "densetsu", "shinwa"] }),
+			type: t.String({ enum: ["dendou", "densetsu", "shinwa"] })
+		}),
+		query: t.Object({
 			offset: t.Optional(t.Number()),
 			limit: t.Optional(t.Number())
 		}),
