@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { getCurrentUser } from "@lib/auth-utils";
 import { db } from "@lib/db";
 import { users } from "@lib/db/schema";
+import type { Route } from "./+types/page";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export async function loader({ request }: { request: Request }) {
 	const existingUsers = await db.select().from(users).limit(1);
@@ -20,7 +23,13 @@ export async function loader({ request }: { request: Request }) {
 	}
 }
 
-export default function LoginPage() {
+export default function LoginPage({ actionData }: Route.ComponentProps) {
+	useEffect(() => {
+		if (actionData?.error) {
+			toast(actionData.error)
+		}
+	}, [actionData]);
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-background p-4">
 			<Card className="w-full max-w-md">

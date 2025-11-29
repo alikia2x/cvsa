@@ -7,5 +7,5 @@ export default [
 	route("search", "routes/search/index.tsx"),
 	route("login", "routes/login.tsx"),
 	route("video/:id/info", "routes/video/[id]/info/index.tsx"),
-	route("util/time-calculator", "routes/util/time-calculator.tsx"),
+	route("time-calculator", "routes/time-calculator.tsx"),
 ] satisfies RouteConfig;

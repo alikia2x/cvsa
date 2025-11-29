@@ -5,11 +5,11 @@
 	"scripts": {
 		"build": "bunx --bun react-router build",
 		"dev": "bunx --bun react-router dev --port 7399",
-		"start": "bunx react-router-serve ./build/server/index.js --port 7399",
+		"start": "PORT=7399 bunx react-router-serve ./build/server/index.js",
 		"typecheck": "bunx --bun react-router typegen && tsc"
 	},
 	"dependencies": {
-		"@alikia/random-key": "^1.1.1",
+		"@alikia/random-key": "^2.0.0",
 		"@dnd-kit/core": "^6.3.1",
 		"@dnd-kit/sortable": "^10.0.0",
 		"@dnd-kit/utilities": "^3.2.2",

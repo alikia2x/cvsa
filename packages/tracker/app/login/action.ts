@@ -10,7 +10,6 @@ export async function action({ request }: { request: Request }) {
 		return { error: "Username and password are required" };
 	}
 
-	console.log(username, password)
 	const user = await authenticateUser(username, password);
 	if (!user) {
 		return { error: "Invalid username or password" };

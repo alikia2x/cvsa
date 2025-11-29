@@ -7,21 +7,21 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@alikia/random-key": "^1.1.1",
+		"@alikia/random-key": "^2.0.0",
 		"@elysiajs/cors": "^1.4.0",
 		"@elysiajs/jwt": "^1.4.0",
 		"@elysiajs/openapi": "^1.4.11",
 		"@elysiajs/server-timing": "^1.4.0",
 		"@rabbit-company/argon2id": "^2.1.0",
-		"bullmq": "^5.63.0",
+		"bullmq": "^5.65.0",
 		"chalk": "^5.6.2",
 		"elysia": "catalog:",
 		"elysia-ip": "^1.0.10",
-		"zod": "^4.1.12"
+		"zod": "^4.1.13"
 	},
 	"devDependencies": {
 		"bun-types": "latest",
-		"prettier": "^3.5.3"
+		"prettier": "^3.7.2"
 	},
 	"module": "src/index.js"
 }
