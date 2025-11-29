@@ -15,4 +15,4 @@ jobs:
           script: |
             cd /web/cvsa
             git pull
-            pm2 restart cvsa-be --update-env
+            /home/github-actions/.bun/bin/pm2 restart cvsa-be --update-env
