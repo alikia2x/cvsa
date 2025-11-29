@@ -18,6 +18,8 @@ export function SearchBox({ query = "", setQuery, onSearch, className, ...rest }
 				type="search"
 				placeholder="搜索"
 				value={query}
+				autoComplete="off"
+				autoCorrect="off"
 				onChange={(e) => setQuery(e.target.value)}
 				onKeyDown={(e) => {
 					if (e.key === "Enter") {
