@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { db, bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle";
-import { eq, like } from "drizzle-orm";
+import { eq, ilike } from "drizzle-orm";
 import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@backend/lib/schema";
 import { z } from "zod";
 import { getVideoInfo } from "@core/net/getVideoInfo";
@@ -13,7 +13,7 @@ const getSongSearchResult = async (searchQuery: string) => {
 		.select()
 		.from(songs)
 		.innerJoin(latestVideoSnapshot, eq(songs.aid, latestVideoSnapshot.aid))
-		.where(like(songs.name, `%${searchQuery}%`));
+		.where(ilike(songs.name, `%${searchQuery}%`));
 
 	const results = data
 		.map((song) => {
