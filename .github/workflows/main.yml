@@ -13,6 +13,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            source ~/.bashrc
             cd /web/cvsa
             git pull
             /home/github-actions/.bun/bin/pm2 restart cvsa-be --update-env
