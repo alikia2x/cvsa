@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, uniqueIndex, check, integer, text, timestamp, foreignKey, serial, bigint, jsonb, index, inet, varchar, smallint, real, unique, boolean, bigserial, pgSequence } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, uniqueIndex, check, integer, text, timestamp, foreignKey, serial, bigint, jsonb, index, inet, varchar, smallint, real, boolean, bigserial, unique, pgSequence } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const credentials = pgSchema("credentials");
@@ -228,27 +228,6 @@ export const eta = pgTable("eta", {
 	check("eta_updated_at_not_null", sql`NOT NULL updated_at`),
 ]);
 
-export const bilibiliUser = pgTable("bilibili_user", {
-	id: serial().primaryKey().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	uid: bigint({ mode: "number" }).notNull(),
-	username: text().notNull(),
-	desc: text().notNull(),
-	fans: integer().notNull(),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-}, (table) => [
-	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
-	unique("unq_bili-user_uid").on(table.uid),
-	check("bilibili_user_id_not_null", sql`NOT NULL id`),
-	check("bilibili_user_uid_not_null", sql`NOT NULL uid`),
-	check("bilibili_user_username_not_null", sql`NOT NULL username`),
-	check("bilibili_user_desc_not_null", sql`NOT NULL "desc"`),
-	check("bilibili_user_fans_not_null", sql`NOT NULL fans`),
-	check("bilibili_user_created_at_not_null", sql`NOT NULL created_at`),
-	check("bilibili_user_updated_at_not_null", sql`NOT NULL updated_at`),
-]);
-
 export const singer = pgTable("singer", {
 	id: serial().primaryKey().notNull(),
 	name: text().notNull(),
@@ -276,6 +255,7 @@ export const songs = pgTable("songs", {
 	index("idx_hash_songs_aid").using("hash", table.aid.asc().nullsLast().op("int8_ops")),
 	index("idx_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
 	index("idx_published_at").using("btree", table.publishedAt.asc().nullsLast().op("timestamptz_ops")),
+	index("idx_songs_name").using("gin", table.name.asc().nullsLast().op("gin_trgm_ops")),
 	index("idx_type").using("btree", table.type.asc().nullsLast().op("int2_ops")),
 	uniqueIndex("unq_songs_aid").using("btree", table.aid.asc().nullsLast().op("int8_ops")),
 	uniqueIndex("unq_songs_netease_id").using("btree", table.neteaseId.asc().nullsLast().op("int8_ops")),
@@ -329,24 +309,24 @@ export const relationSinger = pgTable("relation_singer", {
 	check("relation_singer_updated_at_not_null", sql`NOT NULL updated_at`),
 ]);
 
-export const relations = pgTable("relations", {
-	id: integer().notNull(),
+export const bilibiliUser = pgTable("bilibili_user", {
+	id: serial().primaryKey().notNull(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	sourceId: bigint("source_id", { mode: "number" }).notNull(),
-	sourceType: text("source_type").notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	targetId: bigint("target_id", { mode: "number" }).notNull(),
-	targetType: text("target_type").notNull(),
-	relation: text().notNull(),
-	createdAt: timestamp("created_at", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp("updated_at", { precision: 6, withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	uid: bigint({ mode: "number" }).notNull(),
+	username: text().notNull(),
+	desc: text().notNull(),
+	fans: integer().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	avatar: text(),
 }, (table) => [
-	check("relations_id_not_null", sql`NOT NULL id`),
-	check("relations_source_id_not_null", sql`NOT NULL source_id`),
-	check("relations_source_type_not_null", sql`NOT NULL source_type`),
-	check("relations_target_id_not_null", sql`NOT NULL target_id`),
-	check("relations_target_type_not_null", sql`NOT NULL target_type`),
-	check("relations_relation_not_null", sql`NOT NULL relation`),
-	check("relations_created_at_not_null", sql`NOT NULL created_at`),
-	check("relations_updated_at_not_null", sql`NOT NULL updated_at`),
+	index("idx_bili-user_uid").using("btree", table.uid.asc().nullsLast().op("int8_ops")),
+	unique("unq_bili-user_uid").on(table.uid),
+	check("bilibili_user_id_not_null", sql`NOT NULL id`),
+	check("bilibili_user_uid_not_null", sql`NOT NULL uid`),
+	check("bilibili_user_username_not_null", sql`NOT NULL username`),
+	check("bilibili_user_desc_not_null", sql`NOT NULL "desc"`),
+	check("bilibili_user_fans_not_null", sql`NOT NULL fans`),
+	check("bilibili_user_created_at_not_null", sql`NOT NULL created_at`),
+	check("bilibili_user_updated_at_not_null", sql`NOT NULL updated_at`),
 ]);

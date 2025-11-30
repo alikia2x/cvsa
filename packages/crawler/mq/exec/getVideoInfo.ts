@@ -72,12 +72,18 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 			uid,
 			username: data.View.owner.name,
 			desc: data.Card.card.sign,
-			fans: data.Card.follower
+			fans: data.Card.follower,
+			avatar: data.View.owner.face
 		});
 	} else {
 		await db
 			.update(bilibiliUser)
-			.set({ username: data.View.owner.name, desc: data.Card.card.sign })
+			.set({
+				username: data.View.owner.name,
+				desc: data.Card.card.sign,
+				fans: data.Card.follower,
+				avatar: data.View.owner.face
+			})
 			.where(eq(bilibiliUser.uid, uid));
 	}
 
