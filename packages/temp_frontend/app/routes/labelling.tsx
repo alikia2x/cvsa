@@ -1,8 +1,6 @@
 import { Layout } from "@/components/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/components/SearchResults";
 import { treaty } from "@elysiajs/eden";
@@ -201,9 +199,7 @@ export default function Home() {
 											<span>{currentVideo.bvid}</span> · <span>av{currentVideo.aid}</span>
 										</p>
 										<p>
-											<span>发布于 {formatDateTime(new Date(currentVideo.published_at!))}</span>
-										</p>
-										<p>
+											<span>发布于 {formatDateTime(new Date(currentVideo.published_at!))}</span><br/>
 											<span>播放：{(currentVideo.views ?? 0).toLocaleString()}</span>
 										</p>
 										<p>
@@ -216,6 +212,13 @@ export default function Home() {
 											>
 												{currentVideo.username}
 											</a>
+										</p>
+										<p>
+											<span>
+												<b>标签</b>
+												<br />
+												{currentVideo.tags?.replaceAll(",","，")}
+											</span>
 										</p>
 									</div>
 								</div>
