@@ -52,6 +52,8 @@ export const BiliVideoSchema = z.object({
 	coverUrl: z.string().nullable()
 });
 
+export type BiliVideoType = z.infer<typeof BiliVideoSchema>;
+
 export const SongSchema = z.object({
 	duration: z.number().nullable(),
 	name: z.string().nullable(),

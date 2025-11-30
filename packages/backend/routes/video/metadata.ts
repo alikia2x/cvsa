@@ -5,6 +5,7 @@ import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
 import { ErrorResponseSchema } from "@backend/src/schema";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
+import { BiliAPIVideoMetadataSchema } from "@backend/lib/schema";
 
 export async function retrieveVideoInfoFromCache(aid: number) {
 	const cacheKey = `cvsa:videoInfo:av${aid}`;
@@ -59,7 +60,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 
 		const cachedData = await retrieveVideoInfoFromCache(aid);
 		if (cachedData) {
-			return cachedData.data;
+			return cachedData;
 		}
 
 		const r = await getVideoInfo(aid, "getVideoInfo");

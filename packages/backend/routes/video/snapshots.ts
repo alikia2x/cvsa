@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { biliIDToAID, bv2av } from "@backend/lib/bilibiliID";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
 import { ErrorResponseSchema } from "@backend/src/schema";
 import { eq, desc } from "drizzle-orm";
 import z from "zod";

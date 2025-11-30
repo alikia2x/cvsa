@@ -3,14 +3,10 @@ import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TriangleAlert } from "lucide-react";
 import { Title } from "@/components/Title";
-import { toast } from "sonner";
 import { Error } from "@/components/Error";
 import { Layout } from "@/components/Layout";
 import { formatDateTime } from "@/components/SearchResults";
-import { Button } from "@/components/ui/button";
-import { av2bv } from "@backend/lib/bilibiliID";
 
 // @ts-ignore idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
@@ -109,6 +105,7 @@ export default function VideoInfo({ loaderData }: Route.ComponentProps) {
 							</>
 						)}
 					</p>
+					<p>UP主：<a className="underline" href={`https://space.bilibili.com/${videoInfo!.owner.mid}`}>{videoInfo!.owner.name}</a></p>
 				</div>
 			</div>
 

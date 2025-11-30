@@ -1,0 +1,95 @@
+import { Elysia, t } from "elysia";
+import { ErrorResponseSchema } from "@backend/src/schema";
+import z from "zod";
+import { BiliVideoSchema, BiliVideoType } from "@backend/lib/schema";
+import requireAuth from "@backend/middlewares/auth";
+import { sql, eq } from "drizzle-orm";
+import { bilibiliMetadata, db, videoTypeLabelInInternal } from "@core/drizzle";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
+
+const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
+	.omit({ createdAt: true })
+	.omit({ coverUrl: true })
+	.extend({
+		views: z.number(),
+		username: z.string(),
+		uid: z.number(),
+		published_at: z.string(),
+		createdAt: z.string(),
+		cover_url: z.string()
+	});
+
+export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(requireAuth).get(
+	"/unlabelled",
+	async () => {
+		const videos = await db.execute<z.infer<typeof videoSchema>>(sql`
+            SELECT bm.*, ls.views, bu.username, bu.uid
+			FROM (
+				SELECT *
+				FROM bilibili_metadata
+				TABLESAMPLE SYSTEM (0.1)
+				ORDER BY RANDOM()
+				LIMIT 20
+			) bm
+			JOIN latest_video_snapshot ls
+				ON ls.aid = bm.aid
+			JOIN bilibili_user bu
+				ON bu.uid = bm.uid
+        `);
+		return videos;
+	},
+	{
+		response: {
+			200: z.array(videoSchema),
+			400: ErrorResponseSchema,
+			500: ErrorResponseSchema
+		}
+	}
+);
+
+export const postVideoLabel = new Elysia({ prefix: "/video" }).use(requireAuth).post(
+	"/:id/label",
+	async ({ params, body, status, user }) => {
+		const id = params.id;
+		const aid = biliIDToAID(id);
+		const label = body.label;
+
+		if (!aid) {
+			return status(400, {
+				code: "MALFORMED_SLOT",
+				message:
+					"We cannot parse the video ID, or we currently do not support this format.",
+				errors: []
+			});
+		}
+
+		const video = await db
+			.select()
+			.from(bilibiliMetadata)
+			.where(eq(bilibiliMetadata.aid, aid))
+			.limit(1);
+
+		if (video.length === 0) {
+			return status(400, {
+				code: "VIDEO_NOT_FOUND",
+				message: "Video not found",
+				errors: []
+			});
+		}
+
+		await db.insert(videoTypeLabelInInternal).values({
+			aid,
+			label,
+			user: user!.unqId
+		});
+
+		return status(201, {
+			message: `Labelled video av${aid} as ${label}`
+		});
+	},
+	{
+		body: t.Object({
+			label: t.Boolean()
+		})
+	}
+);

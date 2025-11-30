@@ -102,7 +102,7 @@ export const MilestoneVideos: React.FC = () => {
 
 		if (isLoading && milestoneData.length === 0) {
 			return (
-				<ScrollArea className="h-140 w-full">
+				<ScrollArea className="h-140 xl:h-180 w-full">
 					<div className="h-[0.1px]"></div>
 					{[1, 2, 3].map((i) => (
 						<div
@@ -137,7 +137,7 @@ export const MilestoneVideos: React.FC = () => {
 
 		return (
 			<div className="space-y-4">
-				<ScrollArea className="h-140 w-full" ref={scrollContainer} onScroll={handleScroll}>
+				<ScrollArea className="h-140 xl:h-180 w-full" ref={scrollContainer} onScroll={handleScroll}>
 					{milestoneData.map((video) => (
 						<MilestoneVideoCard
 							key={video.bilibili_metadata.aid}

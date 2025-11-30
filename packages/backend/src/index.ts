@@ -18,6 +18,7 @@ import "./mq";
 import pkg from "../package.json";
 import * as z from "zod";
 import { fromTypes } from "@elysiajs/openapi";
+import { getUnlabelledVideos, postVideoLabel } from "@backend/routes/video/label";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -67,6 +68,8 @@ const app = new Elysia({
 	.use(addSongHandler)
 	.use(deleteSongHandler)
 	.use(songEtaHandler)
+	.use(getUnlabelledVideos)
+	.use(postVideoLabel)
 	.get(
 		"/song/:id",
 		({ redirect, params }) => {

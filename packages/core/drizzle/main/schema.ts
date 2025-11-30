@@ -2,8 +2,10 @@ import { pgTable, pgSchema, uniqueIndex, check, integer, text, timestamp, foreig
 import { sql } from "drizzle-orm"
 
 export const credentials = pgSchema("credentials");
+export const internal = pgSchema("internal");
 export const userRoleInCredentials = credentials.enum("user_role", ['ADMIN', 'USER', 'OWNER'])
 
+export const usersIdSeqInCredentials = credentials.sequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const allDataIdSeq = pgSequence("all_data_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const labelingResultIdSeq = pgSequence("labeling_result_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const relationSingerIdSeq = pgSequence("relation_singer_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
@@ -11,7 +13,6 @@ export const relationsProducerIdSeq = pgSequence("relations_producer_id_seq", { 
 export const songsIdSeq = pgSequence("songs_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const videoSnapshotIdSeq = pgSequence("video_snapshot_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 export const viewsIncrementRateIdSeq = pgSequence("views_increment_rate_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "9223372036854775807", cache: "1", cycle: false })
-export const usersIdSeqInCredentials = credentials.sequence("users_id_seq", {  startWith: "1", increment: "1", minValue: "1", maxValue: "2147483647", cache: "1", cycle: false })
 
 export const usersInCredentials = credentials.table("users", {
 	id: integer().default(sql`nextval('credentials.users_id_seq'::regclass)`).notNull(),
@@ -329,4 +330,22 @@ export const bilibiliUser = pgTable("bilibili_user", {
 	check("bilibili_user_fans_not_null", sql`NOT NULL fans`),
 	check("bilibili_user_created_at_not_null", sql`NOT NULL created_at`),
 	check("bilibili_user_updated_at_not_null", sql`NOT NULL updated_at`),
+]);
+
+export const videoTypeLabelInInternal = internal.table("video_type_label", {
+	id: serial().primaryKey().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	aid: bigint({ mode: "number" }).notNull(),
+	label: boolean().notNull(),
+	user: text().default('i3wW8JdZ9sT3ASkk').notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.user],
+			foreignColumns: [usersInCredentials.unqId],
+			name: "fkey_video_type_label_user"
+		}),
+	check("video_type_label_id_not_null", sql`NOT NULL id`),
+	check("video_type_label_aid_not_null", sql`NOT NULL aid`),
+	check("video_type_label_label_not_null", sql`NOT NULL label`),
+	check("video_type_label_user_not_null", sql`NOT NULL "user"`),
 ]);
