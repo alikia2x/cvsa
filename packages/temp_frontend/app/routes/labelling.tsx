@@ -174,7 +174,7 @@ export default function Home() {
 									<img
 										src={currentVideo.cover_url}
 										referrerPolicy="no-referrer"
-										className="w-full object-cover rounded-lg"
+										className="w-full h-full object-cover rounded-lg"
 										alt="Video cover"
 									/>
 								</a>
