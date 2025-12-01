@@ -16,11 +16,9 @@ export function Error({ error }: { error: { status: number; value: { message?: s
 				{error.value.message && (
 					<p className="text-neutral-600 dark:text-neutral-400 wrap-break-word">{error.value.message}</p>
 				)}
-				{error.status === 404 && (
-					<a href="/" className="hover:underline">
-						返回首页
-					</a>
-				)}
+				<a href="/" className="hover:underline">
+					返回首页
+				</a>
 			</div>
 		</div>
 	);
