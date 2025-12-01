@@ -139,9 +139,9 @@ export default function Home() {
 			console.log(key);
 
 			if (leftKeys.includes(key)) {
-				handleLabel(true);
-			} else if (rightKeys.includes(key)) {
 				handleLabel(false);
+			} else if (rightKeys.includes(key)) {
+				handleLabel(true);
 			}
 		};
 
