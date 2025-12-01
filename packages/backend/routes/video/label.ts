@@ -1,9 +1,9 @@
 import { Elysia, t } from "elysia";
 import { ErrorResponseSchema } from "@backend/src/schema";
 import z from "zod";
-import { BiliVideoSchema, BiliVideoType } from "@backend/lib/schema";
+import { BiliVideoSchema } from "@backend/lib/schema";
 import requireAuth from "@backend/middlewares/auth";
-import { sql, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { bilibiliMetadata, db, videoTypeLabelInInternal } from "@core/drizzle";
 import { biliIDToAID } from "@backend/lib/bilibiliID";
 
@@ -22,7 +22,7 @@ const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
 export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(requireAuth).get(
 	"/unlabelled",
 	async () => {
-		const videos = await db.execute<z.infer<typeof videoSchema>>(sql`
+		return db.execute<z.infer<typeof videoSchema>>(sql`
             SELECT bm.*, ls.views, bu.username, bu.uid
 			FROM (
 				SELECT *
@@ -35,8 +35,25 @@ export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(require
 				ON ls.aid = bm.aid
 			JOIN bilibili_user bu
 				ON bu.uid = bm.uid
-        `);
-		return videos;
+            UNION
+			SELECT bm.*, ls.views, bu.username, bu.uid
+			FROM (
+				 SELECT *
+				 FROM bilibili_metadata
+				 WHERE aid IN (
+					 SELECT aid
+					 FROM internal.video_type_label
+							  TABLESAMPLE SYSTEM (2)
+					 WHERE user != 'i3wW8JdZ9sT3ASkk'
+					 ORDER BY RANDOM()
+					 LIMIT 20
+				 )
+			 ) bm
+				 JOIN latest_video_snapshot ls
+					  ON ls.aid = bm.aid
+				 JOIN bilibili_user bu
+					  ON bu.uid = bm.uid
+		`);
 	},
 	{
 		response: {

@@ -1,9 +1,9 @@
-import { Elysia, file } from "elysia";
+import { Elysia, ErrorHandler, file } from "elysia";
 import { getBindingInfo, logStartup } from "./startMessage";
 import { pingHandler } from "@backend/routes/ping";
 import openapi from "@elysiajs/openapi";
 import { cors } from "@elysiajs/cors";
-import { songInfoHandler } from "@backend/routes/song/info";
+import { songHandler } from "@backend/routes/song/info";
 import { rootHandler } from "@backend/routes/root";
 import { getVideoMetadataHandler } from "@backend/routes/video/metadata";
 import { closeMileStoneHandler } from "@backend/routes/song/milestone";
@@ -16,52 +16,35 @@ import { deleteSongHandler } from "@backend/routes/song/delete";
 import { songEtaHandler } from "@backend/routes/video/eta";
 import "./mq";
 import pkg from "../package.json";
-import * as z from "zod";
-import { fromTypes } from "@elysiajs/openapi";
 import { getUnlabelledVideos, postVideoLabel } from "@backend/routes/video/label";
+import { openAPIMiddleware } from "@backend/middlewares/openapi";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
+
+const errorHandler: ErrorHandler = ({ code, status, error }) => {
+	if (code === "NOT_FOUND")
+		return status(404, {
+			message: "The requested resource was not found."
+		});
+	if (code === "VALIDATION") return error.detail(error.message);
+	return error;
+};
 
 const app = new Elysia({
 	serve: {
 		hostname: host
 	}
 })
-	.onError(({ code, status, error }) => {
-		if (code === "NOT_FOUND")
-			return status(404, {
-				message: "The requested resource was not found."
-			});
-		if (code === "VALIDATION") return error.detail(error.message);
-		return error;
-	})
+	.onError(errorHandler)
 	.use(onAfterHandler)
 	.use(cors())
-	.use(
-		openapi({
-			documentation: {
-				info: {
-					title: "CVSA API Docs",
-					version: pkg.version
-				}
-			},
-			mapJsonSchema: {
-				zod: z.toJSONSchema
-			},
-			references: fromTypes(),
-			scalar: {
-				theme: "kepler",
-				hideClientButton: true,
-				hideDarkModeToggle: true
-			}
-		})
-	)
+	.use(openAPIMiddleware)
 	.use(rootHandler)
 	.use(pingHandler)
 	.use(authHandler)
 	.use(getVideoMetadataHandler)
-	.use(songInfoHandler)
+	.use(songHandler)
 	.use(closeMileStoneHandler)
 	.use(searchHandler)
 	.use(getVideoSnapshotsHandler)

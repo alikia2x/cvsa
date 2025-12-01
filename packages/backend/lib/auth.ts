@@ -1,18 +1,19 @@
 import Argon2id from "@rabbit-company/argon2id";
-import { db, usersInCredentials, loginSessionsInCredentials } from "@core/drizzle";
-import { eq, and, isNull, getTableColumns } from "drizzle-orm";
+import {
+	db,
+	usersInCredentials,
+	loginSessionsInCredentials,
+	UserType,
+	SessionType
+} from "@core/drizzle";
+import { eq, and, isNull } from "drizzle-orm";
 import { generate as generateId } from "@alikia/random-key";
 import logger from "@core/log";
 
-export interface User {
-	id: number;
-	username: string;
-	nickname: string | null;
-	role: string;
-	unqId: string;
-}
-
-export async function verifyUser(username: string, password: string): Promise<User | null> {
+export async function verifyUser(
+	username: string,
+	password: string
+): Promise<Omit<UserType, "password"> | null> {
 	const user = await db
 		.select()
 		.from(usersInCredentials)
@@ -34,7 +35,8 @@ export async function verifyUser(username: string, password: string): Promise<Us
 		username: foundUser.username,
 		nickname: foundUser.nickname,
 		role: foundUser.role,
-		unqId: foundUser.unqId
+		unqId: foundUser.unqId,
+		createdAt: foundUser.createdAt
 	};
 }
 
@@ -67,7 +69,7 @@ export async function createSession(
 
 export async function validateSession(
 	sessionId: string
-): Promise<{ user: User; session: any } | null> {
+): Promise<{ user: UserType; session: SessionType } | null> {
 	const sessions = await db
 		.select()
 		.from(loginSessionsInCredentials)

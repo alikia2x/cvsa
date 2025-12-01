@@ -266,8 +266,8 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 
-	const getEta = async (aid: number) => {
-		const { data, error } = await app.video({ id: `av${aid}` }).eta.get();
+	const getEta = async () => {
+		const { data, error } = await app.video({ id: loaderData.id }).eta.get();
 		if (error) {
 			console.log(error);
 			return;
@@ -275,8 +275,8 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 		setEtaData(data);
 	};
 
-	const getSnapshots = async (aid: number) => {
-		const { data, error } = await app.video({ id: `av${aid}` }).snapshots.get();
+	const getSnapshots = async () => {
+		const { data, error } = await app.song({ id: loaderData.id }).snapshots.get();
 		if (error) {
 			console.log(error);
 			return;
@@ -296,15 +296,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 
 	useEffect(() => {
 		getInfo();
+		getSnapshots();
+		getEta();
 	}, []);
-
-	useEffect(() => {
-		if (!songInfo) return;
-		const aid = songInfo.aid;
-		if (!aid) return;
-		getSnapshots(aid);
-		getEta(aid);
-	}, [songInfo]);
 
 	useEffect(() => {
 		if (songInfo?.name) {
