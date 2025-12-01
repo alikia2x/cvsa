@@ -8,7 +8,8 @@
 		"start": "react-router-serve ./build/server/index.js",
 		"typecheck": "react-router typegen && tsc",
 		"format": "prettier --write .",
-		"deploy": "wrangler deploy"
+		"deploy": "wrangler deploy",
+		"go": "bun run build && bun run deploy"
 	},
 	"dependencies": {
 		"@alikia/dark-theme-hook": "^1.0.2",

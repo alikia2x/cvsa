@@ -59,6 +59,7 @@ export function VideoInfo({ video }: VideoInfoProps) {
 								<span>发布于 {formatDateTime(new Date(video.published_at!))}</span>
 								<br />
 								<span>播放：{(video.views ?? 0).toLocaleString()}</span>
+								&nbsp;&nbsp;
 								<span>时长：{formatDuration(video.duration || 0)}</span>
 							</p>
 							<p>

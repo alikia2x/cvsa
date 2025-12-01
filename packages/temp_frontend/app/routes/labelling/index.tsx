@@ -136,12 +136,15 @@ export default function Home() {
 			}
 
 			const key = e.key.toUpperCase();
-			console.log(key);
 
 			if (leftKeys.includes(key)) {
 				handleLabel(false);
 			} else if (rightKeys.includes(key)) {
 				handleLabel(true);
+			} else if (key === "ARROWLEFT") {
+				navigateTo(currentIndex - 1);
+			} else if (key === "ARROWRIGHT") {
+				navigateTo(currentIndex + 1);
 			}
 		};
 
