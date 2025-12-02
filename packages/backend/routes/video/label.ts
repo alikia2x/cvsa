@@ -29,7 +29,7 @@ export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(require
 				FROM bilibili_metadata
 				TABLESAMPLE SYSTEM (0.1)
 				ORDER BY RANDOM()
-				LIMIT 20
+				LIMIT 6
 			) bm
 			JOIN latest_video_snapshot ls
 				ON ls.aid = bm.aid
@@ -46,7 +46,7 @@ export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(require
 					 TABLESAMPLE SYSTEM (10)
 					 WHERE user != ${user!.unqId}
 					 ORDER BY RANDOM()
-					 LIMIT 20
+					 LIMIT 6
 				 )
 			 ) bm
 				 JOIN latest_video_snapshot ls
