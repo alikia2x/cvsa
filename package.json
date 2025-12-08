@@ -10,7 +10,8 @@
 			"packages/crawler",
 			"packages/palette",
 			"packages/temp_frontend",
-			"packages/tracker"
+			"packages/tracker",
+			"packages/ml"
 		],
 		"catalog": {
 			"elysia": "^1.4.16"
