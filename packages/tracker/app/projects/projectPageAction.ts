@@ -24,7 +24,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 
 	if (intent === "getColumns") {
 		const projectId = formData.get("projectId") as string;
-		
+
 		const projectColumns = await db
 			.select()
 			.from(columns)

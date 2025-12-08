@@ -96,9 +96,7 @@ export const MilestoneVideoCard = ({
 						发布于 {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
 					</span>
 				)}
-				<span>
-					数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前
-				</span>
+				<span>数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前</span>
 				<a
 					href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
 					target="_blank"

@@ -59,9 +59,17 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Projects</h1>
 					<p className="text-muted-foreground mt-2">
-						Welcome, <Link to="/profile" className="text-blue-500">{user.username}</Link>! You have {projects.length} project
+						Welcome,{" "}
+						<Link to="/profile" className="text-blue-500">
+							{user.username}
+						</Link>
+						! You have {projects.length} project
 						{projects.length === 1 ? "" : "s"}.
-						{user.isAdmin && <Link to="/admin/users"><span className="ml-2 text-blue-500">(Admin)</span></Link>}
+						{user.isAdmin && (
+							<Link to="/admin/users">
+								<span className="ml-2 text-blue-500">(Admin)</span>
+							</Link>
+						)}
 					</p>
 				</div>
 				<div className="flex gap-2">

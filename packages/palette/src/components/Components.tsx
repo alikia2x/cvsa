@@ -35,7 +35,8 @@ const Paragraph = ({ baseColor }: { baseColor: Oklch }) => {
 			style={{ backgroundColor: formatHex(tokens.background) }}
 		>
 			<p style={{ color: formatHex(tokens["body-text"]) }}>
-				《尘海绘仙缘》是洛凛于 2024 年 12 月 15 日投稿至哔哩哔哩的 Synthesizer V 中文原创歌曲, 由赤羽演唱。
+				《尘海绘仙缘》是洛凛于 2024 年 12 月 15 日投稿至哔哩哔哩的 Synthesizer
+				V 中文原创歌曲, 由赤羽演唱。
 			</p>
 		</div>
 	);
@@ -53,19 +54,28 @@ const Buttons = ({ baseColor }: { baseColor: Oklch }) => {
 		>
 			<button
 				className="w-24 cursor-pointer font-medium py-1.5 px-4 rounded-lg border-2"
-				style={{ borderColor: formatHex(tokens["border-var-3"]), color: formatHex(tokens["on-bg-var-2"]) }}
+				style={{
+					borderColor: formatHex(tokens["border-var-3"]),
+					color: formatHex(tokens["on-bg-var-2"])
+				}}
 			>
 				Cancel
 			</button>
 			<button
 				className="w-24 cursor-pointer font-medium py-2 px-4 rounded-lg"
-				style={{ backgroundColor: formatHex(tokens.primary), color: formatHex(tokens["on-primary"]) }}
+				style={{
+					backgroundColor: formatHex(tokens.primary),
+					color: formatHex(tokens["on-primary"])
+				}}
 			>
 				Confirm
 			</button>
 			<button
 				className="w-24 cursor-pointer font-medium py-2 px-4 rounded-lg"
-				style={{ backgroundColor: formatHex(tokens.error), color: formatHex(tokens["on-error"]) }}
+				style={{
+					backgroundColor: formatHex(tokens.error),
+					color: formatHex(tokens["on-error"])
+				}}
 			>
 				Delete
 			</button>

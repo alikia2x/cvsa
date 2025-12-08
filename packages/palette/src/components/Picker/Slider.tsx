@@ -22,7 +22,13 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 	}, [color.l, color.c, color.h]);
 
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
-	useOklchCanvas({ channel: channel, max: maxValue[channel], canvasRef: canvasRef, color, useP3 });
+	useOklchCanvas({
+		channel: channel,
+		max: maxValue[channel],
+		canvasRef: canvasRef,
+		color,
+		useP3
+	});
 
 	const getSliderPosition = (value: number, max: number) => {
 		return (value / max) * 100;

@@ -26,7 +26,7 @@ export async function loader({ request }: { request: Request }) {
 export default function LoginPage({ actionData }: Route.ComponentProps) {
 	useEffect(() => {
 		if (actionData?.error) {
-			toast(actionData.error)
+			toast(actionData.error);
 		}
 	}, [actionData]);
 

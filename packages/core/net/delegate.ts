@@ -168,7 +168,10 @@ class NetworkDelegate {
 	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
 	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
-	async request<R>(url: string, task: string): Promise<{
+	async request<R>(
+		url: string,
+		task: string
+	): Promise<{
 		data: R;
 		time: number;
 	}> {
@@ -221,7 +224,10 @@ class NetworkDelegate {
 		return result;
 	}
 
-	private async makeRequest<R>(url: string, proxy: Proxy): Promise<{
+	private async makeRequest<R>(
+		url: string,
+		proxy: Proxy
+	): Promise<{
 		data: R;
 		time: number;
 	}> {

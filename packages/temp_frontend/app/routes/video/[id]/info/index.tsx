@@ -88,10 +88,10 @@ export default function VideoInfo({ loaderData }: Route.ComponentProps) {
 					<p>
 						<span>发布于 {formatDateTime(new Date(videoInfo!.pubdate * 1000))}</span>
 					</p>
-                    <p>
-                        <span>播放：{(videoInfo!.stat?.view ?? 0).toLocaleString()}</span> ·{" "}
-                        <span>弹幕：{(videoInfo!.stat?.danmaku ?? 0).toLocaleString()}</span>
-                    </p>
+					<p>
+						<span>播放：{(videoInfo!.stat?.view ?? 0).toLocaleString()}</span> ·{" "}
+						<span>弹幕：{(videoInfo!.stat?.danmaku ?? 0).toLocaleString()}</span>
+					</p>
 					<p>
 						<span>
 							分区: {videoInfo!.tname}, tid{videoInfo!.tid}
@@ -105,7 +105,12 @@ export default function VideoInfo({ loaderData }: Route.ComponentProps) {
 							</>
 						)}
 					</p>
-					<p>UP主：<a className="underline" href={`https://space.bilibili.com/${videoInfo!.owner.mid}`}>{videoInfo!.owner.name}</a></p>
+					<p>
+						UP主：
+						<a className="underline" href={`https://space.bilibili.com/${videoInfo!.owner.mid}`}>
+							{videoInfo!.owner.name}
+						</a>
+					</p>
 				</div>
 			</div>
 

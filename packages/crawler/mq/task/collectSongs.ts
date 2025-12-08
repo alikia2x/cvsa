@@ -51,7 +51,7 @@ export async function insertIntoSongs(aid: number) {
 		)
 		ON CONFLICT DO NOTHING
 		RETURNING *
-	`
+	`;
 
 	return data;
 }

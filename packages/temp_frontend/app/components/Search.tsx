@@ -38,7 +38,5 @@ export function SearchBox({ query = "", setQuery, onSearch, className, ...rest }
 export function Search(props: React.ComponentProps<"div">) {
 	const [query, setQuery] = useState("");
 	let navigate = useNavigate();
-	return (
-		<SearchBox query={query} setQuery={setQuery} onSearch={() => navigate(`/search?q=${query}`)} {...props} />
-	);
+	return <SearchBox query={query} setQuery={setQuery} onSearch={() => navigate(`/search?q=${query}`)} {...props} />;
 }

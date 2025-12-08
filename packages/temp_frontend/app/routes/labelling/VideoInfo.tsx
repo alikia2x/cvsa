@@ -7,7 +7,6 @@ const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type VideosResponse = Awaited<ReturnType<Awaited<typeof app.videos.unlabelled>["get"]>>["data"];
 
-
 interface VideoInfoProps {
 	video: Exclude<VideosResponse, null>[number];
 }

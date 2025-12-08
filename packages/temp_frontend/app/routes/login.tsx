@@ -36,7 +36,7 @@ export default function Login() {
 			const { data, error } = await app.auth.session.post(formData);
 
 			if (data) {
-                localStorage.setItem("sessionID", data.sessionID);
+				localStorage.setItem("sessionID", data.sessionID);
 				navigate("/", { replace: true });
 			} else {
 				setError(error?.value?.message || "登录失败");

@@ -7,5 +7,5 @@ export default defineConfig({
 	dbCredentials: {
 		url: process.env.DATABASE_URL_MAIN!
 	},
-    schemaFilter: ["public", "credentials", "internal"]
+	schemaFilter: ["public", "credentials", "internal"]
 });

@@ -102,10 +102,7 @@ export async function canUserEditProject(userId: string, projectId: string) {
 		.select()
 		.from(projectPermissions)
 		.where(
-			and(
-				eq(projectPermissions.projectId, projectId),
-				eq(projectPermissions.userId, userId)
-			)
+			and(eq(projectPermissions.projectId, projectId), eq(projectPermissions.userId, userId))
 		)
 		.get();
 
@@ -131,7 +128,7 @@ export async function canUserViewProject(userID: string, projectId: string) {
 // Get projects accessible to user
 export async function getUserProjects(userId: string) {
 	const user = await db.select().from(users).where(eq(users.id, userId)).get();
-	
+
 	if (user?.isAdmin) {
 		// Admin can see all projects
 		return await db.select().from(projects).all();
@@ -141,16 +138,11 @@ export async function getUserProjects(userId: string) {
 	const accessibleProjects = await db
 		.select()
 		.from(projects)
-		.where(
-			or(
-				eq(projects.ownerId, userId),
-				eq(projectPermissions.userId, userId)
-			)
-		)
+		.where(or(eq(projects.ownerId, userId), eq(projectPermissions.userId, userId)))
 		.leftJoin(projectPermissions, eq(projects.id, projectPermissions.projectId))
 		.all();
 
-	return accessibleProjects.map(row => row.projects);
+	return accessibleProjects.map((row) => row.projects);
 }
 
 // Delete session (logout)

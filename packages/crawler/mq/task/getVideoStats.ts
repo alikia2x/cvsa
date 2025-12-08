@@ -53,7 +53,7 @@ export async function takeVideoSnapshot(
 		danmakus,
 		replies,
 		aid
-	})
+	});
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 

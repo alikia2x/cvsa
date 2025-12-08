@@ -174,7 +174,9 @@ export function TaskForm({
 					) : (
 						<div className="h-12 px-4 justify-between bg-background border rounded-md flex items-center gap-2">
 							<Flag className="w-4 h-4" />
-							<span className={`px-2 py-0.5 rounded-md text-xs font-medium ${priorityColor}`}>
+							<span
+								className={`px-2 py-0.5 rounded-md text-xs font-medium ${priorityColor}`}
+							>
 								{priorityLabel}
 							</span>
 						</div>

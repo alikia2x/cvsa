@@ -40,7 +40,7 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 			</div>
 		);
 	}
-	
+
 	const SearchResultItem = ({ result }: { result: Exclude<SearchResult, null>["data"][number] }) => {
 		switch (result.type) {
 			case "song":

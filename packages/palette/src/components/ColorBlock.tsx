@@ -26,7 +26,11 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 		if (!check) {
 			return (
 				<AnimatePresence>
-					<motion.div exit={{ opacity: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+					<motion.div
+						exit={{ opacity: 0 }}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+					>
 						<Copy size={14} strokeWidth={2.5} />
 					</motion.div>
 				</AnimatePresence>
@@ -34,7 +38,11 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 		} else {
 			return (
 				<AnimatePresence>
-					<motion.div exit={{ opacity: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+					<motion.div
+						exit={{ opacity: 0 }}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+					>
 						<Checkmark width={16} height={16} strokeWidth={14} />
 					</motion.div>
 				</AnimatePresence>

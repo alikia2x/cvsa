@@ -16,7 +16,7 @@ export async function action({ request }: { request: Request }) {
 	}
 
 	const sessionId = await createSession(user.id);
-	
+
 	// Set session cookie
 	const headers = new Headers();
 	headers.append(
