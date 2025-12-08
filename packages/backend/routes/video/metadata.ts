@@ -6,6 +6,7 @@ import { redis } from "@core/db/redis";
 import { ErrorResponseSchema } from "@backend/src/schema";
 import type { VideoInfoData } from "@core/net/bilibili.d.ts";
 import { BiliAPIVideoMetadataSchema } from "@backend/lib/schema";
+import { snapshotCounter } from "@crawler/metrics";
 
 export async function retrieveVideoInfoFromCache(aid: number) {
 	const cacheKey = `cvsa:videoInfo:av${aid}`;
@@ -41,6 +42,7 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 		shares,
 		favorites
 	});
+	snapshotCounter.add(1);
 }
 
 export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(

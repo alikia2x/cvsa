@@ -11,6 +11,7 @@ import { insertIntoSongs } from "mq/task/collectSongs";
 import { bilibiliUser, db, videoSnapshot } from "@core/drizzle";
 import { eq } from "drizzle-orm";
 import { GetVideoInfoJobData } from "mq/schema";
+import { snapshotCounter } from "metrics";
 
 interface AddSongEventPayload {
 	eventName: string;
@@ -99,6 +100,8 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 		shares: stat.share,
 		favorites: stat.favorite
 	});
+
+	snapshotCounter.add(1);
 
 	logger.log(`Inserted video metadata for aid: ${aid}`, "mq");
 

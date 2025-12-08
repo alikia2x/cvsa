@@ -27,3 +27,7 @@ export const queueJobsCounter = meter.createGauge("queue_jobs_count", {
 export const jobDurationRaw = meter.createGauge("job_duration_raw", {
 	description: "Execution duration of BullMQ jobs in milliseconds"
 });
+
+export const snapshotCounter = meter.createCounter("snapshot_count", {
+	description: "Number of snapshots taken"
+});

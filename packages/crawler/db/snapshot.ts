@@ -3,9 +3,11 @@ import type { Psql } from "@core/db/psql.d";
 import { db, LatestVideoSnapshotType, videoSnapshot, VideoSnapshotType } from "@core/drizzle";
 import { PartialBy } from "@core/lib";
 import { sql } from "drizzle-orm";
+import { snapshotCounter } from "metrics";
 
 export async function insertVideoSnapshot(data: PartialBy<VideoSnapshotType, "id">) {
 	await db.insert(videoSnapshot).values(data);
+	snapshotCounter.add(1);
 }
 
 export async function getVideosNearMilestone() {

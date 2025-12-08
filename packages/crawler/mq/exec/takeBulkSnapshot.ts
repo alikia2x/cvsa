@@ -15,6 +15,7 @@ import { SnapshotScheduleType } from "@core/db/schema";
 import { sql } from "@core/db/dbNew";
 import { updateETA } from "db/eta";
 import { closetMilestone } from "./snapshotTick";
+import { snapshotCounter } from "metrics";
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 	const schedules: SnapshotScheduleType[] = job.data.schedules;
@@ -72,6 +73,8 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 					${new Date(time).toISOString()}
 				)
 			`;
+
+			snapshotCounter.add(1);
 
 			logger.log(
 				`Taken snapshot for video ${aid} in bulk.`,
