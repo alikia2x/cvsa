@@ -21,7 +21,7 @@ const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
 
 export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(requireAuth).get(
 	"/unlabelled",
-	async () => {
+	async ({ user }) => {
 		return db.execute<z.infer<typeof videoSchema>>(sql`
             SELECT bm.*, ls.views, bu.username, bu.uid
 			FROM (
@@ -44,7 +44,8 @@ export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(require
 					 SELECT aid
 					 FROM internal.video_type_label
 					 TABLESAMPLE SYSTEM (8)
-					 WHERE video_type_label."user" = 'bvZMWcgYL2dr6vsJ'
+					 WHERE video_type_label."user" != ${user!.unqId}
+					 AND video_type_label."user" = 'bvZMWcgYL2dr6vsJ' 
 					 ORDER BY RANDOM()
 					 LIMIT 19
 				 )

@@ -18,24 +18,8 @@ export function VideoInfo({ video }: VideoInfoProps) {
 	};
 
 	return (
-		<div className="mb-24">
+		<div className="mb-24 mt-2">
 			<div className="flex flex-col sm:flex-row sm:gap-4">
-				{video.cover_url && (
-					<a
-						href={`https://www.bilibili.com/video/${video.bvid}`}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="min-w-full sm:min-w-60 md:min-w-80 max-w-full
-            sm:max-w-60 md:max-w-80 aspect-video"
-					>
-						<img
-							src={video.cover_url}
-							referrerPolicy="no-referrer"
-							className="w-full h-full object-cover rounded-lg"
-							alt="Video cover"
-						/>
-					</a>
-				)}
 				<div>
 					<div className="max-sm:mt-6 flex items-center gap-2">
 						<h1 className="text-2xl font-medium">

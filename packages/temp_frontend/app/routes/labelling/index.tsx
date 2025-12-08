@@ -24,10 +24,11 @@ export default function Home() {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<any>(null);
-	const [hasMore, setHasMore] = useState(true);
 	const [instructionsOpen, setInstructionsOpen] = useState(false);
+	const [localLabel, setLocalLabel] = useState<(boolean|undefined)[]>([]);
 
 	const fetchVideos = useCallback(async () => {
+		if (videos.length >= 30) return;
 		try {
 			setLoading(true);
 			const { data, error } = await app.videos.unlabelled.get({
@@ -43,9 +44,6 @@ export default function Home() {
 
 			if (data && data.length > 0) {
 				setVideos((prev) => [...prev, ...data]);
-				setHasMore(data.length === 20);
-			} else {
-				setHasMore(false);
 			}
 		} catch (err) {
 			setError({ status: 500, value: { message: "网络错误" } });
@@ -55,12 +53,12 @@ export default function Home() {
 	}, []);
 
 	const loadMoreIfNeeded = useCallback(() => {
-		if (hasMore && videos.length - currentIndex <= 6) {
+		if (videos.length - currentIndex <= 6) {
 			fetchVideos();
 		}
-	}, [hasMore, videos.length, currentIndex, fetchVideos]);
+	}, [videos.length, currentIndex, fetchVideos]);
 
-	const labelVideo = async (videoId: string, label: boolean) => {
+	const labelVideo = async (currentIndex: number, videoId: string, label: boolean) => {
 		const maxRetries = 5;
 		let retries = 0;
 
@@ -95,14 +93,25 @@ export default function Home() {
 
 		if (!success) {
 			toast.error(`标记失败，请稍后重试`);
+			setLocalLabel((prev) => {
+				const newLabel = [...prev];
+				newLabel[currentIndex] = undefined;
+				return newLabel;
+			});
 		}
 	};
 
 	const handleLabel = async (label: boolean) => {
 		const currentVideo = videos[currentIndex];
 		if (!currentVideo) return;
+		setLocalLabel((prev) => {
+			const newLabel = [...prev];
+			newLabel[currentIndex] = label;
+			console.log(newLabel);
+			return newLabel;
+		});
 
-		labelVideo(currentVideo.bvid!, label);
+		labelVideo(currentIndex, currentVideo.bvid!, label);
 		if (currentIndex < videos.length - 1) {
 			setCurrentIndex((prev) => prev + 1);
 			loadMoreIfNeeded();
@@ -132,6 +141,12 @@ export default function Home() {
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+				return;
+			}
+
+			const hasModifier = e.ctrlKey || e.altKey || e.shiftKey || e.metaKey;
+
+			if (hasModifier) {
 				return;
 			}
 
@@ -173,6 +188,11 @@ export default function Home() {
 	}
 
 	const currentVideo = videos[currentIndex];
+	const currentLabel = (()=> {
+		const l = localLabel[currentIndex];
+		if (l === undefined) return "none";
+		return l ? "true" : "false";
+	})()
 
 	return (
 		<Layout>
@@ -181,11 +201,11 @@ export default function Home() {
 			{currentVideo ? (
 				<>
 					<LabelInstructions open={instructionsOpen} onOpenChange={setInstructionsOpen} />
+					<span className="font-mono">Buffer health: {currentIndex}/{videos.length}, currentLabel: {currentLabel}</span>
 					<VideoInfo video={currentVideo} />
 					<ControlBar
 						currentIndex={currentIndex}
 						videosLength={videos.length}
-						hasMore={hasMore}
 						onPrevious={() => navigateTo(currentIndex - 1)}
 						onNext={() => navigateTo(currentIndex + 1)}
 						onLabel={handleLabel}
