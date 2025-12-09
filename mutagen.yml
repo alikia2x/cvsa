@@ -1,0 +1,26 @@
+# mutagen.yml
+sync:
+  development:
+    alpha: "."
+    beta: "root@cvsa-hk-02:/web/cvsa"
+    maxStagingFileSize: "5MB"
+    mode: "two-way-resolved"
+    ignore:
+      paths:
+        - "**/node_modules/"
+        - "*.log"
+        - "/model"
+        - "**/.DS_Store"
+        - ".env"
+        - ".env.*"
+        - "**/logs/"
+        - ".git/"
+        - ".jj/"
+        - "dist"
+        - "**/build/"
+        - "**/.react-router"
+        - "redis/"
+        - "temp/"
+        - "mutagen.yml"
+        - "/ml_new/"
+        - "/ml/"
