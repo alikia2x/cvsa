@@ -11,7 +11,7 @@
 			"packages/palette",
 			"packages/temp_frontend",
 			"packages/tracker",
-			"packages/ml"
+			"packages/ml_panel"
 		],
 		"catalog": {
 			"elysia": "^1.4.16"
