@@ -85,8 +85,9 @@ const getVideoSearchResult = async (searchQuery: string) => {
 	} else {
 		data = await getVideoInfo(aid, "getVideoInfo");
 		if (typeof data === "number") return [];
+		data = data.data;
 		const cacheKey = `cvsa:videoInfo:av${aid}`;
-		await redis.setex(cacheKey, 60, JSON.stringify(data.data));
+		await redis.setex(cacheKey, 60, JSON.stringify(data));
 	}
 	return [
 		{
