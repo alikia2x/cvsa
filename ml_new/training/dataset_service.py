@@ -570,6 +570,8 @@ class DatasetBuilder:
         """List all datasets with their basic information"""
         datasets = []
         
+        self._load_all_datasets()
+        
         for dataset_id, dataset_info in self.dataset_storage.items():
             if "error" not in dataset_info:
                 datasets.append({

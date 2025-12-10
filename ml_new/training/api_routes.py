@@ -9,7 +9,17 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
 from config_loader import config_loader
-from models import DatasetBuildRequest, DatasetBuildResponse, TaskStatus, TaskStatusResponse, TaskListResponse
+from models import (
+    DatasetBuildRequest, 
+    DatasetBuildResponse, 
+    TaskStatus, 
+    TaskStatusResponse, 
+    TaskListResponse,
+    SamplingRequest,
+    SamplingResponse,
+    DatasetCreateRequest,
+    DatasetCreateResponse
+)
 from dataset_service import DatasetBuilder
 from logger_config import get_logger
 
@@ -136,39 +146,6 @@ async def get_dataset_endpoint(dataset_id: str):
 
 
 @router.get("/datasets")
-async def list_datasets():
-    """List all built datasets"""
-    
-    if not dataset_builder:
-        raise HTTPException(status_code=503, detail="Dataset builder not available")
-    
-    datasets = []
-    for dataset_id, dataset_info in dataset_builder.dataset_storage.items():
-        if "error" not in dataset_info:
-            datasets.append({
-                "dataset_id": dataset_id,
-                "description": dataset_info.get("description"),
-                "stats": dataset_info["stats"],
-                "created_at": dataset_info["created_at"]
-            })
-    
-    return {"datasets": datasets}
-
-
-@router.delete("/dataset/{dataset_id}")
-async def delete_dataset_endpoint(dataset_id: str):
-    """Delete a built dataset"""
-    
-    if not dataset_builder:
-        raise HTTPException(status_code=503, detail="Dataset builder not available")
-    
-    if dataset_builder.delete_dataset(dataset_id):
-        return {"message": f"Dataset {dataset_id} deleted successfully"}
-    else:
-        raise HTTPException(status_code=404, detail="Dataset not found")
-
-
-@router.get("/datasets")
 async def list_datasets_endpoint():
     """List all built datasets"""
     
@@ -186,6 +163,19 @@ async def list_datasets_endpoint():
             dataset["description"] = None
         datasets_with_description.append(dataset)
     return {"datasets": datasets_with_description}
+
+
+@router.delete("/dataset/{dataset_id}")
+async def delete_dataset_endpoint(dataset_id: str):
+    """Delete a built dataset"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    if dataset_builder.delete_dataset(dataset_id):
+        return {"message": f"Dataset {dataset_id} deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Dataset not found")
 
 
 @router.get("/datasets/stats")
@@ -315,3 +305,97 @@ async def cleanup_tasks_endpoint(max_age_hours: int = 24):
     
     cleaned_count = await dataset_builder.cleanup_completed_tasks(max_age_hours)
     return {"message": f"Cleaned up {cleaned_count} tasks older than {max_age_hours} hours"}
+
+
+# Sampling Endpoints
+
+@router.post("/dataset/sample", response_model=SamplingResponse)
+async def sample_dataset_endpoint(request: SamplingRequest):
+    """Sample AIDs based on strategy"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    try:
+        # Get AIDs based on strategy
+        aid_list = await dataset_builder.db_manager.get_aids_by_strategy(
+            strategy=request.strategy,
+            limit=request.limit,
+        )
+        
+        # Get statistics
+        total_available = await dataset_builder.db_manager.get_all_aids_count()
+        
+        return SamplingResponse(
+            strategy=request.strategy,
+            total_available=total_available,
+            sampled_count=len(aid_list),
+            aid_list=aid_list,
+            filters_applied={
+                "limit": request.limit
+            },
+            sampling_info={
+                "strategy_description": _get_strategy_description(request.strategy),
+                "sample_ratio": len(aid_list) / total_available if total_available > 0 else 0
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Sampling failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Sampling failed: {str(e)}")
+
+@router.post("/dataset/create-with-sampling", response_model=DatasetCreateResponse)
+async def create_dataset_with_sampling_endpoint(request: DatasetCreateRequest):
+    """Create dataset using sampling strategy"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    # Validate embedding model
+    if request.embedding_model not in config_loader.get_embedding_models():
+        raise HTTPException(status_code=400, detail=f"Invalid embedding model: {request.embedding_model}")
+    
+    import uuid
+    dataset_id = str(uuid.uuid4())
+    
+    try:
+        # First sample the AIDs
+        sampling_response = await sample_dataset_endpoint(request.sampling)
+        aid_list = sampling_response.aid_list
+        
+        if not aid_list:
+            raise HTTPException(status_code=400, detail="No AIDs found matching the sampling criteria")
+        
+        # Start task-based dataset building with sampled AIDs
+        task_id = await dataset_builder.start_dataset_build_task(
+            dataset_id,
+            aid_list,
+            request.embedding_model,
+            request.force_regenerate,
+            request.description
+        )
+        
+        return DatasetCreateResponse(
+            dataset_id=dataset_id,
+            sampling_response=sampling_response,
+            task_id=task_id,
+            total_records=len(aid_list),
+            status="started",
+            message=f"Dataset building started with task ID: {task_id}",
+            description=request.description
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Dataset creation with sampling failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Dataset creation failed: {str(e)}")
+
+
+def _get_strategy_description(strategy: str) -> str:
+    """Get description for sampling strategy"""
+    descriptions = {
+        "all": "All labeled videos in the database",
+        "random": "Randomly sampled labeled videos"
+    }
+    return descriptions.get(strategy, "Unknown sampling strategy")
