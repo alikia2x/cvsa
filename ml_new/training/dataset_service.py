@@ -2,7 +2,6 @@
 Dataset building service - handles the complete dataset construction flow
 """
 
-import json
 import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -14,6 +13,7 @@ from embedding_service import EmbeddingService
 from config_loader import config_loader
 from logger_config import get_logger
 from models import TaskStatus, DatasetBuildTaskStatus, TaskProgress
+from dataset_storage_parquet import ParquetDatasetStorage
 
 
 logger = get_logger(__name__)
@@ -28,63 +28,13 @@ class DatasetBuilder:
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(exist_ok=True)
         
-        # Load existing datasets from file system
-        self.dataset_storage: Dict[str, Dict] = self._load_all_datasets()
+        self.storage = ParquetDatasetStorage(str(self.storage_dir))
         
         # Task status tracking
         self._task_status_lock = threading.Lock()
         self.task_statuses: Dict[str, DatasetBuildTaskStatus] = {}
         self.running_tasks: Dict[str, asyncio.Task] = {}
 
-
-    def _get_dataset_file_path(self, dataset_id: str) -> Path:
-        """Get file path for dataset"""
-        return self.storage_dir / f"{dataset_id}.json"
-    
-    
-    def _load_dataset_from_file(self, dataset_id: str) -> Optional[Dict[str, Any]]:
-        """Load dataset from file"""
-        file_path = self._get_dataset_file_path(dataset_id)
-        if not file_path.exists():
-            return None
-        
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception as e:
-            logger.error(f"Failed to load dataset {dataset_id} from file: {e}")
-            return None
-    
-    
-    def _save_dataset_to_file(self, dataset_id: str, dataset_data: Dict[str, Any]) -> bool:
-        """Save dataset to file"""
-        file_path = self._get_dataset_file_path(dataset_id)
-        
-        try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(dataset_data, f, ensure_ascii=False, indent=2)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to save dataset {dataset_id} to file: {e}")
-            return False
-    
-    
-    def _load_all_datasets(self) -> Dict[str, Dict]:
-        """Load all datasets from file system"""
-        datasets = {}
-        
-        try:
-            for file_path in self.storage_dir.glob("*.json"):
-                dataset_id = file_path.stem
-                dataset_data = self._load_dataset_from_file(dataset_id)
-                if dataset_data:
-                    datasets[dataset_id] = dataset_data
-            logger.info(f"Loaded {len(datasets)} datasets from file system")
-        except Exception as e:
-            logger.error(f"Failed to load datasets from file system: {e}")
-        
-        return datasets
-    
     
     def _create_task_status(self, task_id: str, dataset_id: str, aid_list: List[int],
                           embedding_model: str, force_regenerate: bool) -> DatasetBuildTaskStatus:
@@ -100,7 +50,7 @@ class DatasetBuilder:
                 created_at=datetime.now(),
                 progress=TaskProgress(
                     current_step="initialized",
-                    total_steps=7,
+                    total_steps=8,
                     completed_steps=0,
                     percentage=0.0,
                     message="Task initialized"
@@ -214,36 +164,6 @@ class DatasetBuilder:
         return cleaned_count
     
     
-    async def cleanup_old_datasets(self, max_age_days: int = 30):
-        """Remove datasets older than specified days"""
-        try:
-            cutoff_time = datetime.now().timestamp() - (max_age_days * 24 * 60 * 60)
-            removed_count = 0
-            
-            for dataset_id in list(self.dataset_storage.keys()):
-                dataset_info = self.dataset_storage[dataset_id]
-                if "created_at" in dataset_info:
-                    try:
-                        created_time = datetime.fromisoformat(dataset_info["created_at"]).timestamp()
-                        if created_time < cutoff_time:
-                            # Remove from memory
-                            del self.dataset_storage[dataset_id]
-                            
-                            # Remove file
-                            file_path = self._get_dataset_file_path(dataset_id)
-                            if file_path.exists():
-                                file_path.unlink()
-                            
-                            removed_count += 1
-                    except Exception as e:
-                        logger.warning(f"Failed to process dataset {dataset_id} for cleanup: {e}")
-            
-            if removed_count > 0:
-                logger.info(f"Cleaned up {removed_count} old datasets")
-                
-        except Exception as e:
-            logger.error(f"Failed to cleanup old datasets: {e}")
-    
     async def build_dataset_with_task_tracking(self, task_id: str, dataset_id: str, aid_list: List[int],
                                             embedding_model: str, force_regenerate: bool = False,
                                             description: Optional[str] = None) -> str:
@@ -272,15 +192,15 @@ class DatasetBuilder:
                 raise ValueError(f"Invalid embedding model: {embedding_model}")
             
             model_config = EMBEDDING_MODELS[embedding_model]
-            self._update_task_progress(task_id, "getting_metadata", 1, "Retrieving video metadata from database")
+            self._update_task_progress(task_id, "getting_metadata", 1, "Retrieving video metadata from database", 3)
             
             # Step 2: Get video metadata from database
             metadata = await self.db_manager.get_video_metadata(aid_list)
-            self._update_task_progress(task_id, "getting_labels", 2, "Retrieving user labels from database")
+            self._update_task_progress(task_id, "getting_labels", 2, "Retrieving user labels from database", 15)
             
             # Step 3: Get user labels
             labels = await self.db_manager.get_user_labels(aid_list)
-            self._update_task_progress(task_id, "preparing_text", 3, "Preparing text data and checksums")
+            self._update_task_progress(task_id, "preparing_text", 3, "Preparing text data and checksums", 30)
             
             # Step 4: Prepare text data and checksums
             text_data = []
@@ -314,7 +234,7 @@ class DatasetBuilder:
                         f"Prepared {i + 1}/{total_aids} text entries"
                     )
             
-            self._update_task_progress(task_id, "checking_embeddings", 4, "Checking existing embeddings")
+            self._update_task_progress(task_id, "checking_embeddings", 4, "Checking existing embeddings", 33)
             
             # Step 5: Check existing embeddings
             checksums = [item['checksum'] for item in text_data]
@@ -332,13 +252,26 @@ class DatasetBuilder:
                     task_id,
                     "generating_embeddings",
                     5,
-                    f"Generating {len(new_embeddings_needed)} new embeddings"
+                    f"Generating {len(new_embeddings_needed)} new embeddings",
+                    50
                 )
+                
+                # Create progress callback for embedding generation
+                def embedding_progress_callback(current: int, total: int):
+                    percentage = (current / total) * 25 + 50   # Map to progress range 5-6
+                    self._update_task_progress(
+                        task_id,
+                        "generating_embeddings",
+                        5,
+                        f"Generated {current}/{total} embeddings",
+                        percentage
+                    )
                 
                 logger.info(f"Generating {len(new_embeddings_needed)} new embeddings")
                 generated_embeddings = await self.embedding_service.generate_embeddings_batch(
                     new_embeddings_needed,
-                    embedding_model
+                    embedding_model,
+                    progress_callback=embedding_progress_callback
                 )
                 
                 # Step 7: Store new embeddings in database
@@ -352,6 +285,14 @@ class DatasetBuilder:
                         'vector': embedding
                     })
                 
+                self._update_task_progress(
+                    task_id,
+                    "inserting_embeddings",
+                    6,
+                    f"Inserting {len(embeddings_to_store)} embeddings into database",
+                    75
+                )
+                
                 await self.db_manager.insert_embeddings(embeddings_to_store)
                 new_embeddings_count = len(embeddings_to_store)
                 
@@ -362,7 +303,7 @@ class DatasetBuilder:
                         f'vec_{model_config.dimensions}': emb_data['vector']
                     }
             
-            self._update_task_progress(task_id, "building_dataset", 6, "Building final dataset")
+            self._update_task_progress(task_id, "building_dataset", 7, "Building final dataset", 95)
             
             # Step 8: Build final dataset
             dataset = []
@@ -410,12 +351,13 @@ class DatasetBuilder:
                 
                 # Update progress for dataset building
                 if i % 10 == 0 or i == len(text_data) - 1:  # Update every 10 items or at the end
-                    progress_pct = 6 + (i + 1) / len(text_data)
+                    progress_pct = 7 + (i + 1) / len(text_data)
                     self._update_task_progress(
                         task_id,
                         "building_dataset",
-                        min(6, int(progress_pct)),
-                        f"Built {i + 1}/{len(text_data)} dataset records"
+                        min(7, int(progress_pct)),
+                        f"Built {i + 1}/{len(text_data)} dataset records",
+                        100
                     )
             
             reused_count = len(dataset) - new_embeddings_count
@@ -436,15 +378,13 @@ class DatasetBuilder:
                 'created_at': datetime.now().isoformat()
             }
             
-            self._update_task_progress(task_id, "saving_dataset", 7, "Saving dataset to storage")
+            self._update_task_progress(task_id, "saving_dataset", 8, "Saving dataset to storage")
             
-            # Save to file and memory cache
-            if self._save_dataset_to_file(dataset_id, dataset_data):
-                self.dataset_storage[dataset_id] = dataset_data
-                logger.info(f"Dataset {dataset_id} saved to file system")
+            # Save to file using efficient storage (Parquet format)
+            if self.storage.save_dataset(dataset_id, dataset_data['dataset'], description, dataset_data['stats']):
+                logger.info(f"Dataset {dataset_id} saved to efficient storage (Parquet format)")
             else:
-                logger.warning(f"Failed to save dataset {dataset_id} to file, keeping in memory only")
-                self.dataset_storage[dataset_id] = dataset_data
+                logger.warning(f"Failed to save dataset {dataset_id} to storage")
             
             # Update task status to completed
             result = {
@@ -459,8 +399,8 @@ class DatasetBuilder:
                 result=result,
                 progress=TaskProgress(
                     current_step="completed",
-                    total_steps=7,
-                    completed_steps=7,
+                    total_steps=8,
+                    completed_steps=8,
                     percentage=100.0,
                     message="Dataset building completed successfully"
                 )
@@ -479,7 +419,7 @@ class DatasetBuilder:
                 error_message=str(e),
                 progress=TaskProgress(
                     current_step="failed",
-                    total_steps=7,
+                    total_steps=8,
                     completed_steps=0,
                     percentage=0.0,
                     message=f"Task failed: {str(e)}"
@@ -492,9 +432,8 @@ class DatasetBuilder:
                 'created_at': datetime.now().isoformat()
             }
             
-            # Try to save error to file as well
-            self._save_dataset_to_file(dataset_id, error_data)
-            self.dataset_storage[dataset_id] = error_data
+            # Try to save error using new storage
+            self.storage.save_dataset(dataset_id, [], description=str(e), stats={'error': True})
             raise
     
     
@@ -523,91 +462,28 @@ class DatasetBuilder:
     
     def get_dataset(self, dataset_id: str) -> Optional[Dict[str, Any]]:
         """Get built dataset by ID"""
-        # First check memory cache
-        if dataset_id in self.dataset_storage:
-            return self.dataset_storage[dataset_id]
-        
-        # If not in memory, try to load from file
-        dataset_data = self._load_dataset_from_file(dataset_id)
-        if dataset_data:
-            # Add to memory cache
-            self.dataset_storage[dataset_id] = dataset_data
-            return dataset_data
-        
-        return None
+        # Use pure Parquet storage interface
+        return self.storage.load_dataset_full(dataset_id)
     
     def dataset_exists(self, dataset_id: str) -> bool:
         """Check if dataset exists"""
-        # Check memory cache first
-        if dataset_id in self.dataset_storage:
-            return True
-        
-        # Check file system
-        return self._get_dataset_file_path(dataset_id).exists()
+        return self.storage.dataset_exists(dataset_id)
     
     def delete_dataset(self, dataset_id: str) -> bool:
         """Delete dataset from both memory and file system"""
-        try:
-            # Remove from memory
-            if dataset_id in self.dataset_storage:
-                del self.dataset_storage[dataset_id]
-            
-            # Remove file
-            file_path = self._get_dataset_file_path(dataset_id)
-            if file_path.exists():
-                file_path.unlink()
-                logger.info(f"Dataset {dataset_id} deleted from file system")
-                return True
-            else:
-                logger.warning(f"Dataset file {dataset_id} not found for deletion")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Failed to delete dataset {dataset_id}: {e}")
-            return False
+        return self.storage.delete_dataset(dataset_id)
     
     def list_datasets(self) -> List[Dict[str, Any]]:
         """List all datasets with their basic information"""
-        datasets = []
-        
-        self._load_all_datasets()
-        
-        for dataset_id, dataset_info in self.dataset_storage.items():
-            if "error" not in dataset_info:
-                datasets.append({
-                    "dataset_id": dataset_id,
-                    "stats": dataset_info["stats"],
-                    "created_at": dataset_info["created_at"]
-                })
-        
-        # Sort by creation time (newest first)
-        datasets.sort(key=lambda x: x["created_at"], reverse=True)
-        
-        return datasets
+        return self.storage.list_datasets()
     
     def get_dataset_stats(self) -> Dict[str, Any]:
         """Get overall statistics about stored datasets"""
-        total_datasets = len(self.dataset_storage)
-        error_datasets = sum(1 for data in self.dataset_storage.values() if "error" in data)
-        valid_datasets = total_datasets - error_datasets
-        
-        total_records = 0
-        total_new_embeddings = 0
-        total_reused_embeddings = 0
-        
-        for dataset_info in self.dataset_storage.values():
-            if "stats" in dataset_info:
-                stats = dataset_info["stats"]
-                total_records += stats.get("total_records", 0)
-                total_new_embeddings += stats.get("new_embeddings", 0)
-                total_reused_embeddings += stats.get("reused_embeddings", 0)
-        
-        return {
-            "total_datasets": total_datasets,
-            "valid_datasets": valid_datasets,
-            "error_datasets": error_datasets,
-            "total_records": total_records,
-            "total_new_embeddings": total_new_embeddings,
-            "total_reused_embeddings": total_reused_embeddings,
-            "storage_directory": str(self.storage_dir)
-        }
+        return self.storage.get_dataset_stats()
+    
+    def load_dataset_metadata_fast(self, dataset_id: str) -> Optional[Dict[str, Any]]:
+        return self.storage.load_dataset_metadata(dataset_id)
+    
+    def load_dataset_partial(self, dataset_id: str, columns: Optional[List[str]] = None,
+                           filters: Optional[Dict[str, Any]] = None):
+        return self.storage.load_dataset_partial(dataset_id, columns, filters)

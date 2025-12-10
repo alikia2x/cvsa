@@ -30,7 +30,7 @@ export function TaskMonitor() {
 			const params = statusFilter === "all" ? {} : { status: statusFilter };
 			return apiClient.getTasks(params.status, 50);
 		},
-		refetchInterval: 5000 // Refresh every 5 seconds
+		refetchInterval: 500
 	});
 
 	const getStatusIcon = (status: string) => {

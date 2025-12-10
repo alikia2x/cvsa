@@ -188,18 +188,6 @@ async def get_dataset_stats_endpoint():
     stats = dataset_builder.get_dataset_stats()
     return stats
 
-
-@router.post("/datasets/cleanup")
-async def cleanup_datasets_endpoint(max_age_days: int = 30):
-    """Remove datasets older than specified days"""
-    
-    if not dataset_builder:
-        raise HTTPException(status_code=503, detail="Dataset builder not available")
-    
-    await dataset_builder.cleanup_old_datasets(max_age_days)
-    return {"message": f"Cleanup completed for datasets older than {max_age_days} days"}
-
-
 # Task Status Endpoints
 
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
