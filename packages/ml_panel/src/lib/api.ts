@@ -4,7 +4,6 @@ import type {
 	EmbeddingModelsResponse,
 	DatasetsResponse,
 	DatasetDetail,
-	SamplingStats,
 	SamplingResponse,
 	DatasetCreateResponse,
 	Task,

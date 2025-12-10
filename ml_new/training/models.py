@@ -189,85 +189,7 @@ class EmbeddingClassifier(nn.Module):
         }
 
 
-class AttentionEmbeddingClassifier(EmbeddingClassifier):
-    """
-    Enhanced classifier with self-attention mechanism
-    """
-    
-    def __init__(
-        self,
-        input_dim: int = 2048,
-        hidden_dims: Optional[Tuple[int, ...]] = None,
-        dropout_rate: float = 0.3,
-        batch_norm: bool = True,
-        activation: str = "relu",
-        attention_dim: int = 512
-    ):
-        super().__init__(input_dim, hidden_dims, dropout_rate, batch_norm, activation)
-        
-        # Self-attention mechanism
-        self.attention_dim = attention_dim
-        self.attention = nn.MultiheadAttention(
-            embed_dim=input_dim,
-            num_heads=8,
-            dropout=dropout_rate,
-            batch_first=True
-        )
-        
-        # Attention projection layer
-        self.attention_projection = nn.Linear(input_dim, attention_dim)
-        
-        # Re-initialize attention weights
-        self._initialize_attention_weights()
-        
-        logger.info(f"Initialized AttentionEmbeddingClassifier with attention_dim={attention_dim}")
-    
-    def _initialize_attention_weights(self):
-        """Initialize attention mechanism weights"""
-        for module in self.attention.modules():
-            if isinstance(module, nn.Linear):
-                nn.init.xavier_uniform_(module.weight)
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass with attention mechanism
-        
-        Args:
-            x: Input embeddings of shape (batch_size, input_dim)
-            
-        Returns:
-            logits of shape (batch_size, 1)
-        """
-        # Ensure input is float tensor
-        if not x.dtype == torch.float32:
-            x = x.float()
-        
-        # Add sequence dimension for attention (batch_size, 1, input_dim)
-        x_expanded = x.unsqueeze(1)
-        
-        # Apply self-attention
-        attended, attention_weights = self.attention(x_expanded, x_expanded, x_expanded)
-        
-        # Remove sequence dimension (batch_size, input_dim)
-        attended = attended.squeeze(1)
-        
-        # Project to attention dimension
-        attended = self.attention_projection(attended)
-        
-        # Process through original classification layers
-        for layer in self.layers:
-            attended = layer(attended)
-        
-        # Final classification layer
-        logits = self.classifier(attended)
-        
-        return logits
-
-
 def create_model(
-    model_type: str = "standard",
     input_dim: int = 2048,
     hidden_dims: Optional[Tuple[int, ...]] = None,
     **kwargs
@@ -276,7 +198,6 @@ def create_model(
     Factory function to create embedding classifier models
     
     Args:
-        model_type: Type of model ('standard', 'attention')
         input_dim: Input embedding dimension
         hidden_dims: Hidden layer dimensions
         **kwargs: Additional model arguments
@@ -284,18 +205,12 @@ def create_model(
     Returns:
         Initialized model
     """
-    if model_type == "standard":
-        return EmbeddingClassifier(input_dim=input_dim, hidden_dims=hidden_dims, **kwargs)
-    elif model_type == "attention":
-        return AttentionEmbeddingClassifier(input_dim=input_dim, hidden_dims=hidden_dims, **kwargs)
-    else:
-        raise ValueError(f"Unknown model type: {model_type}")
+    return EmbeddingClassifier(input_dim=input_dim, hidden_dims=hidden_dims, **kwargs)
 
 
 if __name__ == "__main__":
     # Test model creation and forward pass
     model = create_model(
-        model_type="standard",
         input_dim=2048,
         hidden_dims=(512, 256, 128),
         dropout_rate=0.3

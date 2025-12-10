@@ -7,14 +7,14 @@ import {
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue,
+	SelectValue
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Play, Pause, CheckCircle, XCircle, Clock } from "lucide-react";
+import { RefreshCw, Clock } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import type { TasksResponse } from "@/types/api";
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner";
 
 export function TaskMonitor() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -32,21 +32,6 @@ export function TaskMonitor() {
 		},
 		refetchInterval: 500
 	});
-
-	const getStatusIcon = (status: string) => {
-		switch (status) {
-			case "running":
-				return <Play className="h-4 w-4 text-blue-500" />;
-			case "completed":
-				return <CheckCircle className="h-4 w-4 text-green-500" />;
-			case "failed":
-				return <XCircle className="h-4 w-4 text-red-500" />;
-			case "pending":
-				return <Clock className="h-4 w-4 text-yellow-500" />;
-			default:
-				return <Pause className="h-4 w-4 text-gray-500" />;
-		}
-	};
 
 	const getStatusBadgeVariant = (status: string) => {
 		switch (status) {
@@ -80,7 +65,7 @@ export function TaskMonitor() {
 	if (tasksLoading) {
 		return (
 			<div className="flex items-center justify-center h-64">
-				<Spinner/>
+				<Spinner />
 			</div>
 		);
 	}
@@ -118,13 +103,10 @@ export function TaskMonitor() {
 							<CardContent className="p-4">
 								<div className="flex items-start justify-between mb-3">
 									<div className="flex items-center space-x-2">
-										{getStatusIcon(task.status)}
-										<span className="font-mono text-sm">
-											{task.task_id.slice(0, 8)}...
-										</span>
 										<Badge variant={getStatusBadgeVariant(task.status)}>
 											{task.status}
 										</Badge>
+										<span className="font-mono text-sm">{task.task_id}</span>
 									</div>
 									<div className="text-sm text-muted-foreground">
 										{formatDate(task.created_at)}
@@ -152,14 +134,18 @@ export function TaskMonitor() {
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
 									{task.started_at && (
 										<div>
-											<span className="text-muted-foreground">Start Time:</span>
+											<span className="text-muted-foreground">
+												Start Time:
+											</span>
 											<br />
 											{formatDate(task.started_at)}
 										</div>
 									)}
 									{task.completed_at && (
 										<div>
-											<span className="text-muted-foreground">Complete Time:</span>
+											<span className="text-muted-foreground">
+												Complete Time:
+											</span>
 											<br />
 											{formatDate(task.completed_at)}
 										</div>

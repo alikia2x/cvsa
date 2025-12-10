@@ -153,16 +153,7 @@ async def list_datasets_endpoint():
         raise HTTPException(status_code=503, detail="Dataset builder not available")
     
     datasets = dataset_builder.list_datasets()
-    # Add description to each dataset
-    datasets_with_description = []
-    for dataset in datasets:
-        dataset_info = dataset_builder.get_dataset(dataset["dataset_id"])
-        if dataset_info and "description" in dataset_info:
-            dataset["description"] = dataset_info["description"]
-        else:
-            dataset["description"] = None
-        datasets_with_description.append(dataset)
-    return {"datasets": datasets_with_description}
+    return {"datasets": datasets}
 
 
 @router.delete("/dataset/{dataset_id}")
