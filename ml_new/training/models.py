@@ -10,6 +10,90 @@ from ml_new.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 
+class FocalLoss(nn.Module):
+    """
+    Focal Loss for binary classification
+    
+    Focal Loss = -α_t * (1 - p_t)^γ * log(p_t)
+    
+    Where:
+    - p_t is the predicted probability for the true class
+    - α_t is the weighting factor for class imbalance  
+    - γ (gamma) is the focusing parameter that reduces the relative loss for well-classified examples
+    """
+    
+    def __init__(
+        self, 
+        alpha: float = 1.0, 
+        gamma: float = 2.0, 
+        reduction: str = 'mean',
+        class_weights: Optional[torch.Tensor] = None
+    ):
+        """
+        Initialize Focal Loss
+        
+        Args:
+            alpha: Weighting factor for class imbalance (default: 1.0)
+            gamma: Focusing parameter (default: 2.0)
+            reduction: Reduction method ('mean', 'sum', 'none')
+            class_weights: Optional tensor of class weights for imbalance
+        """
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+        self.class_weights = class_weights
+        
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        """
+        Compute focal loss
+        
+        Args:
+            inputs: Logits of shape (batch_size,) or (batch_size, 1)
+            targets: Binary labels of shape (batch_size,) or (batch_size, 1)
+            
+        Returns:
+            Focal loss value
+        """
+        # Ensure inputs are properly shaped
+        if inputs.dim() > 1:
+            inputs = inputs.squeeze()
+        if targets.dim() > 1:
+            targets = targets.squeeze()
+            
+        # Compute sigmoid probabilities
+        prob = torch.sigmoid(inputs)
+        
+        # Convert targets to float for computation
+        targets = targets.float()
+        
+        # Compute focal loss components
+        # pt = p if y=1, pt = 1-p if y=0
+        pt = torch.where(targets == 1, prob, 1 - prob)
+        
+        # focal weight = (1 - pt)^gamma
+        focal_weight = (1 - pt).pow(self.gamma)
+        
+        # alpha weight = alpha for positive class, 1-alpha for negative class
+        alpha_weight = torch.where(targets == 1, 
+                                 torch.tensor(self.alpha, device=inputs.device), 
+                                 torch.tensor(1 - self.alpha, device=inputs.device))
+        
+        # Apply class weights if provided
+        if self.class_weights is not None:
+            alpha_weight = alpha_weight * self.class_weights[targets.long()]
+        
+        # focal loss = -alpha * (1-pt)^gamma * log(pt)
+        focal_loss = -alpha_weight * focal_weight * pt.log()
+        
+        # Apply reduction
+        if self.reduction == 'mean':
+            return focal_loss.mean()
+        elif self.reduction == 'sum':
+            return focal_loss.sum()
+        else:
+            return focal_loss
+
 
 class EmbeddingClassifier(nn.Module):
     """

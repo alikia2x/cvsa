@@ -158,6 +158,29 @@ def parse_args():
         help="Metric for model selection and early stopping"
     )
     
+    # Loss function arguments
+    parser.add_argument(
+        "--loss-type",
+        type=str,
+        choices=["focal", "bce"],
+        default="focal",
+        help="Type of loss function to use"
+    )
+    
+    parser.add_argument(
+        "--focal-alpha",
+        type=float,
+        default=1.0,
+        help="Alpha parameter for focal loss (class imbalance weighting)"
+    )
+    
+    parser.add_argument(
+        "--focal-gamma",
+        type=float,
+        default=2.0,
+        help="Gamma parameter for focal loss (focusing parameter)"
+    )
+    
     # Data arguments
     parser.add_argument(
         "--train-ratio",
@@ -423,6 +446,9 @@ def main():
             learning_rate=args.learning_rate,
             weight_decay=args.weight_decay,
             scheduler_type=scheduler_type,
+            loss_type=args.loss_type,
+            focal_alpha=args.focal_alpha,
+            focal_gamma=args.focal_gamma,
             device=device,
             save_dir=args.save_dir,
             experiment_name=args.experiment_name
@@ -455,7 +481,10 @@ def main():
             "weight_decay": args.weight_decay,
             "scheduler": args.scheduler,
             "early_stopping_patience": args.early_stopping_patience,
-            "validation_metric": args.validation_metric
+            "validation_metric": args.validation_metric,
+            "loss_type": args.loss_type,
+            "focal_alpha": args.focal_alpha,
+            "focal_gamma": args.focal_gamma
         },
         "data_config": {
             "train_ratio": args.train_ratio,

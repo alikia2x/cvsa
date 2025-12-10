@@ -194,6 +194,46 @@ def load_model_from_experiment(
     return model, model_config
 
 
+def safe_extract_aid(metadata_entry):
+    """Safely extract aid from metadata entry"""
+    if isinstance(metadata_entry, dict) and 'aid' in metadata_entry:
+        return metadata_entry['aid']
+    return None
+
+def normalize_batch_metadata(metadata, expected_batch_size):
+    """
+    Normalize batch metadata to ensure consistent structure
+    
+    Args:
+        metadata: Raw metadata from DataLoader (could be various formats)
+        expected_batch_size: Expected number of metadata entries
+        
+    Returns:
+        List of metadata dictionaries
+    """
+    # Handle different metadata structures
+    if metadata is None:
+        return [{}] * expected_batch_size
+    
+    if isinstance(metadata, dict):
+        # Single metadata object - duplicate for entire batch
+        return [metadata] * expected_batch_size
+    
+    if isinstance(metadata, (list, tuple)):
+        if len(metadata) == expected_batch_size:
+            return list(metadata)
+        elif len(metadata) < expected_batch_size:
+            # Pad with empty dicts
+            padded = list(metadata) + [{}] * (expected_batch_size - len(metadata))
+            return padded
+        else:
+            # Truncate to expected size
+            return list(metadata[:expected_batch_size])
+    
+    # Unknown format - return empty dicts
+    logger.warning(f"Unknown metadata format: {type(metadata)}")
+    return [{}] * expected_batch_size
+
 def evaluate_model(
     model,
     test_loader: DataLoader,
@@ -213,9 +253,7 @@ def evaluate_model(
         Tuple of (metrics, predictions, probabilities, true_labels, fn_aids, fp_aids)
     """
     model.eval()
-    criterion = torch.nn.BCEWithLogitsLoss()
     
-    total_loss = 0.0
     all_predictions = []
     all_labels = []
     all_probabilities = []
@@ -230,10 +268,6 @@ def evaluate_model(
             
             # Forward pass
             outputs = model(embeddings)
-            loss = criterion(outputs.squeeze(), labels)
-            
-            # Collect statistics
-            total_loss += loss.item()
             
             # Get predictions and probabilities
             probabilities = torch.sigmoid(outputs).squeeze()
@@ -244,23 +278,45 @@ def evaluate_model(
             all_probabilities.extend(probabilities.cpu().numpy())
             
             # Collect metadata and track FN/FP
-            batch_metadata = metadata if isinstance(metadata, list) else [metadata]
+            batch_size = len(labels)
+            batch_metadata = normalize_batch_metadata(metadata, batch_size)
             all_metadata.extend(batch_metadata)
             
             # Track FN and FP aids for this batch
+            logger.debug(f"Batch {batch_idx}: labels shape {labels.shape}, predictions shape {predictions.shape}, metadata structure: {type(batch_metadata)}")
+            if len(batch_metadata) != len(labels):
+                logger.warning(f"Metadata length mismatch: {len(batch_metadata)} metadata entries vs {len(labels)} samples")
+            
             for i, (true_label, pred_label) in enumerate(zip(labels.cpu().numpy(), predictions.cpu().numpy())):
-                if isinstance(batch_metadata[i], dict) and 'aid' in batch_metadata[i]:
-                    aid = batch_metadata[i]['aid']
-                    if true_label == 1 and pred_label == 0:  # False Negative
-                        fn_aids.append(aid)
-                    elif true_label == 0 and pred_label == 1:  # False Positive
-                        fp_aids.append(aid)
+                try:
+                    # Safely get metadata entry with bounds checking
+                    if i >= len(batch_metadata):
+                        logger.warning(f"Index {i} out of range for batch_metadata (length: {len(batch_metadata)})")
+                        continue
+                    
+                    meta_entry = batch_metadata[i]
+                    if not isinstance(meta_entry, dict):
+                        logger.warning(f"Metadata entry {i} is not a dict: {type(meta_entry)}")
+                        continue
+                    
+                    if 'aid' not in meta_entry:
+                        logger.debug(f"No 'aid' key in metadata entry {i}")
+                        continue
+                    
+                    aid = safe_extract_aid(meta_entry)
+                    if aid is not None:
+                        if true_label == 1 and pred_label == 0:  # False Negative
+                            fn_aids.append(aid)
+                        elif true_label == 0 and pred_label == 1:  # False Positive
+                            fp_aids.append(aid)
+                        
+                except Exception as e:
+                    logger.warning(f"Error processing metadata entry {i}: {e}")
+                    continue
             
             if (batch_idx + 1) % 10 == 0:
                 logger.info(f"Processed {batch_idx + 1}/{len(test_loader)} batches")
     
-    # Calculate metrics
-    test_loss = total_loss / len(test_loader)
     test_accuracy = accuracy_score(all_labels, all_predictions)
     precision, recall, f1, _ = precision_recall_fscore_support(
         all_labels, all_predictions, average='binary', zero_division=0
@@ -279,7 +335,6 @@ def evaluate_model(
         tn, fp, fn, tp = 0, 0, 0, 0
     
     metrics = {
-        'loss': test_loss,
         'accuracy': test_accuracy,
         'precision': precision,
         'recall': recall,
@@ -578,8 +633,6 @@ def main():
     if 'failed_requests' in metrics:
         logger.info(f"Failed API requests: {metrics['failed_requests']}")
     logger.info("-" * 50)
-    if 'loss' in metrics:
-        logger.info(f"Loss: {metrics['loss']:.4f}")
     logger.info(f"Accuracy: {metrics['accuracy']:.4f}")
     logger.info(f"Precision: {metrics['precision']:.4f}")
     logger.info(f"Recall: {metrics['recall']:.4f}")

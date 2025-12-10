@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional
 import json
 from datetime import datetime
 from pathlib import Path
-from ml_new.training.models import EmbeddingClassifier
+from ml_new.training.models import EmbeddingClassifier, FocalLoss
 from ml_new.config.logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -69,6 +69,12 @@ class ModelTrainer:
         self.criterion = criterion or nn.BCEWithLogitsLoss()
         self.optimizer = optimizer or optim.Adam(self.model.parameters(), lr=0.001)
         self.scheduler = scheduler
+        
+        # Store loss function type for configuration
+        if criterion is None:
+            self.loss_type = 'bce'
+        else:
+            self.loss_type = getattr(criterion, 'loss_type', 'custom')
         
         # Training configuration
         self.save_dir = Path(save_dir)
@@ -442,6 +448,10 @@ def create_trainer(
     learning_rate: float = 0.001,
     weight_decay: float = 1e-5,
     scheduler_type: Optional[str] = 'plateau',
+    loss_type: str = 'focal',  # Default to focal loss
+    focal_alpha: float = 1.0,
+    focal_gamma: float = 2.0,
+    class_weights: Optional[torch.Tensor] = None,
     **kwargs
 ) -> ModelTrainer:
     """
@@ -455,11 +465,30 @@ def create_trainer(
         learning_rate: Initial learning rate
         weight_decay: L2 regularization
         scheduler_type: Learning rate scheduler type ('plateau', 'step', None)
+        loss_type: Type of loss function ('focal', 'bce')
+        focal_alpha: Alpha parameter for focal loss (class imbalance weighting)
+        focal_gamma: Gamma parameter for focal loss (focusing parameter)
+        class_weights: Optional tensor of class weights for additional balancing
         **kwargs: Additional trainer arguments
         
     Returns:
         Configured ModelTrainer instance
     """
+    # Create loss function
+    if loss_type == 'focal':
+        criterion = FocalLoss(
+            alpha=focal_alpha,
+            gamma=focal_gamma,
+            reduction='mean',
+            class_weights=class_weights
+        )
+        logger.info(f"Using Focal Loss with alpha={focal_alpha}, gamma={focal_gamma}")
+    elif loss_type == 'bce':
+        criterion = nn.BCEWithLogitsLoss()
+        logger.info("Using BCE With Logits Loss")
+    else:
+        raise ValueError(f"Unsupported loss type: {loss_type}")
+    
     # Create optimizer
     optimizer = optim.AdamW(
         model.parameters(),
@@ -490,6 +519,7 @@ def create_trainer(
         val_loader=val_loader,
         test_loader=test_loader,
         optimizer=optimizer,
+        criterion=criterion,
         scheduler=scheduler,
         **kwargs
     )
