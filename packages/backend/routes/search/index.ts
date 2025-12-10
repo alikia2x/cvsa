@@ -91,7 +91,7 @@ const getVideoSearchResult = async (searchQuery: string) => {
 	return [
 		{
 			type: "bili-video" as "bili-video",
-			data: data.data,
+			data: data,
 			rank: 0.99 // Exact match
 		}
 	];

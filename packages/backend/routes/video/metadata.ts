@@ -1,6 +1,6 @@
-import { Elysia, t } from "elysia";
+import { Elysia } from "elysia";
 import { db, videoSnapshot } from "@core/drizzle";
-import { biliIDToAID, bv2av } from "@backend/lib/bilibiliID";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
 import { getVideoInfo } from "@core/net/getVideoInfo";
 import { redis } from "@core/db/redis";
 import { ErrorResponseSchema } from "@backend/src/schema";
@@ -84,7 +84,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 	},
 	{
 		response: {
-			200: t.Any(),
+			200: BiliAPIVideoMetadataSchema,
 			400: ErrorResponseSchema,
 			500: ErrorResponseSchema
 		},
