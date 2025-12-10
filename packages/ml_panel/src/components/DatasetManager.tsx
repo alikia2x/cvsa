@@ -270,7 +270,6 @@ export function DatasetManager() {
 							<CardHeader className="pb-3">
 								<div className="flex items-start justify-between">
 									<div className="flex items-center space-x-2">
-										<Database className="h-5 w-5 text-muted-foreground" />
 										<CardTitle className="text-base">
 											{dataset.dataset_id.slice(0, 8)}...{dataset.dataset_id.slice(-8)}
 										</CardTitle>
@@ -291,15 +290,12 @@ export function DatasetManager() {
 							<CardContent>
 								<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-sm">
 									<div className="flex items-center space-x-2">
-										<FileText className="h-4 w-4 text-muted-foreground" />
 										<span>{dataset.stats.total_records} records</span>
 									</div>
 									<div className="flex items-center space-x-2">
-										<Activity className="h-4 w-4 text-muted-foreground" />
 										<span>{dataset.stats.embedding_model}</span>
 									</div>
 									<div className="flex items-center space-x-2">
-										<Calendar className="h-4 w-4 text-muted-foreground" />
 										<span>{formatDate(dataset.created_at)}</span>
 									</div>
 									<div className="flex items-center space-x-2">
@@ -307,11 +303,7 @@ export function DatasetManager() {
 											New: {dataset.stats.new_embeddings}
 										</span>
 									</div>
-									<div className="flex items-center space-x-2">
-										<span className="text-muted-foreground">
-											New: {dataset.stats.new_embeddings}
-										</span>
-									</div>
+									
 								</div>
 							</CardContent>
 						</Card>
