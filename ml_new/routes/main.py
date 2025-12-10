@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
-from config_loader import config_loader
+from ml_new.config.config_loader import config_loader
 from models import (
     DatasetBuildRequest, 
     DatasetBuildResponse, 
@@ -20,8 +20,8 @@ from models import (
     DatasetCreateRequest,
     DatasetCreateResponse
 )
-from dataset_service import DatasetBuilder
-from logger_config import get_logger
+from ml_new.data.dataset_service import DatasetBuilder
+from ml_new.config.logger_config import get_logger
 
 
 logger = get_logger(__name__)

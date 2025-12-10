@@ -8,12 +8,12 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import threading
 
-from database import DatabaseManager
-from embedding_service import EmbeddingService
-from config_loader import config_loader
-from logger_config import get_logger
-from models import TaskStatus, DatasetBuildTaskStatus, TaskProgress
-from dataset_storage_parquet import ParquetDatasetStorage
+from ml_new.data.database import DatabaseManager
+from ml_new.data.embedding_service import EmbeddingService
+from ml_new.config.config_loader import config_loader
+from ml_new.config.logger_config import get_logger
+from ml_new.models import TaskStatus, DatasetBuildTaskStatus, TaskProgress
+from ml_new.data.dataset_storage_parquet import ParquetDatasetStorage
 
 
 logger = get_logger(__name__)
