@@ -475,6 +475,7 @@ class DatasetBuilder:
     
     def list_datasets(self) -> List[Dict[str, Any]]:
         """List all datasets with their basic information"""
+        self.storage._load_metadata_cache()
         return self.storage.list_datasets()
     
     def get_dataset_stats(self) -> Dict[str, Any]:

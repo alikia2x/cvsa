@@ -417,7 +417,7 @@ class ModelTrainer:
     
     def load_checkpoint(self, checkpoint_path: str, load_optimizer: bool = True) -> None:
         """Load model from checkpoint"""
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
+        checkpoint = torch.load(checkpoint_path, map_location=self.device, weights_only=False)
         
         self.model.load_state_dict(checkpoint['model_state_dict'])
         
@@ -504,7 +504,6 @@ if __name__ == "__main__":
     
     # Create dummy model and data
     model = create_model(
-        model_type="standard",
         input_dim=2048,
         hidden_dims=(512, 256, 128)
     )

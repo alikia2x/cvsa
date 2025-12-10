@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,19 +20,22 @@ import {
 	SelectValue
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Plus, Database, FileText, Calendar, Activity } from "lucide-react";
+import { Trash2, Plus, Database, Upload } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner";
 
 export function DatasetManager() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [createFormData, setCreateFormData] = useState({
+		creationMode: "sampling", // "sampling" or "aidList"
 		strategy: "all",
 		limit: "",
 		embeddingModel: "",
 		description: "",
-		forceRegenerate: false
+		forceRegenerate: false,
+		aidListFile: null as File | null,
+		aidList: [] as number[]
 	});
 
 	const queryClient = useQueryClient();
@@ -45,7 +48,7 @@ export function DatasetManager() {
 	});
 
 	// Fetch embedding models
-	const { data: modelsData, isLoading: modelsLoading } = useQuery({
+	const { data: modelsData } = useQuery({
 		queryKey: ["embedding-models"],
 		queryFn: () => apiClient.getEmbeddingModels()
 	});
@@ -57,11 +60,14 @@ export function DatasetManager() {
 			toast.success("Dataset creation task started");
 			setIsCreateDialogOpen(false);
 			setCreateFormData({
+				creationMode: "sampling",
 				strategy: "all",
 				limit: "",
 				embeddingModel: "",
 				description: "",
-				forceRegenerate: false
+				forceRegenerate: false,
+				aidListFile: null,
+				aidList: []
 			});
 			queryClient.invalidateQueries({ queryKey: ["datasets"] });
 			queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -83,23 +89,68 @@ export function DatasetManager() {
 		}
 	});
 
+	// Build dataset mutation
+	const buildDatasetMutation = useMutation({
+		mutationFn: (data: {
+			aid_list: number[];
+			embedding_model: string;
+			force_regenerate?: boolean;
+			description?: string;
+		}) => apiClient.buildDataset(data),
+		onSuccess: () => {
+			toast.success("Dataset build task started");
+			setIsCreateDialogOpen(false);
+			setCreateFormData({
+				creationMode: "sampling",
+				strategy: "all",
+				limit: "",
+				embeddingModel: "",
+				description: "",
+				forceRegenerate: false,
+				aidListFile: null,
+				aidList: []
+			});
+			queryClient.invalidateQueries({ queryKey: ["datasets"] });
+			queryClient.invalidateQueries({ queryKey: ["tasks"] });
+		},
+		onError: (error: Error) => {
+			toast.error(`Build failed: ${error.message}`);
+		}
+	});
+
 	const handleCreateDataset = () => {
 		if (!createFormData.embeddingModel) {
 			toast.error("Please select an embedding model");
 			return;
 		}
 
-		const requestData = {
-			sampling: {
-				strategy: createFormData.strategy,
-				...(createFormData.limit && { limit: parseInt(createFormData.limit) })
-			},
-			embedding_model: createFormData.embeddingModel,
-			force_regenerate: createFormData.forceRegenerate,
-			description: createFormData.description || undefined
-		};
+		if (createFormData.creationMode === "sampling") {
+			const requestData = {
+				sampling: {
+					strategy: createFormData.strategy,
+					...(createFormData.limit && { limit: parseInt(createFormData.limit) })
+				},
+				embedding_model: createFormData.embeddingModel,
+				force_regenerate: createFormData.forceRegenerate,
+				description: createFormData.description || undefined
+			};
 
-		createDatasetMutation.mutate(requestData);
+			createDatasetMutation.mutate(requestData);
+		} else if (createFormData.creationMode === "aidList") {
+			if (createFormData.aidList.length === 0) {
+				toast.error("Please upload an aid list file");
+				return;
+			}
+
+			const requestData = {
+				aid_list: createFormData.aidList,
+				embedding_model: createFormData.embeddingModel,
+				force_regenerate: createFormData.forceRegenerate,
+				description: createFormData.description || undefined
+			};
+
+			buildDatasetMutation.mutate(requestData);
+		}
 	};
 
 	const handleDeleteDataset = (datasetId: string) => {
@@ -108,16 +159,67 @@ export function DatasetManager() {
 		}
 	};
 
-	const formatDate = (dateString: string) => {
-		return new Date(dateString).toLocaleString("en-US");
+	// Parse aid list file
+	const parseAidListFile = (file: File): Promise<number[]> => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = (e) => {
+				try {
+					const content = e.target?.result as string;
+					const lines = content.split("\n").filter((line) => line.trim());
+					const aidList: number[] = [];
+
+					for (const line of lines) {
+						const trimmed = line.trim();
+						if (trimmed) {
+							const aid = parseInt(trimmed, 10);
+							if (!isNaN(aid)) {
+								aidList.push(aid);
+							}
+						}
+					}
+
+					resolve(aidList);
+				} catch (error) {
+					reject(new Error("Failed to parse file"));
+				}
+			};
+			reader.onerror = () => reject(new Error("Failed to read file"));
+			reader.readAsText(file);
+		});
 	};
 
-	const formatFileSize = (bytes: number) => {
-		if (bytes === 0) return "0 Bytes";
-		const k = 1024;
-		const sizes = ["Bytes", "KB", "MB", "GB"];
-		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+	// Handle file upload
+	const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		if (!file.name.endsWith(".txt") && !file.name.endsWith(".csv")) {
+			toast.error("Please upload a .txt or .csv file");
+			return;
+		}
+
+		try {
+			const aidList = await parseAidListFile(file);
+			if (aidList.length === 0) {
+				toast.error("No valid AIDs found in the file");
+				return;
+			}
+
+			setCreateFormData((prev) => ({
+				...prev,
+				aidListFile: file,
+				aidList: aidList
+			}));
+
+			toast.success(`Loaded ${aidList.length} AIDs from file`);
+		} catch (error) {
+			toast.error("Failed to parse aid list file");
+		}
+	};
+
+	const formatDate = (dateString: string) => {
+		return new Date(dateString).toLocaleString("en-US");
 	};
 
 	if (datasetsLoading) {
@@ -150,43 +252,120 @@ export function DatasetManager() {
 						<DialogHeader>
 							<DialogTitle>Create New Dataset</DialogTitle>
 							<DialogDescription>
-								Select sampling strategy and configuration parameters to create a new dataset
+								Select sampling strategy and configuration parameters to create a
+								new dataset
 							</DialogDescription>
 						</DialogHeader>
 
 						<div className="grid gap-4 py-4">
 							<div className="grid gap-2">
-								<Label htmlFor="strategy">Sampling Strategy</Label>
+								<Label htmlFor="creationMode">Creation Mode</Label>
 								<Select
-									value={createFormData.strategy}
+									value={createFormData.creationMode}
 									onValueChange={(value) =>
-										setCreateFormData((prev) => ({ ...prev, strategy: value }))
+										setCreateFormData((prev) => ({
+											...prev,
+											creationMode: value,
+											// Reset aid list when switching modes
+											aidListFile: null,
+											aidList: []
+										}))
 									}
 								>
 									<SelectTrigger>
-										<SelectValue placeholder="Select sampling strategy" />
+										<SelectValue placeholder="Select creation mode" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="all">All Videos</SelectItem>
-										<SelectItem value="random">Random Sampling</SelectItem>
+										<SelectItem value="sampling">Sampling Strategy</SelectItem>
+										<SelectItem value="aidList">Upload Aid List</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 
-							{createFormData.strategy === "random" && (
+							{createFormData.creationMode === "sampling" && (
 								<div className="grid gap-2">
-									<Label htmlFor="limit">Sample Count</Label>
-									<Textarea
-										id="limit"
-										placeholder="Enter number of samples, e.g., 1000"
-										value={createFormData.limit}
-										onChange={(e) =>
+									<Label htmlFor="strategy">Sampling Strategy</Label>
+									<Select
+										value={createFormData.strategy}
+										onValueChange={(value) =>
 											setCreateFormData((prev) => ({
 												...prev,
-												limit: e.target.value
+												strategy: value
 											}))
 										}
+									>
+										<SelectTrigger>
+											<SelectValue placeholder="Select sampling strategy" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All Videos</SelectItem>
+											<SelectItem value="random">Random Sampling</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							)}
+
+							{createFormData.creationMode === "sampling" &&
+								createFormData.strategy === "random" && (
+									<div className="grid gap-2">
+										<Label htmlFor="limit">Sample Count</Label>
+										<Textarea
+											id="limit"
+											placeholder="Enter number of samples, e.g., 1000"
+											value={createFormData.limit}
+											onChange={(e) =>
+												setCreateFormData((prev) => ({
+													...prev,
+													limit: e.target.value
+												}))
+											}
+										/>
+									</div>
+								)}
+
+							{createFormData.creationMode === "aidList" && (
+								<div className="grid gap-2">
+									<Label htmlFor="aidListFile">Aid List File</Label>
+									<div
+										className="border-2 border-dashed rounded-lg p-4 cursor-pointer"
+										onClick={() =>
+											document.getElementById("aidListFile")?.click()
+										}
+									>
+										<div className="flex flex-col items-center space-y-2">
+											<Upload className="h-8 w-8text-secondary-foreground" />
+											<div className="text-sm text-secondary-foreground text-center">
+												{createFormData.aidListFile
+													? `${createFormData.aidListFile.name} (${createFormData.aidList.length} AIDs loaded)`
+													: "Click to upload a .txt or .csv file containing AIDs (one per line)"}
+											</div>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												className="mt-2"
+												onClick={(e) => {
+													e.stopPropagation();
+													document.getElementById("aidListFile")?.click();
+												}}
+											>
+												Choose File
+											</Button>
+										</div>
+									</div>
+									<input
+										id="aidListFile"
+										type="file"
+										accept=".txt,.csv"
+										onChange={handleFileUpload}
+										className="hidden"
 									/>
+									{createFormData.aidList.length > 0 && (
+										<div className="text-sm text-green-600">
+											✓ Loaded {createFormData.aidList.length} AIDs from{" "}
+											{createFormData.aidListFile?.name}
+										</div>
+									)}
 								</div>
 							)}
 
@@ -253,9 +432,18 @@ export function DatasetManager() {
 							</Button>
 							<Button
 								onClick={handleCreateDataset}
-								disabled={createDatasetMutation.isPending}
+								disabled={
+									createDatasetMutation.isPending ||
+									buildDatasetMutation.isPending ||
+									(createFormData.creationMode === "aidList" &&
+										createFormData.aidList.length === 0)
+								}
 							>
-								{createDatasetMutation.isPending ? "Creating..." : "Create Dataset"}
+								{createDatasetMutation.isPending || buildDatasetMutation.isPending
+									? "Creating..."
+									: createFormData.creationMode === "sampling"
+										? "Create Dataset"
+										: "Build Dataset"}
 							</Button>
 						</DialogFooter>
 					</DialogContent>
@@ -270,8 +458,8 @@ export function DatasetManager() {
 							<CardHeader className="pb-3">
 								<div className="flex items-start justify-between">
 									<div className="flex items-center space-x-2">
-										<CardTitle className="text-base">
-											{dataset.dataset_id.slice(0, 8)}...{dataset.dataset_id.slice(-8)}
+										<CardTitle className="text-base line-clamp-1">
+											{dataset.dataset_id}
 										</CardTitle>
 									</div>
 									<Button
@@ -288,22 +476,13 @@ export function DatasetManager() {
 								)}
 							</CardHeader>
 							<CardContent>
-								<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-sm">
-									<div className="flex items-center space-x-2">
-										<span>{dataset.stats.total_records} records</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<span>{dataset.stats.embedding_model}</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<span>{formatDate(dataset.created_at)}</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<span className="text-muted-foreground">
-											New: {dataset.stats.new_embeddings}
-										</span>
-									</div>
-									
+								<div className="flex flex-wrap gap-5 text-sm leading-1">
+									<span>{dataset.stats.total_records} records</span>
+									<span>{dataset.stats.embedding_model}</span>
+									<span>{formatDate(dataset.created_at)}</span>
+									<span className="text-muted-foreground">
+										New: {dataset.stats.new_embeddings}
+									</span>
 								</div>
 							</CardContent>
 						</Card>

@@ -62,15 +62,6 @@ def parse_args():
         help="Directory containing dataset files"
     )
     
-    # Model arguments
-    parser.add_argument(
-        "--model-type",
-        type=str,
-        choices=["standard", "attention"],
-        default="standard",
-        help="Type of model architecture"
-    )
-    
     parser.add_argument(
         "--input-dim",
         type=int,
@@ -353,11 +344,11 @@ def main():
     # Create experiment name if not provided
     if args.experiment_name is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        args.experiment_name = f"{args.model_type}_{args.dataset_id}_{timestamp}"
+        args.experiment_name = f"{timestamp}_{args.dataset_id}"
     
     logger.info(f"Starting experiment: {args.experiment_name}")
     logger.info(f"Dataset: {args.dataset_id}")
-    logger.info(f"Model: {args.model_type} with hidden dims {args.hidden_dims}")
+    logger.info(f"Model: hidden dims {args.hidden_dims}")
     
     # Load dataset and create data loaders
     try:
@@ -387,7 +378,6 @@ def main():
     try:
         logger.info("Creating model...")
         model = create_model(
-            model_type=args.model_type,
             input_dim=args.input_dim,
             hidden_dims=tuple(args.hidden_dims),
             dropout_rate=args.dropout_rate,
@@ -452,7 +442,6 @@ def main():
         "experiment_name": args.experiment_name,
         "dataset_id": args.dataset_id,
         "model_config": {
-            "model_type": args.model_type,
             "input_dim": args.input_dim,
             "hidden_dims": args.hidden_dims,
             "dropout_rate": args.dropout_rate,
