@@ -6,13 +6,13 @@ import hashlib
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 import os
-from config_loader import config_loader
+from ml_new.config.config_loader import config_loader
 from dotenv import load_dotenv
 import torch
 import numpy as np
 from transformers import AutoTokenizer
 import onnxruntime as ort
-from logger_config import get_logger
+from ml_new.config.logger_config import get_logger
 
 load_dotenv()
 

@@ -4,13 +4,13 @@ Database connection and operations for ML training service
 
 from collections import defaultdict
 import os
-import hashlib
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import asyncpg
-from config_loader import config_loader
+from ml_new.config.config_loader import config_loader
+from ml_new.config.logger_config import get_logger
 from dotenv import load_dotenv
-from logger_config import get_logger
+
 
 load_dotenv()
 

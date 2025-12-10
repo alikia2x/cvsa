@@ -15,6 +15,6 @@ api_key_env = "ALIYUN_KEY"
 name = "jina-embedding-v3-m2v-1024"
 dimensions = 1024
 type = "legacy"
-model_path = "../../model/embedding/model.onnx"
+model_path = "./model/embedding/model.onnx"
 tokenizer_name = "jinaai/jina-embeddings-v3"
 max_batch_size = 128

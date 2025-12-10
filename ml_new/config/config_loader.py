@@ -6,7 +6,7 @@ import toml
 import os
 from typing import Dict
 from pydantic import BaseModel
-from logger_config import get_logger
+from ml_new.config.logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -28,7 +28,7 @@ class ConfigLoader:
         if config_path is None:
             # Default to the embedding_models.toml file we created
             config_path = os.path.join(
-                os.path.dirname(__file__), "embedding_models.toml"
+                os.path.dirname(__file__), "..", "embedding_models.toml"
             )
 
         self.config_path = config_path

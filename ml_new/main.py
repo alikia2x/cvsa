@@ -2,16 +2,17 @@
 Main FastAPI application for ML training service
 """
 
+import os
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import DatabaseManager
-from embedding_service import EmbeddingService
-from dataset_service import DatasetBuilder
-from api_routes import router, set_dataset_builder
-from logger_config import get_logger
+from data.database import DatabaseManager
+from data.embedding_service import EmbeddingService
+from data.dataset_service import DatasetBuilder
+from ml_new.routes.main import router, set_dataset_builder
+from config.logger_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -26,39 +27,43 @@ dataset_builder = None
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events"""
     global db_manager, embedding_service, dataset_builder
-    
+
     # Startup
     logger.info("Initializing services...")
-    
+
     try:
         # Database manager
         db_manager = DatabaseManager()
         await db_manager.connect()  # Initialize database connection pool
         logger.info("Database manager initialized and connected")
-        
+
         # Embedding service
         embedding_service = EmbeddingService()
         logger.info("Embedding service initialized")
-        
+
         # Dataset builder
-        dataset_builder = DatasetBuilder(db_manager, embedding_service)
+        dataset_builder = DatasetBuilder(
+            db_manager,
+            embedding_service,
+            os.path.join(os.path.dirname(__file__), "./datasets"),
+        )
         logger.info("Dataset builder initialized")
-        
+
         # Set global dataset builder instance
         set_dataset_builder(dataset_builder)
-        
+
         logger.info("All services initialized successfully")
-        
+
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
         raise
-    
+
     # Yield control to the application
     yield
-    
+
     # Shutdown
     logger.info("Shutting down services...")
-    
+
     try:
         if db_manager:
             await db_manager.close()
@@ -69,15 +74,15 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application"""
-    
+
     # Create FastAPI app with lifespan manager
     app = FastAPI(
         title="ML Training Service",
         description="ML training, dataset building, and experiment management service",
         version="1.0.0",
-        lifespan=lifespan
+        lifespan=lifespan,
     )
-    
+
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -86,17 +91,17 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Include API routes
     app.include_router(router)
-    
+
     return app
 
 
 def main():
     """Main entry point"""
     app = create_app()
-    
+
     # Run the application
     uvicorn.run(
         app,

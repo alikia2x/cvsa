@@ -32,7 +32,7 @@ model/
 *.db
 *.sqlite
 *.sqlite3
-data/
+./data/
 redis/
 
 # Build 
