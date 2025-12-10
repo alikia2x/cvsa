@@ -7,13 +7,13 @@ import hashlib
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 import asyncpg
-import logging
 from config_loader import config_loader
 from dotenv import load_dotenv
+from logger_config import get_logger
 
-load_dotenv() 
+load_dotenv()
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -120,7 +120,7 @@ class DatabaseManager:
 
         async with self.pool.acquire() as conn:
             query = """
-                SELECT data_checksum, vec_2048, vec_1536, vec_1024, created_at
+                SELECT data_checksum, dimensions, vec_2048, vec_1536, vec_1024, created_at
                 FROM internal.embeddings
                 WHERE model_name = $1 AND data_checksum = ANY($2::text[])
             """
@@ -177,14 +177,15 @@ class DatabaseManager:
 
                     query = f"""
                         INSERT INTO internal.embeddings
-                        (model_name, data_checksum, {vec_column}, created_at)
-                        VALUES ($1, $2, $3, $4)
-                        ON CONFLICT (data_checksum) DO NOTHING
+                        (model_name, dimensions, data_checksum, {vec_column}, created_at)
+                        VALUES ($1, $2, $3, $4, $5)
+                        ON CONFLICT (model_name, dimensions, data_checksum) DO NOTHING
                     """
 
                     await conn.execute(
                         query,
                         data["model_name"],
+                        data["dimensions"],
                         data["checksum"],
                         vector_str,
                         datetime.now(),

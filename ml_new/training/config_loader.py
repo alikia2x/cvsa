@@ -6,9 +6,9 @@ import toml
 import os
 from typing import Dict
 from pydantic import BaseModel
-import logging
+from logger_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class EmbeddingModelConfig(BaseModel):
@@ -19,6 +19,8 @@ class EmbeddingModelConfig(BaseModel):
     max_tokens: int = 8191
     max_batch_size: int = 8
     api_key_env: str = "OPENAI_API_KEY"
+    model_path: str = ""
+    tokenizer_name: str = ""
 
 
 class ConfigLoader:
@@ -31,6 +33,7 @@ class ConfigLoader:
 
         self.config_path = config_path
         self.embedding_models: Dict[str, EmbeddingModelConfig] = {}
+        self.selected_model: str = None
         self._load_config()
 
     def _load_config(self):
@@ -51,6 +54,8 @@ class ConfigLoader:
                 self.embedding_models[model_key] = EmbeddingModelConfig(
                     **model_data
                 )
+            
+            self.selected_model = config_data.get("model", list(self.embedding_models.keys())[0])
 
             logger.info(
                 f"Loaded {len(self.embedding_models)} embedding models from {self.config_path}"
@@ -58,6 +63,10 @@ class ConfigLoader:
 
         except Exception as e:
             logger.error(f"Failed to load config from {self.config_path}: {e}")
+    
+    def get_selected_model(self) -> str:
+        """Get selected model for health check"""
+        return self.selected_model
 
     def get_embedding_models(self) -> Dict[str, EmbeddingModelConfig]:
         """Get all available embedding models"""

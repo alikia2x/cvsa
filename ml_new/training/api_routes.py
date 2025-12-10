@@ -2,18 +2,19 @@
 API routes for the ML training service
 """
 
-import logging
 import uuid
+from typing import Optional
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
 from config_loader import config_loader
-from models import DatasetBuildRequest, DatasetBuildResponse
+from models import DatasetBuildRequest, DatasetBuildResponse, TaskStatus, TaskStatusResponse, TaskListResponse
 from dataset_service import DatasetBuilder
+from logger_config import get_logger
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(prefix="/v1")
@@ -80,8 +81,8 @@ async def get_embedding_models():
 
 
 @router.post("/dataset/build", response_model=DatasetBuildResponse)
-async def build_dataset_endpoint(request: DatasetBuildRequest, background_tasks: BackgroundTasks):
-    """Build dataset endpoint"""
+async def build_dataset_endpoint(request: DatasetBuildRequest):
+    """Build dataset endpoint with task tracking"""
     
     if not dataset_builder:
         raise HTTPException(status_code=503, detail="Dataset builder not available")
@@ -91,20 +92,22 @@ async def build_dataset_endpoint(request: DatasetBuildRequest, background_tasks:
         raise HTTPException(status_code=400, detail=f"Invalid embedding model: {request.embedding_model}")
     
     dataset_id = str(uuid.uuid4())
-    # Start background task for dataset building
-    background_tasks.add_task(
-        dataset_builder.build_dataset,
+    
+    # Start task-based dataset building
+    task_id = await dataset_builder.start_dataset_build_task(
         dataset_id,
         request.aid_list,
         request.embedding_model,
-        request.force_regenerate
+        request.force_regenerate,
+        request.description
     )
     
     return DatasetBuildResponse(
         dataset_id=dataset_id,
         total_records=len(request.aid_list),
         status="started",
-        message="Dataset building started"
+        message=f"Dataset building started with task ID: {task_id}",
+        description=request.description
     )
 
 
@@ -126,6 +129,7 @@ async def get_dataset_endpoint(dataset_id: str):
     return {
         "dataset_id": dataset_id,
         "dataset": dataset_info["dataset"],
+        "description": dataset_info.get("description"),
         "stats": dataset_info["stats"],
         "created_at": dataset_info["created_at"]
     }
@@ -143,6 +147,7 @@ async def list_datasets():
         if "error" not in dataset_info:
             datasets.append({
                 "dataset_id": dataset_id,
+                "description": dataset_info.get("description"),
                 "stats": dataset_info["stats"],
                 "created_at": dataset_info["created_at"]
             })
@@ -171,7 +176,16 @@ async def list_datasets_endpoint():
         raise HTTPException(status_code=503, detail="Dataset builder not available")
     
     datasets = dataset_builder.list_datasets()
-    return {"datasets": datasets}
+    # Add description to each dataset
+    datasets_with_description = []
+    for dataset in datasets:
+        dataset_info = dataset_builder.get_dataset(dataset["dataset_id"])
+        if dataset_info and "description" in dataset_info:
+            dataset["description"] = dataset_info["description"]
+        else:
+            dataset["description"] = None
+        datasets_with_description.append(dataset)
+    return {"datasets": datasets_with_description}
 
 
 @router.get("/datasets/stats")
@@ -194,3 +208,110 @@ async def cleanup_datasets_endpoint(max_age_days: int = 30):
     
     await dataset_builder.cleanup_old_datasets(max_age_days)
     return {"message": f"Cleanup completed for datasets older than {max_age_days} days"}
+
+
+# Task Status Endpoints
+
+@router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
+async def get_task_status_endpoint(task_id: str):
+    """Get status of a specific task"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    task_status = dataset_builder.get_task_status(task_id)
+    if not task_status:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Convert to response model
+    progress_dict = None
+    if task_status.progress:
+        progress_dict = {
+            "current_step": task_status.progress.current_step,
+            "total_steps": task_status.progress.total_steps,
+            "completed_steps": task_status.progress.completed_steps,
+            "percentage": task_status.progress.percentage,
+            "message": task_status.progress.message
+        }
+    
+    return TaskStatusResponse(
+        task_id=task_status.task_id,
+        status=task_status.status,
+        progress=progress_dict,
+        result=task_status.result,
+        error=task_status.error_message,
+        created_at=task_status.created_at,
+        started_at=task_status.started_at,
+        completed_at=task_status.completed_at
+    )
+
+
+@router.get("/tasks", response_model=TaskListResponse)
+async def list_tasks_endpoint(status: Optional[TaskStatus] = None, limit: int = 50):
+    """List all tasks, optionally filtered by status"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    tasks = dataset_builder.list_tasks(status_filter=status)
+    
+    # Limit results
+    if limit > 0:
+        tasks = tasks[:limit]
+    
+    # Convert to response models
+    task_responses = []
+    for task_status in tasks:
+        progress_dict = None
+        if task_status.progress:
+            progress_dict = {
+                "current_step": task_status.progress.current_step,
+                "total_steps": task_status.progress.total_steps,
+                "completed_steps": task_status.progress.completed_steps,
+                "percentage": task_status.progress.percentage,
+                "message": task_status.progress.message
+            }
+        
+        task_responses.append(TaskStatusResponse(
+            task_id=task_status.task_id,
+            status=task_status.status,
+            progress=progress_dict,
+            result=task_status.result,
+            error=task_status.error_message,
+            created_at=task_status.created_at,
+            started_at=task_status.started_at,
+            completed_at=task_status.completed_at
+        ))
+    
+    # Get statistics
+    stats = dataset_builder.get_task_statistics()
+    
+    return TaskListResponse(
+        tasks=task_responses,
+        total_count=stats["total_tasks"],
+        pending_count=stats["status_counts"][TaskStatus.PENDING],
+        running_count=stats["status_counts"][TaskStatus.RUNNING],
+        completed_count=stats["status_counts"][TaskStatus.COMPLETED],
+        failed_count=stats["status_counts"][TaskStatus.FAILED]
+    )
+
+
+@router.get("/tasks/stats")
+async def get_task_statistics_endpoint():
+    """Get statistics about all tasks"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    return dataset_builder.get_task_statistics()
+
+
+@router.post("/tasks/cleanup")
+async def cleanup_tasks_endpoint(max_age_hours: int = 24):
+    """Clean up completed/failed tasks older than specified hours"""
+    
+    if not dataset_builder:
+        raise HTTPException(status_code=503, detail="Dataset builder not available")
+    
+    cleaned_count = await dataset_builder.cleanup_completed_tasks(max_age_hours)
+    return {"message": f"Cleaned up {cleaned_count} tasks older than {max_age_hours} hours"}

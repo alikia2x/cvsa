@@ -2,7 +2,6 @@
 Main FastAPI application for ML training service
 """
 
-import logging
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -12,10 +11,9 @@ from database import DatabaseManager
 from embedding_service import EmbeddingService
 from dataset_service import DatasetBuilder
 from api_routes import router, set_dataset_builder
+from logger_config import get_logger
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # Global service instances
@@ -105,7 +103,7 @@ def main():
         host="0.0.0.0",
         port=8322,
         log_level="info",
-        access_log=True
+        access_log=True,
     )
 
 

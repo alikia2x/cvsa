@@ -2,20 +2,21 @@
 Dataset building service - handles the complete dataset construction flow
 """
 
-import os
 import json
-import logging
 import asyncio
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+import threading
 
 from database import DatabaseManager
 from embedding_service import EmbeddingService
 from config_loader import config_loader
+from logger_config import get_logger
+from models import TaskStatus, DatasetBuildTaskStatus, TaskProgress
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DatasetBuilder:
@@ -29,6 +30,11 @@ class DatasetBuilder:
         
         # Load existing datasets from file system
         self.dataset_storage: Dict[str, Dict] = self._load_all_datasets()
+        
+        # Task status tracking
+        self._task_status_lock = threading.Lock()
+        self.task_statuses: Dict[str, DatasetBuildTaskStatus] = {}
+        self.running_tasks: Dict[str, asyncio.Task] = {}
 
 
     def _get_dataset_file_path(self, dataset_id: str) -> Path:
@@ -80,6 +86,134 @@ class DatasetBuilder:
         return datasets
     
     
+    def _create_task_status(self, task_id: str, dataset_id: str, aid_list: List[int],
+                          embedding_model: str, force_regenerate: bool) -> DatasetBuildTaskStatus:
+        """Create initial task status"""
+        with self._task_status_lock:
+            task_status = DatasetBuildTaskStatus(
+                task_id=task_id,
+                status=TaskStatus.PENDING,
+                dataset_id=dataset_id,
+                aid_list=aid_list,
+                embedding_model=embedding_model,
+                force_regenerate=force_regenerate,
+                created_at=datetime.now(),
+                progress=TaskProgress(
+                    current_step="initialized",
+                    total_steps=7,
+                    completed_steps=0,
+                    percentage=0.0,
+                    message="Task initialized"
+                )
+            )
+            self.task_statuses[task_id] = task_status
+            return task_status
+    
+    
+    def _update_task_status(self, task_id: str, **kwargs):
+        """Update task status with new values"""
+        with self._task_status_lock:
+            if task_id in self.task_statuses:
+                task_status = self.task_statuses[task_id]
+                for key, value in kwargs.items():
+                    if hasattr(task_status, key):
+                        setattr(task_status, key, value)
+                self.task_statuses[task_id] = task_status
+    
+    
+    def _update_task_progress(self, task_id: str, current_step: str, completed_steps: int,
+                            message: str = None, percentage: float = None):
+        """Update task progress"""
+        with self._task_status_lock:
+            if task_id in self.task_statuses:
+                task_status = self.task_statuses[task_id]
+                if percentage is not None:
+                    progress_percentage = percentage
+                else:
+                    progress_percentage = (completed_steps / task_status.progress.total_steps) * 100 if task_status.progress else 0.0
+                
+                task_status.progress = TaskProgress(
+                    current_step=current_step,
+                    total_steps=task_status.progress.total_steps if task_status.progress else 7,
+                    completed_steps=completed_steps,
+                    percentage=progress_percentage,
+                    message=message
+                )
+                self.task_statuses[task_id] = task_status
+    
+    
+    def get_task_status(self, task_id: str) -> Optional[DatasetBuildTaskStatus]:
+        """Get task status by task ID"""
+        with self._task_status_lock:
+            return self.task_statuses.get(task_id)
+    
+    
+    def list_tasks(self, status_filter: Optional[TaskStatus] = None) -> List[DatasetBuildTaskStatus]:
+        """List all tasks, optionally filtered by status"""
+        with self._task_status_lock:
+            tasks = list(self.task_statuses.values())
+            if status_filter:
+                tasks = [task for task in tasks if task.status == status_filter]
+            # Sort by creation time (newest first)
+            tasks.sort(key=lambda x: x.created_at, reverse=True)
+            return tasks
+    
+    
+    def get_task_statistics(self) -> Dict[str, Any]:
+        """Get statistics about all tasks"""
+        with self._task_status_lock:
+            total_tasks = len(self.task_statuses)
+            status_counts = {
+                TaskStatus.PENDING: 0,
+                TaskStatus.RUNNING: 0,
+                TaskStatus.COMPLETED: 0,
+                TaskStatus.FAILED: 0,
+                TaskStatus.CANCELLED: 0
+            }
+            
+            for task_status in self.task_statuses.values():
+                status_counts[task_status.status] += 1
+            
+            return {
+                "total_tasks": total_tasks,
+                "status_counts": status_counts,
+                "running_tasks": status_counts[TaskStatus.RUNNING]
+            }
+    
+    
+    async def cleanup_completed_tasks(self, max_age_hours: int = 24):
+        """Clean up completed/failed tasks older than specified hours"""
+        cutoff_time = datetime.now().timestamp() - (max_age_hours * 3600)
+        cleaned_count = 0
+        
+        with self._task_status_lock:
+            tasks_to_remove = []
+            
+            for task_id, task_status in self.task_statuses.items():
+                if task_status.completed_at:
+                    try:
+                        completed_time = task_status.completed_at.timestamp()
+                        if completed_time < cutoff_time:
+                            tasks_to_remove.append(task_id)
+                    except Exception as e:
+                        logger.warning(f"Failed to check completion time for task {task_id}: {e}")
+            
+            for task_id in tasks_to_remove:
+                # Remove from task statuses
+                del self.task_statuses[task_id]
+                
+                # Remove from running tasks if still there
+                if task_id in self.running_tasks:
+                    del self.running_tasks[task_id]
+                
+                cleaned_count += 1
+        
+        if cleaned_count > 0:
+            logger.info(f"Cleaned up {cleaned_count} old tasks")
+        
+        return cleaned_count
+    
+    
     async def cleanup_old_datasets(self, max_age_days: int = 30):
         """Remove datasets older than specified days"""
         try:
@@ -110,43 +244,54 @@ class DatasetBuilder:
         except Exception as e:
             logger.error(f"Failed to cleanup old datasets: {e}")
     
-    async def build_dataset(self, dataset_id: str, aid_list: List[int], embedding_model: str, force_regenerate: bool = False) -> str:
+    async def build_dataset_with_task_tracking(self, task_id: str, dataset_id: str, aid_list: List[int],
+                                            embedding_model: str, force_regenerate: bool = False,
+                                            description: Optional[str] = None) -> str:
         """
-        Build dataset with the specified flow:
-        1. Select embedding model (from TOML config)
-        2. Pull raw text from database
-        3. Preprocess (placeholder for now)
-        4. Batch get embeddings (deduplicate by hash, skip if already in embeddings table)
-        5. Write to embeddings table
-        6. Pull all needed embeddings to create dataset with format: embeddings, label
+        Build dataset with task status tracking
+        
+        Steps:
+        1. Initialize task status
+        2. Select embedding model (from TOML config)
+        3. Pull raw text from database
+        4. Preprocess (placeholder for now)
+        5. Batch get embeddings (deduplicate by hash, skip if already in embeddings table)
+        6. Write to embeddings table
+        7. Pull all needed embeddings to create dataset with format: embeddings, label
         """
         
+        # Update task status to running
+        self._update_task_status(task_id, status=TaskStatus.RUNNING, started_at=datetime.now())
+        
         try:
-            logger.info(f"Starting dataset building task {dataset_id}")
+            logger.info(f"Starting dataset building task {dataset_id} (task_id: {task_id})")
             
+            # Step 1: Get model configuration
             EMBEDDING_MODELS = config_loader.get_embedding_models()
-            
-            # Get model configuration
             if embedding_model not in EMBEDDING_MODELS:
                 raise ValueError(f"Invalid embedding model: {embedding_model}")
             
             model_config = EMBEDDING_MODELS[embedding_model]
+            self._update_task_progress(task_id, "getting_metadata", 1, "Retrieving video metadata from database")
             
-            # Step 1: Get video metadata from database
+            # Step 2: Get video metadata from database
             metadata = await self.db_manager.get_video_metadata(aid_list)
+            self._update_task_progress(task_id, "getting_labels", 2, "Retrieving user labels from database")
             
-            # Step 2: Get user labels
+            # Step 3: Get user labels
             labels = await self.db_manager.get_user_labels(aid_list)
+            self._update_task_progress(task_id, "preparing_text", 3, "Preparing text data and checksums")
             
-            # Step 3: Prepare text data and checksums
+            # Step 4: Prepare text data and checksums
             text_data = []
+            total_aids = len(aid_list)
             
-            for aid in aid_list:
+            for i, aid in enumerate(aid_list):
                 if aid in metadata:
                     # Combine title, description, tags
                     combined_text = self.embedding_service.combine_video_text(
                         metadata[aid]['title'],
-                        metadata[aid]['description'], 
+                        metadata[aid]['description'],
                         metadata[aid]['tags']
                     )
                     
@@ -158,12 +303,24 @@ class DatasetBuilder:
                         'text': combined_text,
                         'checksum': checksum
                     })
+                
+                # Update progress for text preparation
+                if i % 10 == 0 or i == total_aids - 1:  # Update every 10 items or at the end
+                    progress_pct = 3 + (i + 1) / total_aids
+                    self._update_task_progress(
+                        task_id,
+                        "preparing_text",
+                        min(3, int(progress_pct)),
+                        f"Prepared {i + 1}/{total_aids} text entries"
+                    )
             
-            # Step 4: Check existing embeddings
+            self._update_task_progress(task_id, "checking_embeddings", 4, "Checking existing embeddings")
+            
+            # Step 5: Check existing embeddings
             checksums = [item['checksum'] for item in text_data]
             existing_embeddings = await self.db_manager.get_existing_embeddings(checksums, embedding_model)
             
-            # Step 5: Generate new embeddings for texts that don't have them
+            # Step 6: Generate new embeddings for texts that don't have them
             new_embeddings_needed = []
             for item in text_data:
                 if item['checksum'] not in existing_embeddings or force_regenerate:
@@ -171,13 +328,20 @@ class DatasetBuilder:
             
             new_embeddings_count = 0
             if new_embeddings_needed:
+                self._update_task_progress(
+                    task_id,
+                    "generating_embeddings",
+                    5,
+                    f"Generating {len(new_embeddings_needed)} new embeddings"
+                )
+                
                 logger.info(f"Generating {len(new_embeddings_needed)} new embeddings")
                 generated_embeddings = await self.embedding_service.generate_embeddings_batch(
-                    new_embeddings_needed, 
+                    new_embeddings_needed,
                     embedding_model
                 )
                 
-                # Step 6: Store new embeddings in database
+                # Step 7: Store new embeddings in database
                 embeddings_to_store = []
                 for i, (text, embedding) in enumerate(zip(new_embeddings_needed, generated_embeddings)):
                     checksum = self.embedding_service.create_text_checksum(text)
@@ -198,11 +362,13 @@ class DatasetBuilder:
                         f'vec_{model_config.dimensions}': emb_data['vector']
                     }
             
-            # Step 7: Build final dataset
+            self._update_task_progress(task_id, "building_dataset", 6, "Building final dataset")
+            
+            # Step 8: Build final dataset
             dataset = []
             inconsistent_count = 0
             
-            for item in text_data:
+            for i, item in enumerate(text_data):
                 aid = item['aid']
                 checksum = item['checksum']
                 
@@ -241,6 +407,16 @@ class DatasetBuilder:
                         'inconsistent': inconsistent,
                         'text_checksum': checksum
                     })
+                
+                # Update progress for dataset building
+                if i % 10 == 0 or i == len(text_data) - 1:  # Update every 10 items or at the end
+                    progress_pct = 6 + (i + 1) / len(text_data)
+                    self._update_task_progress(
+                        task_id,
+                        "building_dataset",
+                        min(6, int(progress_pct)),
+                        f"Built {i + 1}/{len(text_data)} dataset records"
+                    )
             
             reused_count = len(dataset) - new_embeddings_count
             
@@ -249,6 +425,7 @@ class DatasetBuilder:
             # Prepare dataset data
             dataset_data = {
                 'dataset': dataset,
+                'description': description,
                 'stats': {
                     'total_records': len(dataset),
                     'new_embeddings': new_embeddings_count,
@@ -259,6 +436,8 @@ class DatasetBuilder:
                 'created_at': datetime.now().isoformat()
             }
             
+            self._update_task_progress(task_id, "saving_dataset", 7, "Saving dataset to storage")
+            
             # Save to file and memory cache
             if self._save_dataset_to_file(dataset_id, dataset_data):
                 self.dataset_storage[dataset_id] = dataset_data
@@ -267,10 +446,45 @@ class DatasetBuilder:
                 logger.warning(f"Failed to save dataset {dataset_id} to file, keeping in memory only")
                 self.dataset_storage[dataset_id] = dataset_data
             
+            # Update task status to completed
+            result = {
+                'dataset_id': dataset_id,
+                'stats': dataset_data['stats']
+            }
+            
+            self._update_task_status(
+                task_id,
+                status=TaskStatus.COMPLETED,
+                completed_at=datetime.now(),
+                result=result,
+                progress=TaskProgress(
+                    current_step="completed",
+                    total_steps=7,
+                    completed_steps=7,
+                    percentage=100.0,
+                    message="Dataset building completed successfully"
+                )
+            )
+            
             return dataset_id
             
         except Exception as e:
             logger.error(f"Dataset building failed for {dataset_id}: {str(e)}")
+            
+            # Update task status to failed
+            self._update_task_status(
+                task_id,
+                status=TaskStatus.FAILED,
+                completed_at=datetime.now(),
+                error_message=str(e),
+                progress=TaskProgress(
+                    current_step="failed",
+                    total_steps=7,
+                    completed_steps=0,
+                    percentage=0.0,
+                    message=f"Task failed: {str(e)}"
+                )
+            )
             
             # Store error information
             error_data = {
@@ -282,6 +496,30 @@ class DatasetBuilder:
             self._save_dataset_to_file(dataset_id, error_data)
             self.dataset_storage[dataset_id] = error_data
             raise
+    
+    
+    async def start_dataset_build_task(self, dataset_id: str, aid_list: List[int],
+                                     embedding_model: str, force_regenerate: bool = False,
+                                     description: Optional[str] = None) -> str:
+        """
+        Start a dataset building task and return task ID for status tracking
+        """
+        import uuid
+        task_id = str(uuid.uuid4())
+        
+        # Create task status
+        task_status = self._create_task_status(task_id, dataset_id, aid_list, embedding_model, force_regenerate)
+        
+        # Start the actual task
+        task = asyncio.create_task(
+            self.build_dataset_with_task_tracking(task_id, dataset_id, aid_list, embedding_model, force_regenerate, description)
+        )
+        
+        # Store the running task
+        with self._task_status_lock:
+            self.running_tasks[task_id] = task
+        
+        return task_id
     
     def get_dataset(self, dataset_id: str) -> Optional[Dict[str, Any]]:
         """Get built dataset by ID"""
