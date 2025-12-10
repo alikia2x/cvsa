@@ -125,7 +125,8 @@ class EmbeddingService:
         self,
         texts: List[str],
         model: str,
-        batch_size: Optional[int] = None
+        batch_size: Optional[int] = None,
+        progress_callback: Optional[callable] = None
     ) -> List[List[float]]:
         """Generate embeddings for a batch of texts"""
         
@@ -137,9 +138,9 @@ class EmbeddingService:
         
         # Handle different model types
         if model_config.type == "legacy":
-            return self._generate_legacy_embeddings_batch(texts, model, batch_size)
+            return self._generate_legacy_embeddings_batch(texts, model, batch_size, progress_callback)
         elif model_config.type == "openai-compatible":
-            return await self._generate_openai_embeddings_batch(texts, model, batch_size)
+            return await self._generate_openai_embeddings_batch(texts, model, batch_size, progress_callback=progress_callback)
         else:
             raise ValueError(f"Unsupported model type: {model_config.type}")
     
@@ -147,7 +148,8 @@ class EmbeddingService:
         self,
         texts: List[str],
         model: str,
-        batch_size: Optional[int] = None
+        batch_size: Optional[int] = None,
+        progress_callback: Optional[callable] = None
     ) -> List[List[float]]:
         """Generate embeddings using legacy ONNX model"""
         if model not in self.legacy_models:
@@ -162,9 +164,13 @@ class EmbeddingService:
         expected_dims = model_config.dimensions
         all_embeddings = []
         
+        # Calculate total batches for progress tracking
+        total_batches = (len(texts) + batch_size - 1) // batch_size
+        
         # Process in batches
         for i in range(0, len(texts), batch_size):
             batch = texts[i:i + batch_size]
+            batch_idx = i // batch_size + 1
             
             try:
                 # Generate embeddings using legacy method
@@ -174,13 +180,21 @@ class EmbeddingService:
                 batch_embeddings = embeddings.tolist()
                 all_embeddings.extend(batch_embeddings)
                 
-                logger.info(f"Generated legacy embeddings for batch {i//batch_size + 1}/{(len(texts)-1)//batch_size + 1}")
+                logger.info(f"Generated legacy embeddings for batch {batch_idx}/{total_batches}")
+                
+                # Update progress if callback provided
+                if progress_callback:
+                    progress_callback(batch_idx, total_batches)
                 
             except Exception as e:
-                logger.error(f"Error generating legacy embeddings for batch {i//batch_size + 1}: {e}")
+                logger.error(f"Error generating legacy embeddings for batch {batch_idx}: {e}")
                 # Fill with zeros as fallback
                 zero_embedding = [0.0] * expected_dims
                 all_embeddings.extend([zero_embedding] * len(batch))
+        
+        # Final progress update
+        if progress_callback:
+            progress_callback(total_batches, total_batches)
         
         return all_embeddings
     
@@ -188,9 +202,11 @@ class EmbeddingService:
         self,
         texts: List[str],
         model: str,
-        batch_size: Optional[int] = None
+        batch_size: Optional[int] = None,
+        max_concurrent: int = 6,
+        progress_callback: Optional[callable] = None
     ) -> List[List[float]]:
-        """Generate embeddings using OpenAI-compatible API"""
+        """Generate embeddings using OpenAI-compatible API with parallel requests"""
         model_config = self.embedding_models[model]
         
         # Use model's max_batch_size if not specified
@@ -204,34 +220,71 @@ class EmbeddingService:
             raise ValueError(f"No client configured for model '{model}'")
         
         client = self.clients[model]
-        all_embeddings = []
         
-        # Process in batches to avoid API limits
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i + batch_size]
-            
-            try:
-                # Rate limiting
-                if i > 0:
-                    await asyncio.sleep(self.request_interval)
-                
-                # Generate embeddings
-                response = await client.embeddings.create(
-                    model=model_config.name,
-                    input=batch,
-                    dimensions=expected_dims
-                )
-                
-                batch_embeddings = [data.embedding for data in response.data]
-                all_embeddings.extend(batch_embeddings)
-                
-                logger.info(f"Generated embeddings for batch {i//batch_size + 1}/{(len(texts)-1)//batch_size + 1}")
-                
-            except Exception as e:
-                logger.error(f"Error generating embeddings for batch {i//batch_size + 1}: {e}")
-                # For now, fill with zeros as fallback (could implement retry logic)
-                zero_embedding = [0.0] * expected_dims
-                all_embeddings.extend([zero_embedding] * len(batch))
+        # Split texts into batches
+        batches = [(i, texts[i:i + batch_size]) for i in range(0, len(texts), batch_size)]
+        total_batches = len(batches)
+        
+        # Track completed batches for progress reporting
+        completed_batches = 0
+        completed_batches_lock = asyncio.Lock()
+        
+        # Semaphore for concurrency control
+        semaphore = asyncio.Semaphore(max_concurrent)
+        
+        async def process_batch(batch_idx: int, batch: List[str]) -> tuple[int, List[List[float]]]:
+            """Process a single batch with semaphore-controlled concurrency"""
+            nonlocal completed_batches
+            async with semaphore:
+                try:
+                    # Rate limiting
+                    if batch_idx > 0:
+                        await asyncio.sleep(self.request_interval)
+                    
+                    # Generate embeddings
+                    response = await client.embeddings.create(
+                        model=model_config.name,
+                        input=batch,
+                        dimensions=expected_dims
+                    )
+                    
+                    batch_embeddings = [data.embedding for data in response.data]
+                    logger.info(f"Generated embeddings for batch {batch_idx//batch_size + 1}/{total_batches}")
+                    
+                    # Update completed batch count and progress
+                    async with completed_batches_lock:
+                        completed_batches += 1
+                        if progress_callback:
+                            progress_callback(completed_batches, total_batches)
+                    
+                    return (batch_idx, batch_embeddings)
+                    
+                except Exception as e:
+                    logger.error(f"Error generating embeddings for batch {batch_idx//batch_size + 1}: {e}")
+                    # Fill with zeros as fallback
+                    zero_embedding = [0.0] * expected_dims
+                    
+                    # Update completed batch count and progress even for failed batches
+                    async with completed_batches_lock:
+                        completed_batches += 1
+                        if progress_callback:
+                            progress_callback(completed_batches, total_batches)
+                    
+                    return (batch_idx, [zero_embedding] * len(batch))
+        
+        # Process all batches concurrently with semaphore limit
+        tasks = [process_batch(i, batch) for i, batch in batches]
+        results = await asyncio.gather(*tasks)
+        
+        # Final progress update
+        if progress_callback:
+            progress_callback(total_batches, total_batches)
+        
+        # Sort results by batch index and flatten
+        results.sort(key=lambda x: x[0])
+        all_embeddings = []
+        for _, embeddings in results:
+            all_embeddings.extend(embeddings)
         
         return all_embeddings
     
@@ -268,7 +321,8 @@ class EmbeddingService:
             test_embedding = await self.generate_embeddings_batch(
                 ["health check"],
                 model_name,
-                batch_size=1
+                batch_size=1,
+                progress_callback=None
             )
             
             return {
