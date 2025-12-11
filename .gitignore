@@ -23,7 +23,7 @@ ml/pred/observed
 ml/data/
 ml/filter/checkpoints
 scripts
-model/
+/model/
 
 .astro
 
@@ -32,7 +32,7 @@ model/
 *.db
 *.sqlite
 *.sqlite3
-./data/
+/data/
 redis/
 
 # Build 
