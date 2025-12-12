@@ -1,7 +1,6 @@
-import { Elysia, ErrorHandler, file } from "elysia";
+import { Elysia, ErrorHandler } from "elysia";
 import { getBindingInfo, logStartup } from "./startMessage";
 import { pingHandler } from "@backend/routes/ping";
-import openapi from "@elysiajs/openapi";
 import { cors } from "@elysiajs/cors";
 import { songHandler } from "@backend/routes/song/info";
 import { rootHandler } from "@backend/routes/root";

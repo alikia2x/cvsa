@@ -1,17 +1,18 @@
 import { VERSION } from "@backend/src";
 import { Elysia, t } from "elysia";
+import { ip } from "elysia-ip";
 
-export const pingHandler = new Elysia({ prefix: "/ping" }).get(
+export const pingHandler = new Elysia({ prefix: "/ping" }).use(ip()).get(
 	"/",
-	async (c) => {
+	async ({ headers, request, body, ip }) => {
 		return {
 			message: "pong",
 			request: {
-				headers: c.headers,
-				ip: c.server?.requestIP(c.request)?.address,
-				method: c.request.method,
-				body: c.body,
-				url: c.request.url
+				headers: headers,
+				ip: ip,
+				method: request.method,
+				body: body,
+				url: request.url
 			},
 			response: {
 				time: new Date().getTime(),

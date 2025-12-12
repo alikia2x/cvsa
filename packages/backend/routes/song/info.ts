@@ -42,9 +42,15 @@ async function getSongInfo(id: number) {
 }
 
 export const songHandler = new Elysia({ prefix: "/song/:id" })
-	.resolve(async ({ params }) => {
+	.resolve(async ({ params, status }) => {
 		const id = params.id;
 		const songID = await getSongID(id);
+		if (Number.isNaN(songID)) {
+			return status(404, {
+				code: "SONG_NOT_FOUND",
+				message: "Given song cannot be found."
+			});
+		}
 		return {
 			songID
 		};
@@ -52,12 +58,6 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 	.get(
 		"/info",
 		async ({ status, songID }) => {
-			if (!songID) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
@@ -146,13 +146,7 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 	.use(requireAuth)
 	.patch(
 		"/info",
-		async ({ params, status, body, user, songID }) => {
-			if (!songID) {
-				return status(404, {
-					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
-				});
-			}
+		async ({ status, body, user, songID }) => {
 			const info = await getSongInfo(songID);
 			if (!info) {
 				return status(404, {
