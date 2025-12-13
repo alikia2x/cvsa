@@ -1,8 +1,8 @@
 import logger from "@core/log";
 import {
 	MultipleRateLimiter,
-	RateLimiterError,
-	type RateLimiterConfig
+	type RateLimiterConfig,
+	RateLimiterError
 } from "@core/mq/multipleRateLimiter";
 import { ReplyError } from "ioredis";
 import { SECOND } from "@core/lib";
@@ -13,6 +13,8 @@ import Stream from "@alicloud/darabonba-stream";
 import * as Util from "@alicloud/tea-util";
 import { Readable } from "stream";
 
+type ProxyType = "native" | "alicloud-fc" | "baidu-cfc";
+
 interface FCResponse {
 	statusCode: number;
 	body: string;
@@ -20,7 +22,7 @@ interface FCResponse {
 }
 
 interface Proxy {
-	type: string;
+	type: ProxyType;
 	data: string;
 }
 
@@ -98,7 +100,7 @@ class NetworkDelegate {
 	private proxyLimiters: OptionalLimiterMap = {};
 	private tasks: TaskMap = {};
 
-	addProxy(proxyName: string, type: string, data: string): void {
+	addProxy(proxyName: string, type: ProxyType, data: string): void {
 		this.proxies[proxyName] = { type, data };
 	}
 
@@ -168,7 +170,10 @@ class NetworkDelegate {
 	 * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
 	 * - The proxy type is not supported: with error code `NOT_IMPLEMENTED`
 	 */
-	async request<R>(url: string, task: string): Promise<{
+	async request<R>(
+		url: string,
+		task: string
+	): Promise<{
 		data: R;
 		time: number;
 	}> {
@@ -217,11 +222,13 @@ class NetworkDelegate {
 		}
 
 		await this.triggerLimiter(task, proxyName, force);
-		const result = await this.makeRequest<R>(url, proxy);
-		return result;
+		return this.makeRequest<R>(url, proxy);
 	}
 
-	private async makeRequest<R>(url: string, proxy: Proxy): Promise<{
+	private async makeRequest<R>(
+		url: string,
+		proxy: Proxy
+	): Promise<{
 		data: R;
 		time: number;
 	}> {
@@ -384,20 +391,11 @@ The order of setTaskLimiter and setProviderLimiter relative to each other is fle
 but both should come after addProxy and addTask to ensure proper setup and dependencies are met.
 */
 
-const regions = [
-	"beijing",
-	"hangzhou",
-	"shanghai",
-	"qingdao",
-	"zhangjiakou",
-	"chengdu",
-	"shenzhen",
-	"huhehaote"
-];
-const fcProxies = regions.map((region) => `alicloud-${region}`);
-const fcProxiesL = regions.slice(2).map((region) => `alicloud-${region}`);
+const aliRegions = ["beijing", "hangzhou"];
+const fcProxies = aliRegions.map((region) => `alicloud-${region}`);
+const fcProxiesL = aliRegions.slice(1).map((region) => `alicloud-${region}`);
 networkDelegate.addProxy("native", "native", "");
-for (const region of regions) {
+for (const region of aliRegions) {
 	networkDelegate.addProxy(`alicloud-${region}`, "alicloud-fc", region);
 }
 
