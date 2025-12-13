@@ -16,14 +16,14 @@ node_modules/
 # project specific
 logs/
 __pycache__
-ml/filter/runs
-ml/pred/runs
-ml/pred/checkpoints
-ml/pred/observed
-ml/data/
-ml/filter/checkpoints
-scripts
-model/
+/ml/filter/runs
+/ml/pred/runs
+/ml/pred/checkpoints
+/ml/pred/observed
+/ml/data/
+/ml/filter/checkpoints
+/scripts
+/model
 
 .astro
 
@@ -32,19 +32,17 @@ model/
 *.db
 *.sqlite
 *.sqlite3
-data/
-redis/
+/data
+/redis
 
 # Build 
 dist/
 build/
 
-docker-compose.yml
-
-ucaptcha-config.yaml
-
 temp/
 
-meili
-
 datasets
+
+mutagen.yml
+
+mutagen.yml.lock

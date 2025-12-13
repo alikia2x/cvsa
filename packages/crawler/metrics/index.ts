@@ -15,6 +15,15 @@ const meterProvider = new MeterProvider({
 });
 
 const meter = meterProvider.getMeter("bullmq-worker");
+const anotherMeter = meterProvider.getMeter("networking");
+
+export const ipProxyCounter = anotherMeter.createCounter("ip_proxy_count", {
+	description: "Number of requests using IP proxy"
+});
+
+export const ipProxyErrorCounter = anotherMeter.createCounter("ip_proxy_error_count", {
+	description: "Number of errors thrown by IP proxy"
+});
 
 export const jobCounter = meter.createCounter("job_count", {
 	description: "Number of executed BullMQ jobs"

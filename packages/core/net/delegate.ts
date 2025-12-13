@@ -14,6 +14,7 @@ import * as OpenApi from "@alicloud/openapi-client";
 import Stream from "@alicloud/darabonba-stream";
 import * as Util from "@alicloud/tea-util";
 import { Readable } from "stream";
+import { ipProxyCounter, ipProxyErrorCounter } from "crawler/metrics";
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
 
@@ -23,8 +24,7 @@ interface FCResponse {
 	serverTime: number;
 }
 
-interface NativeProxyData {
-}
+interface NativeProxyData {}
 
 interface AlicloudFcProxyData {
 	region: string;
@@ -288,8 +288,12 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 			if (isIpProxy(proxyDef)) {
 				this.ipPools[proxyName] = new IPPoolManager(proxyDef.data);
 				// Initialize asynchronously but don't wait
-				this.ipPools[proxyName].initialize().catch(error => {
-					logger.error(error as Error, "net", `Failed to initialize IP pool for ${proxyName}`);
+				this.ipPools[proxyName].initialize().catch((error) => {
+					logger.error(
+						error as Error,
+						"net",
+						`Failed to initialize IP pool for ${proxyName}`
+					);
 				});
 			}
 		}
@@ -416,14 +420,27 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 				return await this.nativeRequest<R>(url);
 			case "alicloud-fc":
 				if (!isAlicloudFcProxy(proxy)) {
-					throw new NetSchedulerError("Invalid alicloud-fc proxy configuration", "ALICLOUD_PROXY_ERR");
+					throw new NetSchedulerError(
+						"Invalid alicloud-fc proxy configuration",
+						"ALICLOUD_PROXY_ERR"
+					);
 				}
 				return await this.alicloudFcRequest<R>(url, proxy.data);
 			case "ip-proxy":
 				if (!isIpProxy(proxy)) {
-					throw new NetSchedulerError("Invalid ip-proxy configuration", "NOT_IMPLEMENTED");
+					throw new NetSchedulerError(
+						"Invalid ip-proxy configuration",
+						"NOT_IMPLEMENTED"
+					);
 				}
-				return await this.ipProxyRequest<R>(url, proxy);
+				try {
+					return await this.ipProxyRequest<R>(url, proxy);
+				} catch (e) {
+					ipProxyErrorCounter.add(1);
+					throw e;
+				} finally {
+					ipProxyCounter.add(1);
+				}
 			default:
 				throw new NetSchedulerError(
 					`Proxy type ${proxy.type} not supported`,
@@ -501,44 +518,69 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 		url: string,
 		proxyDef: ProxyDef<IPProxyConfig>
 	): Promise<{ data: R; time: number }> {
-		const proxyName = Object.entries(this.proxies).find(([_, proxy]) => proxy === proxyDef)?.[0];
+		const proxyName = Object.entries(this.proxies).find(
+			([_, proxy]) => proxy === proxyDef
+		)?.[0];
 		if (!proxyName || !this.ipPools[proxyName]) {
 			throw new NetSchedulerError("IP pool not found", "IP_POOL_EXHAUSTED");
 		}
 
 		const ipPool = this.ipPools[proxyName];
-		const ipEntry = await ipPool.getNextIP();
+		const maxRetries = 3;
 
-		if (!ipEntry) {
-			throw new NetSchedulerError("No IP available in pool", "IP_POOL_EXHAUSTED");
+		let lastError: Error | null = null;
+
+		for (let attempt = 0; attempt < maxRetries; attempt++) {
+			const ipEntry = await ipPool.getNextIP();
+
+			if (!ipEntry) {
+				throw new NetSchedulerError("No IP available in pool", "IP_POOL_EXHAUSTED");
+			}
+
+			try {
+				const controller = new AbortController();
+				const now = Date.now();
+				const timeout = setTimeout(
+					() => controller.abort(),
+					ipEntry.lifespan - (now - ipEntry.createdAt)
+				);
+
+				const response = await fetch(url, {
+					signal: controller.signal,
+					proxy: `http://${ipEntry.address}:${ipEntry.port}`
+				});
+
+				clearTimeout(timeout);
+
+				const start = Date.now();
+				const data = await response.json();
+				const end = Date.now();
+				const serverTime = start + (end - start) / 2;
+
+				return { data: data as R, time: serverTime };
+			} catch (error) {
+				lastError = error as Error;
+
+				// If this is not the last attempt, retry immediately
+				if (attempt < maxRetries - 1) {
+					continue;
+				}
+
+				throw new NetSchedulerError(
+					"IP proxy request failed",
+					"IP_EXTRACTION_FAILED",
+					error
+				);
+			} finally {
+				await ipPool.markIPUsed(ipEntry.address);
+			}
 		}
 
-		try {
-			const controller = new AbortController();
-			const now = Date.now();
-			const timeout = setTimeout(() => controller.abort(), ipEntry.lifespan - (now - ipEntry.createdAt));
-
-			const response = await fetch(url, {
-				signal: controller.signal,
-				proxy: `http://${ipEntry.address}:${ipEntry.port}`
-			});
-
-			clearTimeout(timeout);
-
-			const start = Date.now();
-			const data = await response.json();
-			const end = Date.now();
-			const serverTime = start + (end - start) / 2;
-
-			// Mark IP as used
-			await ipPool.markIPUsed(ipEntry.address);
-
-			return { data: data as R, time: serverTime };
-		} catch (error) {
-			// Mark IP as used even if request failed (single-use strategy)
-			await ipPool.markIPUsed(ipEntry.address);
-			throw new NetSchedulerError("IP proxy request failed", "IP_EXTRACTION_FAILED", error);
-		}
+		throw new NetSchedulerError(
+			"IP proxy request failed after all retries",
+			"IP_EXTRACTION_FAILED",
+			lastError
+		);
 	}
 }
 
@@ -585,12 +627,12 @@ const proxies = {
 						port: number;
 						endtime: string;
 						city: string;
-					}[]
+					}[];
 				}
 				const url = Bun.env.IP_PROXY_EXTRACTOR_URL;
 				const response = await fetch(url);
-				const data = await response.json() as APIResponse;
-				if (data.code !== 0){
+				const data = (await response.json()) as APIResponse;
+				if (data.code !== 0) {
 					throw new Error(`IP proxy extractor failed with code ${data.code}`);
 				}
 				const ips = data.data;
@@ -598,15 +640,15 @@ const proxies = {
 					return {
 						address: item.ip,
 						port: item.port,
-						lifespan: Date.parse(item.endtime+'+08') - Date.now(),
+						lifespan: Date.parse(item.endtime + "+08") - Date.now(),
 						createdAt: Date.now(),
 						used: false
-					}
-				})
+					};
+				});
 			},
 			strategy: "round-robin",
 			minPoolSize: 10,
-			maxPoolSize: 500,
+			maxPoolSize: 100,
 			refreshInterval: 5 * SECOND,
 			initialPoolSize: 10
 		}
@@ -621,7 +663,7 @@ const config = {
 	proxies: proxies,
 	providers: {
 		test: { limiters: [] },
-		bilibili: { limiters: biliLimiterConfig }
+		bilibili: { limiters: [] }
 	},
 	tasks: {
 		test: {
