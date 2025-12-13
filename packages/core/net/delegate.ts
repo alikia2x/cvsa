@@ -14,7 +14,12 @@ import * as OpenApi from "@alicloud/openapi-client";
 import Stream from "@alicloud/darabonba-stream";
 import * as Util from "@alicloud/tea-util";
 import { Readable } from "stream";
-import { ipProxyCounter, ipProxyErrorCounter } from "crawler/metrics";
+import {
+	aliFCCounter,
+	aliFCErrorCounter,
+	ipProxyCounter,
+	ipProxyErrorCounter
+} from "crawler/metrics";
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
 
@@ -425,7 +430,14 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 						"ALICLOUD_PROXY_ERR"
 					);
 				}
-				return await this.alicloudFcRequest<R>(url, proxy.data);
+				try {
+					return await this.alicloudFcRequest<R>(url, proxy.data);
+				} catch (e) {
+					aliFCErrorCounter.add(1);
+					throw e;
+				} finally {
+					aliFCCounter.add(1);
+				}
 			case "ip-proxy":
 				if (!isIpProxy(proxy)) {
 					throw new NetSchedulerError(
@@ -526,7 +538,7 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 		}
 
 		const ipPool = this.ipPools[proxyName];
-		const maxRetries = 3;
+		const maxRetries = 5;
 
 		let lastError: Error | null = null;
 
@@ -691,12 +703,10 @@ const config = {
 		snapshotVideo: {
 			provider: "bilibili",
 			proxies: ["ip_proxy_pool"],
-			limiters: bili_normal
 		},
 		bulkSnapshot: {
 			provider: "bilibili",
 			proxies: ["ip_proxy_pool"],
-			limiters: bili_strict
 		}
 	}
 } as const satisfies NetworkConfig;

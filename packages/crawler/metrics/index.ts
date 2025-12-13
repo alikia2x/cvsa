@@ -25,6 +25,14 @@ export const ipProxyErrorCounter = anotherMeter.createCounter("ip_proxy_error_co
 	description: "Number of errors thrown by IP proxy"
 });
 
+export const aliFCCounter = anotherMeter.createCounter("ali_fc_count", {
+	description: "Number of requests using Ali FC"
+});
+
+export const aliFCErrorCounter = anotherMeter.createCounter("ali_fc_error_count", {
+	description: "Number of errors thrown by Ali FC"
+});
+
 export const jobCounter = meter.createCounter("job_count", {
 	description: "Number of executed BullMQ jobs"
 });
