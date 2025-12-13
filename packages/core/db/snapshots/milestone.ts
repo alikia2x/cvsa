@@ -10,7 +10,7 @@ export const getGroundTruthMilestoneETA = async (
 	const DELTA = 1e-5;
 	let minETAHours = Infinity;
 	const timeIntervals = [3 * MINUTE, 20 * MINUTE, HOUR, 3 * HOUR, 6 * HOUR, 72 * HOUR];
-	const currentTimestamp = new Date().getTime();
+	const currentTimestamp = Date.now();
 	const latestSnapshot = await getLatestSnapshot(aid);
 	const latestSnapshotTime = new Date(latestSnapshot.time).getTime();
 	for (const timeInterval of timeIntervals) {

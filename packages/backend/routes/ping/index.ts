@@ -15,7 +15,7 @@ export const pingHandler = new Elysia({ prefix: "/ping" }).use(ip()).get(
 				url: request.url
 			},
 			response: {
-				time: new Date().getTime(),
+				time: Date.now(),
 				status: 200,
 				version: VERSION
 			}

@@ -52,7 +52,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 			if (currentSnapshot) {
 				const DELTA = 0.0001;
 				const viewsDiff = views - currentSnapshot.views;
-				const hoursDiff = (new Date().getTime() - currentSnapshot.created_at) / HOUR;
+				const hoursDiff = (Date.now() - currentSnapshot.created_at) / HOUR;
 				const speed = viewsDiff / (hoursDiff + DELTA);
 				const target = closetMilestone(views, true);
 				const viewsToIncrease = target - views;

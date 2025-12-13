@@ -7,7 +7,6 @@ interface BaseResponse<T> {
 
 export type VideoListResponse = BaseResponse<VideoListData>;
 export type VideoDetailsResponse = BaseResponse<VideoDetailsData>;
-export type VideoTagsResponse = BaseResponse<VideoTagsData>;
 export type VideoInfoResponse = BaseResponse<VideoInfoData>;
 export type MediaListInfoResponse = BaseResponse<MediaListInfoData>;
 

@@ -15,16 +15,16 @@ import { NetSchedulerError } from "@core/net/delegate";
 import { sql } from "@core/db/dbNew";
 import { closetMilestone } from "./snapshotTick";
 
-const snapshotTypeToTaskMap: { [key: string]: string } = {
+const snapshotTypeToTaskMap = {
 	milestone: "snapshotMilestoneVideo",
 	normal: "snapshotVideo",
 	new: "snapshotMilestoneVideo"
-};
+} as const;
 
 export const snapshotVideoWorker = async (job: Job): Promise<void> => {
 	const id = job.data.id;
 	const aid = Number(job.data.aid);
-	const type = job.data.type;
+	const type = job.data.type as "milestone" | "normal" | "new";
 	const task = snapshotTypeToTaskMap[type] ?? "snapshotVideo";
 	const retryInterval = type === "milestone" ? 5 * SECOND : 2 * MINUTE;
 	const latestSnapshot = await getLatestSnapshot(sql, aid);

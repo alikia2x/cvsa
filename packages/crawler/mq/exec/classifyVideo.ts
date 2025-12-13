@@ -61,9 +61,9 @@ export const classifyVideosWorker = async () => {
 	const videos = await getUnlabelledVideos();
 	logger.log(`Found ${videos.length} unlabelled videos`);
 
-	const startTime = new Date().getTime();
+	const startTime = Date.now();
 	for (const aid of videos) {
-		const now = new Date().getTime();
+		const now = Date.now();
 		if (now - startTime > 4.2 * MINUTE) {
 			await lockManager.releaseLock("classifyVideos");
 			return 1;

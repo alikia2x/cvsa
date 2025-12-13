@@ -1,5 +1,4 @@
 import { sql } from "@core/db/dbNew";
-import logger from "@core/log";
 
 export async function removeAllTimeoutSchedules() {
 	return sql`

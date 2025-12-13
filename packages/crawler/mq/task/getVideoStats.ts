@@ -28,7 +28,7 @@ export interface SnapshotNumber {
 export async function takeVideoSnapshot(
 	sql: Psql,
 	aid: number,
-	task: string
+	task: "snapshotMilestoneVideo" | "snapshotVideo"
 ): Promise<number | SnapshotNumber> {
 	const r = await getVideoInfo(aid, task);
 	if (typeof r == "number") {
@@ -53,7 +53,7 @@ export async function takeVideoSnapshot(
 		danmakus,
 		replies,
 		aid
-	})
+	});
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 

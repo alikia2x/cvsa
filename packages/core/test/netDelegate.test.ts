@@ -3,7 +3,18 @@ import { test, expect, describe } from "bun:test";
 
 describe("proxying requests", () => {
 	test("Alibaba Cloud FC", async () => {
-		const { res } = await networkDelegate.request("https://postman-echo.com/get", "test") as any;
-        expect(res.headers.referer).toBe('https://www.bilibili.com/');
+		const { data } = (await networkDelegate.request<{
+			headers: Record<string, string>;
+		}>(
+			"https://postman-echo.com/get",
+			"test"
+		));
+        expect(data.headers.referer).toBe('https://www.bilibili.com/');
+	});
+	test("IP Proxy", async () => {
+		const { data } = await networkDelegate.request<{
+			headers: Record<string, string>;
+		}>("https://postman-echo.com/get", "test_ip");
+		expect(data.headers).toBeObject();
 	});
 });
