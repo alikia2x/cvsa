@@ -23,7 +23,7 @@ import {
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
 
-const aliRegions = ["hangzhou", "shanghai", "beijing", "chengdu", "qingdao"] as const;
+const aliRegions = ["hangzhou"] as const;
 type AliRegion = (typeof aliRegions)[number];
 
 function createAliProxiesObject<T extends readonly string[]>(regions: T) {
