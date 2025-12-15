@@ -1,6 +1,6 @@
-import { findClosestSnapshot, findSnapshotBefore, getLatestSnapshot } from "db/snapshotSchedule";
-import { HOUR } from "@core/lib";
 import type { Psql } from "@core/db/psql.d";
+import { HOUR } from "@core/lib";
+import { findClosestSnapshot, findSnapshotBefore, getLatestSnapshot } from "db/snapshotSchedule";
 
 export const getRegularSnapshotInterval = async (sql: Psql, aid: number) => {
 	const now = Date.now();

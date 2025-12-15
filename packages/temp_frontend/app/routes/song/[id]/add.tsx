@@ -1,17 +1,17 @@
-import type { Route } from "./+types/add";
-import { treaty } from "@elysiajs/eden";
-import type { App } from "@backend/src";
-import { useEffect, useState } from "react";
-import { CheckCircle, Clock, AlertCircle } from "lucide-react";
-import { Title } from "@/components/Title";
-import { Layout } from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { biliIDToAID } from "@backend/lib/bilibiliID";
-import { Error } from "@/components/Error";
+import type { App } from "@backend/src";
+import { treaty } from "@elysiajs/eden";
+import { AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ErrorPage } from "@/components/Error";
+import { Layout } from "@/components/Layout";
+import { Title } from "@/components/Title";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Route } from "./+types/add";
 
-// @ts-ignore idk
+// @ts-expect-error idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
@@ -32,7 +32,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	const [importInterval, setImportInterval] = useState<NodeJS.Timeout | null>(null);
 	const aid = biliIDToAID(loaderData.id);
 	if (!aid) {
-		return <Error error={{ status: 404, value: { message: "找不到页面" } }} />;
+		return <ErrorPage error={{ status: 404, value: { message: "找不到页面" } }} />;
 	}
 
 	const importSong = async () => {
@@ -42,7 +42,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
 				},
-			},
+			}
 		);
 
 		if (response.error) {
@@ -146,7 +146,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 			<Card className="mx-auto mt-8">
 				<CardHeader>
 					<CardTitle>收录歌曲</CardTitle>
-					<CardDescription>将 Bilibili 视频 ID "{loaderData.id}" 收录为歌曲</CardDescription>
+					<CardDescription>
+						将 Bilibili 视频 ID "{loaderData.id}" 收录为歌曲
+					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					{!importStatus ? (
@@ -163,8 +165,12 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 							<div className="flex items-center gap-3 p-4 border rounded-lg">
 								{getStatusIcon(importStatus.state)}
 								<div className="flex-1">
-									<p className="font-medium">{getStatusText(importStatus.state)}</p>
-									<p className="text-sm text-gray-500">任务 ID: {importStatus.id}</p>
+									<p className="font-medium">
+										{getStatusText(importStatus.state)}
+									</p>
+									<p className="text-sm text-gray-500">
+										任务 ID: {importStatus.id}
+									</p>
 									{importStatus.failedReason && (
 										<p className="text-sm text-red-500 mt-1">
 											失败原因: {importStatus.failedReason}
@@ -175,9 +181,13 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 
 							{importStatus.state === "completed" && (
 								<div className="text-center">
-									<p className="text-green-600 mb-4">歌曲收录成功！正在跳转到歌曲页面...</p>
+									<p className="text-green-600 mb-4">
+										歌曲收录成功！正在跳转到歌曲页面...
+									</p>
 									<Button
-										onClick={() => (window.location.href = `/song/${loaderData.id}/info`)}
+										onClick={() =>
+											(window.location.href = `/song/${loaderData.id}/info`)
+										}
 										variant="outline"
 									>
 										立即查看

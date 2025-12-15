@@ -1,4 +1,4 @@
-import { type Oklch } from "culori";
+import type { Oklch } from "culori";
 import { getAdjustedColor } from "./utils";
 
 export type ThemeMode = "light" | "dark";
@@ -16,7 +16,7 @@ export const buildColorTokens = (base: Oklch) => {
 			"on-primary": getAdjustedColor(base, 0.999, 0.001),
 			"on-bg-var-2": getAdjustedColor(base, 0.398, 0.0234),
 			error: { mode: "oklch", l: 0.506, c: 0.192, h: 27.7 } as Oklch,
-			"on-error": getAdjustedColor(base, 0.99, 0.01)
+			"on-error": getAdjustedColor(base, 0.99, 0.01),
 		},
 		dark: {
 			background: getAdjustedColor(base, 0.15, 0.002),
@@ -29,7 +29,7 @@ export const buildColorTokens = (base: Oklch) => {
 			"on-primary": getAdjustedColor(base, 0.3, 0.08),
 			"on-bg-var-2": getAdjustedColor(base, 0.83, 0.028),
 			error: { mode: "oklch", l: 0.65, c: 0.223, h: 27.8 } as Oklch,
-			"on-error": getAdjustedColor(base, 0.9, 0.01)
-		}
+			"on-error": getAdjustedColor(base, 0.9, 0.01),
+		},
 	};
 };

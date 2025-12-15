@@ -1,7 +1,7 @@
+import { getClosestSnapshot, getLatestSnapshot } from "@core/db";
 import { db, eta as etaTable } from "@core/drizzle";
+import { getClosetMilestone, HOUR, MINUTE } from "@core/lib";
 import { eq } from "drizzle-orm";
-import { MINUTE, HOUR, getClosetMilestone } from "@core/lib";
-import { getLatestSnapshot, getClosestSnapshot } from "@core/db";
 
 export const getGroundTruthMilestoneETA = async (
 	aid: number,

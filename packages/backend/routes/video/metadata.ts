@@ -1,12 +1,12 @@
-import { Elysia } from "elysia";
-import { db, videoSnapshot } from "@core/drizzle";
 import { biliIDToAID } from "@backend/lib/bilibiliID";
-import { getVideoInfo } from "@core/net/getVideoInfo";
-import { redis } from "@core/db/redis";
-import { ErrorResponseSchema } from "@backend/src/schema";
-import type { VideoInfoData } from "@core/net/bilibili.d.ts";
 import { BiliAPIVideoMetadataSchema } from "@backend/lib/schema";
+import { ErrorResponseSchema } from "@backend/src/schema";
+import { redis } from "@core/db/redis";
+import { db, videoSnapshot } from "@core/drizzle";
+import type { VideoInfoData } from "@core/net/bilibili.d.ts";
+import { getVideoInfo } from "@core/net/getVideoInfo";
 import { snapshotCounter } from "@crawler/metrics";
+import { Elysia } from "elysia";
 
 export async function retrieveVideoInfoFromCache(aid: number) {
 	const cacheKey = `cvsa:videoInfo:av${aid}`;
@@ -40,7 +40,7 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 		likes,
 		coins,
 		shares,
-		favorites
+		favorites,
 	});
 	snapshotCounter.add(1);
 }
@@ -56,7 +56,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 				code: "MALFORMED_SLOT",
 				message:
 					"We cannot parse the video ID, or we currently do not support this format.",
-				errors: []
+				errors: [],
 			});
 		}
 
@@ -67,11 +67,11 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 
 		const r = await getVideoInfo(aid, "getVideoInfo");
 
-		if (typeof r == "number") {
+		if (typeof r === "number") {
 			return c.status(500, {
 				code: "THIRD_PARTY_ERROR",
 				message: `Got status code ${r} from bilibili API.`,
-				errors: []
+				errors: [],
 			});
 		}
 
@@ -86,7 +86,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 		response: {
 			200: BiliAPIVideoMetadataSchema,
 			400: ErrorResponseSchema,
-			500: ErrorResponseSchema
+			500: ErrorResponseSchema,
 		},
 		detail: {
 			summary: "Get video metadata",
@@ -94,7 +94,7 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 				"This endpoint retrieves comprehensive metadata for a bilibili video. It accepts video IDs in av or BV format \
 			and returns detailed information including title, description, uploader, statistics (views, likes, coins, etc.), \
 			and publication date. The data is cached for 60 seconds to reduce API calls. If the video is not in cache, \
-			it fetches fresh data from bilibili API and stores a snapshot in the database."
-		}
+			it fetches fresh data from bilibili API and stores a snapshot in the database.",
+		},
 	}
 );

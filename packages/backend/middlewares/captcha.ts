@@ -1,17 +1,17 @@
-import { Elysia } from "elysia";
-import { jwt } from "@elysiajs/jwt";
 import { redis } from "@core/db/redis";
+import { jwt } from "@elysiajs/jwt";
+import { Elysia } from "elysia";
 
 interface JWTPayload {
 	id: string;
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 export const captchaMiddleware = new Elysia({ name: "captcha" })
 	.use(
 		jwt({
 			name: "captchaJwt",
-			secret: process.env.JWT_SECRET || "default-secret-key"
+			secret: process.env.JWT_SECRET || "default-secret-key",
 		})
 	)
 	.derive(async ({ request, captchaJwt, set }) => {
@@ -44,7 +44,7 @@ export const captchaMiddleware = new Elysia({ name: "captcha" })
 
 			return {
 				captchaVerified: true,
-				userId: payload.id
+				userId: payload.id,
 			};
 		} catch (error) {
 			if (error instanceof Error) {

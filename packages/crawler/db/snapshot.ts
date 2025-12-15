@@ -1,9 +1,14 @@
-import { SnapshotNumber } from "mq/task/getVideoStats";
 import type { Psql } from "@core/db/psql.d";
-import { db, LatestVideoSnapshotType, videoSnapshot, VideoSnapshotType } from "@core/drizzle";
-import { PartialBy } from "@core/lib";
+import {
+	db,
+	type LatestVideoSnapshotType,
+	type VideoSnapshotType,
+	videoSnapshot,
+} from "@core/drizzle";
+import type { PartialBy } from "@core/lib";
 import { sql } from "drizzle-orm";
 import { snapshotCounter } from "metrics";
+import type { SnapshotNumber } from "mq/task/getVideoStats";
 
 export async function insertVideoSnapshot(data: PartialBy<VideoSnapshotType, "id">) {
 	await db.insert(videoSnapshot).values(data);
@@ -36,7 +41,7 @@ export async function getVideosNearMilestone() {
 	return results.map((row) => {
 		return {
 			...row,
-			aid: Number(row.aid)
+			aid: Number(row.aid),
 		};
 	});
 }
@@ -57,7 +62,7 @@ export async function getLatestVideoSnapshot(
 		return {
 			...row,
 			aid: Number(row.aid),
-			time: new Date(row.time).getTime()
+			time: new Date(row.time).getTime(),
 		};
 	})[0];
 }

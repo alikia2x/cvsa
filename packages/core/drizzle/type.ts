@@ -1,12 +1,12 @@
 import type { InferSelectModel } from "drizzle-orm";
-import {
-	usersInCredentials,
+import type {
 	bilibiliMetadata,
 	latestVideoSnapshot,
-	songs,
-	videoSnapshot,
+	loginSessionsInCredentials,
 	producer,
-	loginSessionsInCredentials
+	songs,
+	usersInCredentials,
+	videoSnapshot,
 } from "./main/schema";
 
 export type UserType = InferSelectModel<typeof usersInCredentials>;

@@ -1,10 +1,10 @@
+import type { App } from "@backend/src";
+import { treaty } from "@elysiajs/eden";
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import { LayoutWithoutSearch } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { treaty } from "@elysiajs/eden";
-import type { App } from "@backend/src";
 
 // @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
@@ -36,7 +36,7 @@ export default function Login() {
 			const { data, error } = await app.auth.session.post(formData);
 
 			if (data) {
-                localStorage.setItem("sessionID", data.sessionID);
+				localStorage.setItem("sessionID", data.sessionID);
 				navigate("/", { replace: true });
 			} else {
 				setError(error?.value?.message || "登录失败");

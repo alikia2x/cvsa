@@ -1,14 +1,14 @@
-import { Form, redirect } from "react-router";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { getCurrentUser } from "@lib/auth-utils";
 import { db } from "@lib/db";
 import { users } from "@lib/db/schema";
-import type { Route } from "./+types/page";
 import { useEffect } from "react";
+import { Form, redirect } from "react-router";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Route } from "./+types/page";
 
 export async function loader({ request }: { request: Request }) {
 	const existingUsers = await db.select().from(users).limit(1);
@@ -26,7 +26,7 @@ export async function loader({ request }: { request: Request }) {
 export default function LoginPage({ actionData }: Route.ComponentProps) {
 	useEffect(() => {
 		if (actionData?.error) {
-			toast(actionData.error)
+			toast(actionData.error);
 		}
 	}, [actionData]);
 

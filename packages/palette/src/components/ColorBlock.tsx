@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { type Oklch, formatHex } from "culori";
+import { formatHex, type Oklch } from "culori";
 import { Copy } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { Checkmark } from "./Check";
+import { useState } from "react";
 import { getAdjustedColor } from "../utils";
+import { Checkmark } from "./Check";
 
 interface ColorBlockProps {
 	baseColor: Oklch;
@@ -26,7 +26,11 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 		if (!check) {
 			return (
 				<AnimatePresence>
-					<motion.div exit={{ opacity: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+					<motion.div
+						exit={{ opacity: 0 }}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+					>
 						<Copy size={14} strokeWidth={2.5} />
 					</motion.div>
 				</AnimatePresence>
@@ -34,7 +38,11 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 		} else {
 			return (
 				<AnimatePresence>
-					<motion.div exit={{ opacity: 0 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+					<motion.div
+						exit={{ opacity: 0 }}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+					>
 						<Checkmark width={16} height={16} strokeWidth={14} />
 					</motion.div>
 				</AnimatePresence>
@@ -73,7 +81,7 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 							animate={{ opacity: 1, width: 22 }}
 							transition={{
 								opacity: { duration: 0.2, ease: "backOut" },
-								width: { type: "spring", bounce: 0.2, duration: 0.5 }
+								width: { type: "spring", bounce: 0.2, duration: 0.5 },
 							}}
 						>
 							<Icon />

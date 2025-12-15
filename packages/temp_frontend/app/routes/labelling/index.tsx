@@ -1,23 +1,65 @@
-import { Layout } from "@/components/Layout";
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Error } from "@/components/Error";
-import { Title } from "@/components/Title";
+import { treaty } from "@elysiajs/eden";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { VideoInfo } from "./VideoInfo";
+import { ErrorPage } from "@/components/Error";
+import { Layout } from "@/components/Layout";
+import { Title } from "@/components/Title";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ControlBar } from "@/routes/labelling/ControlBar";
 import { LabelInstructions } from "@/routes/labelling/LabelInstructions";
+import { VideoInfo } from "./VideoInfo";
 
 // @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type VideosResponse = Awaited<ReturnType<Awaited<typeof app.videos.unlabelled>["get"]>>["data"];
 
-const leftKeys = ["1", "2", "3", "4", "5", "Q", "W", "E", "R", "T", "A", "S", "D", "F", "G", "Z", "X", "C", "V", "B"];
-const rightKeys = ["6", "7", "8", "9", "0", "Y", "U", "I", "O", "P", "H", "J", "K", "L", ";", "N", "M", ",", ".", "/"];
+const leftKeys = [
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"Q",
+	"W",
+	"E",
+	"R",
+	"T",
+	"A",
+	"S",
+	"D",
+	"F",
+	"G",
+	"Z",
+	"X",
+	"C",
+	"V",
+	"B",
+];
+const rightKeys = [
+	"6",
+	"7",
+	"8",
+	"9",
+	"0",
+	"Y",
+	"U",
+	"I",
+	"O",
+	"P",
+	"H",
+	"J",
+	"K",
+	"L",
+	";",
+	"N",
+	"M",
+	",",
+	".",
+	"/",
+];
 
 export default function Home() {
 	const [videos, setVideos] = useState<Exclude<VideosResponse, null>>([]);
@@ -25,7 +67,7 @@ export default function Home() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<any>(null);
 	const [instructionsOpen, setInstructionsOpen] = useState(false);
-	const [localLabel, setLocalLabel] = useState<(boolean|undefined)[]>([]);
+	const [localLabel, setLocalLabel] = useState<(boolean | undefined)[]>([]);
 
 	const fetchVideos = useCallback(async () => {
 		if (videos.length >= 30) return;
@@ -70,7 +112,7 @@ export default function Home() {
 						headers: {
 							Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
 						},
-					},
+					}
 				);
 
 				if (error) {
@@ -184,15 +226,15 @@ export default function Home() {
 	}
 
 	if (error && videos.length === 0) {
-		return <Error error={error} />;
+		return <ErrorPage error={error} />;
 	}
 
 	const currentVideo = videos[currentIndex];
-	const currentLabel = (()=> {
+	const currentLabel = (() => {
 		const l = localLabel[currentIndex];
 		if (l === undefined) return "none";
 		return l ? "true" : "false";
-	})()
+	})();
 
 	return (
 		<Layout>
@@ -201,7 +243,9 @@ export default function Home() {
 			{currentVideo ? (
 				<>
 					<LabelInstructions open={instructionsOpen} onOpenChange={setInstructionsOpen} />
-					<span className="font-mono">Buffer health: {currentIndex}/{videos.length}, currentLabel: {currentLabel}</span>
+					<span className="font-mono">
+						Buffer health: {currentIndex}/{videos.length}, currentLabel: {currentLabel}
+					</span>
 					<VideoInfo video={currentVideo} />
 					<ControlBar
 						currentIndex={currentIndex}

@@ -1,5 +1,5 @@
-import { RateLimiter as Limiter } from "@koshnic/ratelimit";
 import { redis } from "@core/db/redis";
+import { RateLimiter as Limiter } from "@koshnic/ratelimit";
 
 export interface RateLimiterConfig {
 	duration: number;
@@ -42,7 +42,7 @@ export class MultipleRateLimiter {
 				burst: max,
 				ratePerPeriod: max,
 				period: duration,
-				cost: 1
+				cost: 1,
 			});
 			if (!allowed && shouldThrow) {
 				throw new RateLimiterError("Rate limit exceeded");

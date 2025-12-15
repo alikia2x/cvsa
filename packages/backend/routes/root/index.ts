@@ -1,4 +1,9 @@
-import { getSingerForBirthday, pickSinger, pickSpecialSinger, Singer } from "@backend/lib/singers";
+import {
+	getSingerForBirthday,
+	pickSinger,
+	pickSpecialSinger,
+	type Singer,
+} from "@backend/lib/singers";
 import { VERSION } from "@backend/src";
 import { Elysia, t } from "elysia";
 
@@ -6,7 +11,7 @@ const SingerObj = t.Object({
 	name: t.String(),
 	color: t.Optional(t.String()),
 	birthday: t.Optional(t.String()),
-	message: t.Optional(t.String())
+	message: t.Optional(t.String()),
 });
 
 export const rootHandler = new Elysia().get(
@@ -29,12 +34,12 @@ export const rootHandler = new Elysia().get(
 			project: {
 				name: "中V档案馆",
 				mascot: "知夏",
-				quote: "星河知海夏生光"
+				quote: "星河知海夏生光",
 			},
 			status: 200,
 			version: VERSION,
 			time: Date.now(),
-			singer: singer
+			singer: singer,
 		};
 	},
 	{
@@ -43,19 +48,19 @@ export const rootHandler = new Elysia().get(
 				project: t.Object({
 					name: t.String(),
 					mascot: t.String(),
-					quote: t.String()
+					quote: t.String(),
 				}),
 				status: t.Number(),
 				version: t.String(),
 				time: t.Number(),
-				singer: t.Union([SingerObj, t.Array(SingerObj)])
-			})
+				singer: t.Union([SingerObj, t.Array(SingerObj)]),
+			}),
 		},
 		detail: {
 			summary: "Root route",
 			description:
 				"The root path. It returns a JSON object containing a random virtual singer, \
-			backend version, current server time and other miscellaneous information."
-		}
+			backend version, current server time and other miscellaneous information.",
+		},
 	}
 );

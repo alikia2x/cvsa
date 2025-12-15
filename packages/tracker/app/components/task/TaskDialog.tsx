@@ -34,7 +34,7 @@ export function TaskDialog({
 	onDelete,
 	initialData,
 	isEditing = false,
-	canEdit = true
+	canEdit = true,
 }: TaskDialogProps) {
 	const handleSubmit = async (data: {
 		title: string;

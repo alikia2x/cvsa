@@ -1,15 +1,15 @@
+import { Trash2 } from "lucide-react";
 import { use, useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2 } from "lucide-react";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
+	SelectValue,
 } from "@/components/ui/select";
 
 interface ColumnDialogProps {
@@ -32,7 +32,7 @@ export function ColumnDialog({
 	onDelete,
 	initialData,
 	columns,
-	isEditing = false
+	isEditing = false,
 }: ColumnDialogProps) {
 	const [name, setName] = useState(initialData?.name || "");
 	const [position, setPosition] = useState(initialData?.position?.toString() || "0");
@@ -55,7 +55,7 @@ export function ColumnDialog({
 		try {
 			await onSubmit({
 				name: name.trim(),
-				position: parseInt(position) || 0
+				position: parseInt(position) || 0,
 			});
 			onOpenChange(false);
 			// Reset form

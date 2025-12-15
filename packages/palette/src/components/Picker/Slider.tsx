@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useOklchCanvas } from "./useOklchCanvas";
+import type { Oklch } from "culori";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { Handle } from "./Handle";
 import type { I18nProvider, LchChannel } from "./Picker";
-import { type Oklch } from "culori";
-import { round, precision, maxValue } from "./utils";
+import { useOklchCanvas } from "./useOklchCanvas";
+import { maxValue, precision, round } from "./utils";
 
 interface SliderProps {
 	useP3: boolean;
@@ -22,7 +23,13 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 	}, [color.l, color.c, color.h]);
 
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
-	useOklchCanvas({ channel: channel, max: maxValue[channel], canvasRef: canvasRef, color, useP3 });
+	useOklchCanvas({
+		channel: channel,
+		max: maxValue[channel],
+		canvasRef: canvasRef,
+		color,
+		useP3,
+	});
 
 	const getSliderPosition = (value: number, max: number) => {
 		return (value / max) * 100;
@@ -61,7 +68,7 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 
 	const buttonHanlder = (type: "increase" | "decrease") => {
 		const factor = type === "increase" ? 1 : -1;
-		const step = Math.pow(10, -precision[channel] + 2);
+		const step = 10 ** (-precision[channel] + 2);
 		const delta = factor * step;
 		onChange(round(color[channel]! + delta, precision[channel]));
 	};
@@ -99,7 +106,7 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 						value={value}
 						onChange={onInputChange}
 						onBlur={onBlur}
-						step={Math.pow(10, -precision[channel])}
+						step={10 ** -precision[channel]}
 						aria-label={i18nProvider(channel)}
 						aria-keyshortcuts={channel}
 						role="spinbutton"
@@ -137,7 +144,7 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 					type="range"
 					min="0"
 					max={maxValue[channel]}
-					step={Math.pow(10, -precision[channel])}
+					step={10 ** -precision[channel]}
 					value={color[channel]}
 					onChange={onInputChange}
 					className="absolute z-5 inset-0 w-full h-full opacity-0 cursor-pointer"

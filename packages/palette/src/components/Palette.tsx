@@ -1,4 +1,4 @@
-import { Oklch } from "culori";
+import type { Oklch } from "culori";
 import { buildColorTokens } from "../colorTokens";
 import { useTheme } from "../ThemeContext";
 import { ColorBlock } from "./ColorBlock";

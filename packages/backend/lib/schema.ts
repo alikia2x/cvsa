@@ -10,7 +10,7 @@ const videoStatsSchema = z.object({
 	share: z.number(),
 	now_rank: z.number(),
 	his_rank: z.number(),
-	like: z.number()
+	like: z.number(),
 });
 
 export const BiliAPIVideoMetadataSchema = z.object({
@@ -32,9 +32,9 @@ export const BiliAPIVideoMetadataSchema = z.object({
 	owner: z.object({
 		mid: z.number(),
 		name: z.string(),
-		face: z.string()
+		face: z.string(),
 	}),
-	stat: videoStatsSchema
+	stat: videoStatsSchema,
 });
 
 export const BiliVideoSchema = z.object({
@@ -49,7 +49,7 @@ export const BiliVideoSchema = z.object({
 	tags: z.string().nullable(),
 	title: z.string().nullable(),
 	status: z.number(),
-	coverUrl: z.string().nullable()
+	coverUrl: z.string().nullable(),
 });
 
 export type BiliVideoType = z.infer<typeof BiliVideoSchema>;
@@ -66,5 +66,5 @@ export const SongSchema = z.object({
 	updatedAt: z.string(),
 	deleted: z.boolean(),
 	image: z.string().nullable(),
-	producer: z.string().nullable()
+	producer: z.string().nullable(),
 });

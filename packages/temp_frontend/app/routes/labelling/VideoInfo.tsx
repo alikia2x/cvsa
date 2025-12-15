@@ -1,12 +1,11 @@
-import { formatDateTime } from "@/components/SearchResults";
-import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
+import { treaty } from "@elysiajs/eden";
+import { formatDateTime } from "@/components/SearchResults";
 
 // @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type VideosResponse = Awaited<ReturnType<Awaited<typeof app.videos.unlabelled>["get"]>>["data"];
-
 
 interface VideoInfoProps {
 	video: Exclude<VideosResponse, null>[number];

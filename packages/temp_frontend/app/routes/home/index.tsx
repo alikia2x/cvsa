@@ -1,9 +1,9 @@
-import { Layout } from "@/components/Layout";
-import type { Route } from "./+types/index";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { MilestoneVideos } from "@/routes/home/Milestone";
+import type { Route } from "./+types/index";
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: "中V档案馆" }];
@@ -25,7 +25,11 @@ export default function Home() {
 				</div>
 
 				<div className="flex sm:w-96 gap-3">
-					<Input placeholder="输入 BV 号或 av 号" value={input} onChange={(e) => setInput(e.target.value)} />
+					<Input
+						placeholder="输入 BV 号或 av 号"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+					/>
 					<a href={`/song/${input}/add`}>
 						<Button>收录视频</Button>
 					</a>

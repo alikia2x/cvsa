@@ -1,9 +1,9 @@
+import { DAY, HOUR, MINUTE, SECOND } from "@core/lib";
+import { formatDateTime } from "@/components/SearchResults";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { formatDateTime } from "@/components/SearchResults";
 import { addHoursToNow, formatHours } from "../song/[id]/info";
-import { milestoneConfig, type CloseMilestoneInfo, type MilestoneType } from "./Milestone";
-import { DAY, HOUR, MINUTE, SECOND } from "@core/lib";
+import { type CloseMilestoneInfo, type MilestoneType, milestoneConfig } from "./Milestone";
 
 function timeAgo(timeStamp: Date | number, now: Date | number = Date.now()): string {
 	const pastTime = typeof timeStamp === "number" ? timeStamp : timeStamp.getTime();
@@ -64,7 +64,10 @@ export const MilestoneVideoCard = ({
 				)}
 				<div className="flex flex-col w-full justify-between">
 					<h3 className="text-sm sm:text-lg font-medium line-clamp-2 text-wrap mb-2">
-						<a href={`/song/av${video.bilibili_metadata.aid}/info`} className="hover:underline">
+						<a
+							href={`/song/av${video.bilibili_metadata.aid}/info`}
+							className="hover:underline"
+						>
 							{video.bilibili_metadata.title}
 						</a>
 					</h3>
@@ -96,9 +99,7 @@ export const MilestoneVideoCard = ({
 						发布于 {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
 					</span>
 				)}
-				<span>
-					数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前
-				</span>
+				<span>数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前</span>
 				<a
 					href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
 					target="_blank"

@@ -2,7 +2,12 @@
 
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useDarkMode } from "usehooks-ts";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+	type ChartConfig,
+	ChartContainer,
+	ChartTooltip,
+	ChartTooltipContent,
+} from "@/components/ui/chart";
 
 const chartConfigLight = {
 	views: {
@@ -53,7 +58,10 @@ export function ViewsChart({ chartData }: { chartData: ChartData[] }) {
 	const { isDarkMode } = useDarkMode();
 	if (!chartData || chartData.length === 0) return <></>;
 	return (
-		<ChartContainer config={isDarkMode ? chartConfigDark : chartConfigLight} className="min-h-[200px] w-full">
+		<ChartContainer
+			config={isDarkMode ? chartConfigDark : chartConfigLight}
+			className="min-h-[200px] w-full"
+		>
 			<LineChart accessibilityLayer data={chartData}>
 				<CartesianGrid vertical={false} />
 				<XAxis
@@ -75,10 +83,27 @@ export function ViewsChart({ chartData }: { chartData: ChartData[] }) {
 					allowDecimals={false}
 				/>
 				<ChartTooltip
-					content={<ChartTooltipContent hideIndicator={true} labelFormatter={(e) => formatDate(e, true)} />}
+					content={
+						<ChartTooltipContent
+							hideIndicator={true}
+							labelFormatter={(e) => formatDate(e, true)}
+						/>
+					}
 				/>
-				<Line dataKey="views" stroke="var(--color-views)" strokeWidth={2} dot={false} animationDuration={300} />
-				<Line dataKey="likes" stroke="var(--color-likes)" strokeWidth={2} dot={false} animationDuration={300} />
+				<Line
+					dataKey="views"
+					stroke="var(--color-views)"
+					strokeWidth={2}
+					dot={false}
+					animationDuration={300}
+				/>
+				<Line
+					dataKey="likes"
+					stroke="var(--color-likes)"
+					strokeWidth={2}
+					dot={false}
+					animationDuration={300}
+				/>
 			</LineChart>
 		</ChartContainer>
 	);

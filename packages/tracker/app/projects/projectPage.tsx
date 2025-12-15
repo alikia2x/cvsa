@@ -1,23 +1,23 @@
-import type { Route } from "./+types/projectPage";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, SquarePen } from "lucide-react";
-import { Link, useRevalidator } from "react-router";
-import { db } from "@lib/db";
-import { projects, columns, tasks, type Task, type Column } from "@lib/db/schema";
-import { eq, asc, desc } from "drizzle-orm";
-import Layout from "@/components/layout";
-import { TaskDialog } from "@/components/task/TaskDialog";
-import { ColumnDialog } from "@/components/column/ColumnDialog";
-import { ProjectDialog } from "@/components/project/ProjectDialog";
-import { useEffect, useState } from "react";
-import { projectPageAction } from "./projectPageAction";
-import { getCurrentUser } from "@lib/auth-utils";
 import { canUserEditProject, canUserViewProject } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
+import { db } from "@lib/db";
+import { type Column, columns, projects, type Task, tasks } from "@lib/db/schema";
+import { asc, desc, eq } from "drizzle-orm";
+import { ArrowLeft, Plus, SquarePen } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useRevalidator } from "react-router";
+import { ColumnDialog } from "@/components/column/ColumnDialog";
+import Layout from "@/components/layout";
+import { ProjectDialog } from "@/components/project/ProjectDialog";
+import { TaskDialog } from "@/components/task/TaskDialog";
+import { Button } from "@/components/ui/button";
+import type { Route } from "./+types/projectPage";
+import { projectPageAction } from "./projectPageAction";
 
 export function meta({ loaderData }: Route.MetaArgs) {
 	return [
 		{ title: `${loaderData.project.name} - FramSpor` },
-		{ name: "description", content: `Manage tasks for ${loaderData.project.name}` }
+		{ name: "description", content: `Manage tasks for ${loaderData.project.name}` },
 	];
 }
 
@@ -71,7 +71,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 					if (a.dueDate === null) return 1;
 					if (b.dueDate === null) return -1;
 					return a.dueDate.getTime() - b.dueDate.getTime();
-				})
+				}),
 			};
 		})
 	);
@@ -80,7 +80,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		project,
 		columns: columnsWithTasks,
 		user,
-		canEdit
+		canEdit,
 	};
 }
 
@@ -145,7 +145,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		revalidator.revalidate();
@@ -158,7 +158,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		if (response.ok) {
@@ -180,7 +180,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		if (response.ok) {
@@ -195,7 +195,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		if (response.ok) {
@@ -230,7 +230,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		revalidator.revalidate();
@@ -243,7 +243,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 
 		const response = await fetch(`/project/${project.id}`, {
 			method: "POST",
-			body: formData
+			body: formData,
 		});
 
 		revalidator.revalidate();
@@ -280,7 +280,7 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 				onDelete={handleDeleteProject}
 				initialData={{
 					name: project.name,
-					description: project.description || ""
+					description: project.description || "",
 				}}
 				isEditing={true}
 			/>

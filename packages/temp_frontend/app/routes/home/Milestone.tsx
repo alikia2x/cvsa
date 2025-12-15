@@ -1,21 +1,29 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { treaty } from "@elysiajs/eden";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MilestoneVideoCard } from "./MilestoneVideoCard";
 
-// @ts-ignore idk
+// @ts-expect-error idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
-export type CloseMilestoneInfo = Awaited<ReturnType<ReturnType<(typeof app.songs)["close-milestone"]>["get"]>>["data"];
-type CloseMilestoneError = Awaited<ReturnType<ReturnType<(typeof app.songs)["close-milestone"]>["get"]>>["error"];
+export type CloseMilestoneInfo = Awaited<
+	ReturnType<ReturnType<(typeof app.songs)["close-milestone"]>["get"]>
+>["data"];
+type CloseMilestoneError = Awaited<
+	ReturnType<ReturnType<(typeof app.songs)["close-milestone"]>["get"]>
+>["error"];
 
 export type MilestoneType = "dendou" | "densetsu" | "shinwa";
 
-export const milestoneConfig: Record<MilestoneType, { name: string; range: [number, number]; target: number }> = {
+export const milestoneConfig: Record<
+	MilestoneType,
+	{ name: string; range: [number, number]; target: number }
+> = {
 	dendou: { name: "殿堂", range: [90000, 99999], target: 100000 },
 	densetsu: { name: "传说", range: [900000, 999999], target: 1000000 },
 	shinwa: { name: "神话", range: [5000000, 9999999], target: 10000000 },
@@ -69,7 +77,7 @@ export const MilestoneVideos: React.FC = () => {
 				setIsLoadingMore(false);
 			}
 		},
-		[offset],
+		[offset]
 	);
 
 	useEffect(() => {
@@ -94,7 +102,7 @@ export const MilestoneVideos: React.FC = () => {
 				setOffset((prev) => prev + 20);
 			}
 		},
-		[hasMore, isLoadingMore],
+		[hasMore, isLoadingMore]
 	);
 
 	const renderContent = () => {
@@ -119,8 +127,14 @@ export const MilestoneVideos: React.FC = () => {
 		if (closeMilestoneError && milestoneData.length === 0) {
 			return (
 				<div className="text-center py-8">
-					<p className="text-red-500">加载失败: {closeMilestoneError.value?.message || "未知错误"}</p>
-					<Button variant="outline" className="mt-4" onClick={() => fetchMilestoneData(milestoneType, true)}>
+					<p className="text-red-500">
+						加载失败: {closeMilestoneError.value?.message || "未知错误"}
+					</p>
+					<Button
+						variant="outline"
+						className="mt-4"
+						onClick={() => fetchMilestoneData(milestoneType, true)}
+					>
 						重试
 					</Button>
 				</div>
@@ -130,14 +144,20 @@ export const MilestoneVideos: React.FC = () => {
 		if (milestoneData.length === 0) {
 			return (
 				<div className="text-center py-8">
-					<p className="text-secondary-foreground">暂无接近{milestoneConfig[milestoneType].name}的视频</p>
+					<p className="text-secondary-foreground">
+						暂无接近{milestoneConfig[milestoneType].name}的视频
+					</p>
 				</div>
 			);
 		}
 
 		return (
 			<div className="space-y-4">
-				<ScrollArea className="h-140 xl:h-180 w-full" ref={scrollContainer} onScroll={handleScroll}>
+				<ScrollArea
+					className="h-140 xl:h-180 w-full"
+					ref={scrollContainer}
+					onScroll={handleScroll}
+				>
 					{milestoneData.map((video) => (
 						<MilestoneVideoCard
 							key={video.bilibili_metadata.aid}
@@ -159,7 +179,10 @@ export const MilestoneVideos: React.FC = () => {
 		<>
 			<div className="flex justify-between mt-6 mb-2">
 				<h2 className="text-2xl font-medium">成就助攻</h2>
-				<Tabs value={milestoneType} onValueChange={(value: string) => setMilestoneType(value as MilestoneType)}>
+				<Tabs
+					value={milestoneType}
+					onValueChange={(value: string) => setMilestoneType(value as MilestoneType)}
+				>
 					<TabsList>
 						<TabsTrigger value="dendou">殿堂</TabsTrigger>
 						<TabsTrigger value="densetsu">传说</TabsTrigger>

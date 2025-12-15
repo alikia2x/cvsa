@@ -1,8 +1,8 @@
-import arg from "arg";
 import { Database } from "bun:sqlite";
+import { sql } from "@core/index";
 import logger from "@core/log";
 import type { VideoDetailsData } from "@core/net/bilibili.d.ts";
-import { sql } from "@core/index";
+import arg from "arg";
 
 const quit = (reason?: string) => {
 	reason && logger.error(reason);
@@ -10,7 +10,7 @@ const quit = (reason?: string) => {
 };
 
 const args = arg({
-	"--db": String
+	"--db": String,
 });
 
 const dbPath = args["--db"];

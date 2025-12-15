@@ -1,17 +1,17 @@
-import { Job } from "bullmq";
-import { getVideoDetails } from "@core/net/getVideoDetails";
+import { bilibiliUser, db, videoSnapshot } from "@core/drizzle";
 import logger from "@core/log";
-import { ClassifyVideoQueue, latestVideosEventsProducer } from "mq/index";
+import { getVideoDetails } from "@core/net/getVideoDetails";
+import type { Job } from "bullmq";
 import {
 	insertIntoMetadata,
 	userExistsInBiliUsers,
-	videoExistsInAllData
+	videoExistsInAllData,
 } from "db/bilibili_metadata";
-import { insertIntoSongs } from "mq/task/collectSongs";
-import { bilibiliUser, db, videoSnapshot } from "@core/drizzle";
 import { eq } from "drizzle-orm";
-import { GetVideoInfoJobData } from "mq/schema";
 import { snapshotCounter } from "metrics";
+import { ClassifyVideoQueue, latestVideosEventsProducer } from "mq/index";
+import type { GetVideoInfoJobData } from "mq/schema";
+import { insertIntoSongs } from "mq/task/collectSongs";
 
 interface AddSongEventPayload {
 	eventName: string;
@@ -23,7 +23,7 @@ const publishAddsongEvent = async (songID: number, uid: string) =>
 	latestVideosEventsProducer.publishEvent<AddSongEventPayload>({
 		eventName: "addSong",
 		uid: uid,
-		songID: songID
+		songID: songID,
 	});
 
 export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise<void> => {
@@ -64,7 +64,7 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 		title: data.View.title,
 		publishedAt: new Date(data.View.pubdate * 1000).toISOString(),
 		duration: data.View.duration,
-		coverUrl: data.View.pic
+		coverUrl: data.View.pic,
 	});
 
 	const userExists = await userExistsInBiliUsers(aid);
@@ -74,7 +74,7 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 			username: data.View.owner.name,
 			desc: data.Card.card.sign,
 			fans: data.Card.follower,
-			avatar: data.View.owner.face
+			avatar: data.View.owner.face,
 		});
 	} else {
 		await db
@@ -83,7 +83,7 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 				username: data.View.owner.name,
 				desc: data.Card.card.sign,
 				fans: data.Card.follower,
-				avatar: data.View.owner.face
+				avatar: data.View.owner.face,
 			})
 			.where(eq(bilibiliUser.uid, uid));
 	}
@@ -98,7 +98,7 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 		likes: stat.like,
 		coins: stat.coin,
 		shares: stat.share,
-		favorites: stat.favorite
+		favorites: stat.favorite,
 	});
 
 	snapshotCounter.add(1);

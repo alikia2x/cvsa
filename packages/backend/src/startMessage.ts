@@ -1,5 +1,5 @@
-import os from "os";
 import chalk from "chalk";
+import os from "os";
 
 function getLocalIpAddress(): string {
 	const interfaces = os.networkInterfaces();

@@ -1,5 +1,5 @@
-import { Elysia, t } from "elysia";
 import requireAuth from "@backend/middlewares/auth";
+import { Elysia, t } from "elysia";
 
 export const getCurrentUserHandler = new Elysia().use(requireAuth).get(
 	"/user",
@@ -11,7 +11,7 @@ export const getCurrentUserHandler = new Elysia().use(requireAuth).get(
 			id: user.id,
 			username: user.username,
 			nickname: user.nickname,
-			role: user.role
+			role: user.role,
 		};
 	},
 	{
@@ -20,11 +20,11 @@ export const getCurrentUserHandler = new Elysia().use(requireAuth).get(
 				id: t.Integer(),
 				username: t.String(),
 				nickname: t.Union([t.String(), t.Null()]),
-				role: t.String()
+				role: t.String(),
 			}),
 			401: t.Object({
-				message: t.String()
-			})
-		}
+				message: t.String(),
+			}),
+		},
 	}
 );

@@ -6,6 +6,6 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig({
 	plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
 	server: {
-		allowedHosts: [process.env.ALLOWED_HOST!]
-	}
+		allowedHosts: [process.env.ALLOWED_HOST!],
+	},
 });

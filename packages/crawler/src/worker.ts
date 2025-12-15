@@ -1,4 +1,9 @@
-import { ConnectionOptions, Job, Worker } from "bullmq";
+import { redis } from "@core/db/redis";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import { type ConnectionOptions, type Job, Worker } from "bullmq";
+import { collectQueueMetrics } from "mq/exec/collectQueueMetrics";
+import { directSnapshotWorker } from "mq/exec/directSnapshot";
 import {
 	archiveSnapshotsWorker,
 	bulkSnapshotTickWorker,
@@ -10,14 +15,9 @@ import {
 	scheduleCleanupWorker,
 	snapshotTickWorker,
 	snapshotVideoWorker,
-	takeBulkSnapshotForVideosWorker
+	takeBulkSnapshotForVideosWorker,
 } from "mq/exec/executors";
-import { redis } from "@core/db/redis";
-import logger from "@core/log";
-import { lockManager } from "@core/mq/lockManager";
-import { WorkerError } from "mq/schema";
-import { collectQueueMetrics } from "mq/exec/collectQueueMetrics";
-import { directSnapshotWorker } from "mq/exec/directSnapshot";
+import type { WorkerError } from "mq/schema";
 
 const releaseLockForJob = async (name: string) => {
 	await lockManager.releaseLock(name);
@@ -61,7 +61,7 @@ const latestVideoWorker = new Worker(
 		connection: redis as ConnectionOptions,
 		concurrency: 6,
 		removeOnComplete: { count: 1440 },
-		removeOnFail: { count: 0 }
+		removeOnFail: { count: 0 },
 	}
 );
 

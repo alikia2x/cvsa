@@ -1,5 +1,5 @@
-import { Job } from "bullmq";
 import logger from "@core/log";
+import type { Job } from "bullmq";
 import { removeAllTimeoutSchedules } from "mq/task/removeAllTimeoutSchedules";
 
 export const scheduleCleanupWorker = async (_job: Job): Promise<void> => {

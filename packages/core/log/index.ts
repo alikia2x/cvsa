@@ -1,6 +1,6 @@
-import winston, { format, transports } from "winston";
-import type { TransformableInfo } from "logform";
 import chalk from "chalk";
+import type { TransformableInfo } from "logform";
+import winston, { format, transports } from "winston";
 
 const customFormat = format.printf((info: TransformableInfo) => {
 	const { timestamp, level, message, service, codePath, error } = info;
@@ -21,9 +21,9 @@ const timestampFormat = format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSSZZ" }
 
 const createTransport = (level: string, filename: string) => {
 	const MB = 1000000;
-	let maxsize = undefined;
-	let maxFiles = undefined;
-	let tailable = undefined;
+	let maxsize;
+	let maxFiles;
+	let tailable;
 	if (level === "silly") {
 		maxsize = 500 * MB;
 		maxFiles = undefined;
@@ -37,7 +37,7 @@ const createTransport = (level: string, filename: string) => {
 		if (typeof value === "bigint") {
 			return value.toString();
 		}
-		if (key == "error") {
+		if (key === "error") {
 			return undefined;
 		}
 		return value;
@@ -48,7 +48,7 @@ const createTransport = (level: string, filename: string) => {
 		maxsize,
 		tailable,
 		maxFiles,
-		format: format.combine(timestampFormat, format.json({ replacer }))
+		format: format.combine(timestampFormat, format.json({ replacer })),
 	});
 };
 
@@ -66,12 +66,12 @@ const winstonLogger = winston.createLogger({
 				format.colorize(),
 				format.errors({ stack: true }),
 				customFormat
-			)
+			),
 		}),
 		createTransport("silly", sillyLogPath),
 		createTransport("warn", warnLogPath),
-		createTransport("error", errorLogPath)
-	]
+		createTransport("error", errorLogPath),
+	],
 });
 
 const logger = {
@@ -96,7 +96,7 @@ const logger = {
 		} else {
 			winstonLogger.error(error, { service, codePath });
 		}
-	}
+	},
 };
 
 export default logger;

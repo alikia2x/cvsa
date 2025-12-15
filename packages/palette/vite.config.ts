@@ -1,17 +1,17 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import UnoCSS from "unocss/vite";
+import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
 	plugins: [
-		//@ts-ignore
+		//@ts-expect-error
 		react({
 			babel: {
-				plugins: [["babel-plugin-react-compiler"]]
-			}
+				plugins: [["babel-plugin-react-compiler"]],
+			},
 		}),
-		//@ts-ignore
-		UnoCSS()
-	]
+		//@ts-expect-error
+		UnoCSS(),
+	],
 });

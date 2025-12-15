@@ -1,0 +1,14 @@
+{
+	"$schema": "https://turborepo.com/schema.json",
+	"ui": "tui",
+	"tasks": {
+		"//#biome": {
+			"dependsOn": ["biome:check"]
+		},
+		"//#biome:check": {},
+		"//#biome:lint": {},
+		"//#lint": {
+			"dependsOn": ["biome:lint"]
+		}
+	}
+}

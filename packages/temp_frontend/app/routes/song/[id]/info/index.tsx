@@ -1,23 +1,15 @@
-import type { Route } from "./+types/index";
-import { treaty } from "@elysiajs/eden";
+import { av2bv } from "@backend/lib/bilibiliID";
 import type { App } from "@backend/src";
-import { memo, useEffect, useState, useMemo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { HOUR } from "@core/lib";
+import { treaty } from "@elysiajs/eden";
 import { TriangleAlert } from "lucide-react";
-import { Title } from "@/components/Title";
-import { toast } from "sonner";
-import { Error } from "@/components/Error";
-import { Layout } from "@/components/Layout";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDateTime } from "@/components/SearchResults";
-import { ViewsChart } from "./views-chart";
-import { processSnapshots, detectMilestoneAchievements, type MilestoneAchievement } from "./lib";
-import { DataTable } from "./data-table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { memo, useEffect, useMemo, useState } from "react";
 import { If, Then } from "react-if";
+import { toast } from "sonner";
+import { ErrorPage } from "@/components/Error";
+import { Layout } from "@/components/Layout";
+import { formatDateTime } from "@/components/SearchResults";
+import { Title } from "@/components/Title";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -29,18 +21,36 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { av2bv } from "@backend/lib/bilibiliID";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Route } from "./+types/index";
 import { columns, type Snapshot } from "./columns";
-import { HOUR } from "@core/lib";
+import { DataTable } from "./data-table";
+import { detectMilestoneAchievements, type MilestoneAchievement, processSnapshots } from "./lib";
+import { ViewsChart } from "./views-chart";
 
-// @ts-ignore idk
+// @ts-expect-error idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
 type EtaInfo = Awaited<ReturnType<ReturnType<typeof app.video>["eta"]["get"]>>["data"];
-export type Snapshots = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["data"];
+export type Snapshots = Awaited<
+	ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>
+>["data"];
 type SongInfoError = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["error"];
-type SnapshotsError = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["error"];
+type SnapshotsError = Awaited<
+	ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>
+>["error"];
 type EtaInfoError = Awaited<ReturnType<ReturnType<typeof app.video>["eta"]["get"]>>["error"];
 
 export async function clientLoader({ params }: Route.LoaderArgs) {
@@ -137,13 +147,14 @@ const SnapshotsView = ({
 	}, [snapshots, timeRangeHours, timeOffsetHours]);
 
 	const canGoForward = useMemo(() => {
-		if (!sortedSnapshots || !timeRangeHours || timeRangeHours <= 0 || timeOffsetHours <= 0) return false;
+		if (!sortedSnapshots || !timeRangeHours || timeRangeHours <= 0 || timeOffsetHours <= 0)
+			return false;
 		return true;
 	}, [snapshots, timeRangeHours, timeOffsetHours]);
 
 	const processedData = useMemo(
 		() => processSnapshots(sortedSnapshots, timeRangeHours, timeOffsetHours),
-		[snapshots, timeRangeHours, timeOffsetHours],
+		[snapshots, timeRangeHours, timeOffsetHours]
 	);
 
 	if (!snapshots) {
@@ -188,7 +199,8 @@ const SnapshotsView = ({
 							下一个成就：{getMileStoneName(etaData!.views)}
 							<span className="text-secondary-foreground">
 								{" "}
-								预计 {formatHours(etaData!.eta)} 后（{addHoursToNow(etaData!.eta)}）达成
+								预计 {formatHours(etaData!.eta)} 后（{addHoursToNow(etaData!.eta)}
+								）达成
 							</span>
 						</p>
 					)}
@@ -197,8 +209,12 @@ const SnapshotsView = ({
 						<div className="mt-2">
 							<p className="text-sm text-secondary-foreground">成就达成时间：</p>
 							{milestoneAchievements.map((achievement) => (
-								<p key={achievement.milestone} className="text-sm text-secondary-foreground ml-2">
-									{achievement.milestoneName}（{achievement.milestone.toLocaleString()}） -{" "}
+								<p
+									key={achievement.milestone}
+									className="text-sm text-secondary-foreground ml-2"
+								>
+									{achievement.milestoneName}（
+									{achievement.milestone.toLocaleString()}） -{" "}
 									{formatDateTime(new Date(achievement.achievedAt))}
 									{achievement.timeTaken && ` - 用时 ${achievement.timeTaken}`}
 								</p>
@@ -220,7 +236,12 @@ const SnapshotsView = ({
 				<TabsContent value="chart">
 					<div className="flex flex-col gap-2">
 						<div className="flex justify-between items-center">
-							<Button variant="outline" size="sm" onClick={handleBack} disabled={!canGoBack}>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleBack}
+								disabled={!canGoBack}
+							>
 								上一页
 							</Button>
 							<Select value={timeRange} onValueChange={setTimeRange}>
@@ -238,7 +259,12 @@ const SnapshotsView = ({
 									<SelectItem value="all">全部</SelectItem>
 								</SelectContent>
 							</Select>
-							<Button variant="outline" size="sm" onClick={handleForward} disabled={!canGoForward}>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={handleForward}
+								disabled={!canGoForward}
+							>
 								下一页
 							</Button>
 						</div>
@@ -327,7 +353,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 					<div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-500 text-white text-3xl">
 						<TriangleAlert size={34} className="-translate-y-0.5" />
 					</div>
-					<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">无法找到曲目</h1>
+					<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">
+						无法找到曲目
+					</h1>
 					<a href={`/song/${loaderData.id}/add`} className="text-secondary-foreground">
 						点此收录
 					</a>
@@ -337,7 +365,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	}
 
 	if (error) {
-		return <Error error={error} />;
+		return <ErrorPage error={error} />;
 	}
 
 	const formatDuration = (duration: number) => {
@@ -353,7 +381,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem("sessionID") || ""}`,
 				},
-			},
+			}
 		);
 		setIsDialogOpen(false);
 		setIsSaving(false);
@@ -421,7 +449,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 								<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
 									取消
 								</Button>
-								<Button onClick={handleSongNameChange}>{isSaving ? "保存中..." : "保存"}</Button>
+								<Button onClick={handleSongNameChange}>
+									{isSaving ? "保存中..." : "保存"}
+								</Button>
 							</div>
 						</div>
 					</DialogContent>
@@ -432,7 +462,8 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 					<If condition={songInfo!.aid}>
 						<Then>
 							<p>
-								<span>av{songInfo!.aid}</span> · <span>{av2bv(songInfo!.aid!)}</span>
+								<span>av{songInfo!.aid}</span> ·{" "}
+								<span>{av2bv(songInfo!.aid!)}</span>
 							</p>
 						</Then>
 					</If>
@@ -448,7 +479,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 						<span> · </span>
 						<If condition={songInfo!.publishedAt}>
 							<Then>
-								<span>发布于 {formatDateTime(new Date(songInfo!.publishedAt!))}</span>
+								<span>
+									发布于 {formatDateTime(new Date(songInfo!.publishedAt!))}
+								</span>
 							</Then>
 						</If>
 					</p>
@@ -461,7 +494,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 				<div className="flex flex-col gap-3">
 					{songInfo!.aid && (
 						<Button className="bg-pink-400">
-							<a href={`https://www.bilibili.com/video/${av2bv(songInfo!.aid)}`}>哔哩哔哩</a>
+							<a href={`https://www.bilibili.com/video/${av2bv(songInfo!.aid)}`}>
+								哔哩哔哩
+							</a>
 						</Button>
 					)}
 					<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -471,7 +506,9 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 						<AlertDialogContent>
 							<AlertDialogHeader>
 								<AlertDialogTitle>确认删除</AlertDialogTitle>
-								<AlertDialogDescription>你确定要删除本歌曲吗？</AlertDialogDescription>
+								<AlertDialogDescription>
+									你确定要删除本歌曲吗？
+								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
 								<AlertDialogCancel>取消</AlertDialogCancel>

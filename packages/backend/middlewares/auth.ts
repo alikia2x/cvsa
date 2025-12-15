@@ -1,6 +1,6 @@
-import { Elysia } from "elysia";
 import { validateSession } from "@backend/lib/auth";
-import { SessionType, UserType } from "@core/drizzle";
+import type { SessionType, UserType } from "@core/drizzle";
+import { Elysia } from "elysia";
 
 export interface AuthenticatedContext {
 	user: UserType;
@@ -42,7 +42,7 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 			return {
 				user: null,
 				session: null,
-				isAuthenticated: false
+				isAuthenticated: false,
 			};
 		}
 
@@ -54,7 +54,7 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 			return {
 				user: null,
 				session: null,
-				isAuthenticated: false
+				isAuthenticated: false,
 			};
 		}
 
@@ -62,13 +62,13 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 		return {
 			user: validationResult.user,
 			session: validationResult.session,
-			isAuthenticated: true
+			isAuthenticated: true,
 		};
 	})
-	.onBeforeHandle({ as: "scoped" }, ({ user, session, status }) => {
+	.onBeforeHandle({ as: "scoped" }, ({ user, status }) => {
 		if (!user) {
 			return status(401, {
-				message: "Authentication required."
+				message: "Authentication required.",
 			});
 		}
 	})

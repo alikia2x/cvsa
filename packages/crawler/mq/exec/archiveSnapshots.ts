@@ -1,20 +1,20 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import { MINUTE } from "@core/lib";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import type { Job } from "bullmq";
+import {
+	formatDistanceStrict,
+	formatDuration,
+	intervalToDuration,
+	nextMonday,
+	nextSaturday,
+} from "date-fns";
 import {
 	getCommonArchiveAids,
 	getVideosWithoutActiveSnapshotScheduleByType,
-	scheduleSnapshot
+	scheduleSnapshot,
 } from "db/snapshotSchedule";
-import logger from "@core/log";
-import { lockManager } from "@core/mq/lockManager";
-import { MINUTE } from "@core/lib";
-import { sql } from "@core/db/dbNew";
-import {
-	nextMonday,
-	nextSaturday,
-	formatDistanceStrict,
-	intervalToDuration,
-	formatDuration
-} from "date-fns";
 
 function randomTimestampBetween(start: Date, end: Date) {
 	const startMs = start.getTime();
@@ -43,7 +43,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const now = Date.now();
 			const date = new Date();
 			const formatted = formatDistanceStrict(date, nextSaturday(date).getTime(), {
-				unit: "hour"
+				unit: "hour",
 			});
 			logger.log(
 				`Scheduled archive snapshot for aid ${aid} in ${formatted}.`,
@@ -62,7 +62,7 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const targetTime = getRandomTimeInNextWeek();
 			const interval = intervalToDuration({
 				start: new Date(),
-				end: new Date(targetTime)
+				end: new Date(targetTime),
 			});
 			const formatted = formatDuration(interval, { format: ["days", "hours"] });
 

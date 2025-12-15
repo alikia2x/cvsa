@@ -1,14 +1,14 @@
-import Argon2id from "@rabbit-company/argon2id";
+import { generate as generateId } from "@alikia/random-key";
 import {
 	db,
-	usersInCredentials,
 	loginSessionsInCredentials,
-	UserType,
-	SessionType
+	type SessionType,
+	type UserType,
+	usersInCredentials,
 } from "@core/drizzle";
-import { eq, and, isNull } from "drizzle-orm";
-import { generate as generateId } from "@alikia/random-key";
 import logger from "@core/log";
+import Argon2id from "@rabbit-company/argon2id";
+import { and, eq, isNull } from "drizzle-orm";
 
 export async function verifyUser(
 	username: string,
@@ -36,7 +36,7 @@ export async function verifyUser(
 		nickname: foundUser.nickname,
 		role: foundUser.role,
 		unqId: foundUser.unqId,
-		createdAt: foundUser.createdAt
+		createdAt: foundUser.createdAt,
 	};
 }
 
@@ -57,7 +57,7 @@ export async function createSession(
 			ipAddress,
 			userAgent,
 			lastUsedAt: new Date().toISOString(),
-			expireAt: expireAt.toISOString()
+			expireAt: expireAt.toISOString(),
 		});
 	} catch (error) {
 		logger.error(error as Error);
@@ -108,7 +108,7 @@ export async function validateSession(
 
 	return {
 		user: users[0],
-		session: session
+		session: session,
 	};
 }
 
@@ -116,7 +116,7 @@ export async function deactivateSession(sessionId: string): Promise<boolean> {
 	const result = await db
 		.update(loginSessionsInCredentials)
 		.set({
-			deactivatedAt: new Date().toISOString()
+			deactivatedAt: new Date().toISOString(),
 		})
 		.where(eq(loginSessionsInCredentials.id, sessionId));
 

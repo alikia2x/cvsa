@@ -1,7 +1,7 @@
-import { type Oklch } from "culori";
+import type { Oklch } from "culori";
 
 export const round = (value: number, precision: number) => {
-	return Math.round(value * Math.pow(10, precision)) / Math.pow(10, precision);
+	return Math.round(value * 10 ** precision) / 10 ** precision;
 };
 
 export const roundOklch = (oklch: Oklch) => {
@@ -9,20 +9,20 @@ export const roundOklch = (oklch: Oklch) => {
 		...oklch,
 		l: round(oklch.l, precision.l),
 		c: round(oklch.c, precision.c),
-		h: round(oklch.h!, precision.h)
+		h: round(oklch.h!, precision.h),
 	};
 };
 
 export const precision = {
 	l: 4,
 	c: 4,
-	h: 2
+	h: 2,
 };
 
 export const maxValue = {
 	l: 1,
 	c: 0.37,
-	h: 360
+	h: 360,
 };
 
 /**

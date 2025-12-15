@@ -13,7 +13,7 @@ export const errorCodes = [
 	"SERVER_ERROR",
 	"RATE_LIMIT_EXCEEDED",
 	"ENTITY_EXISTS",
-	"THIRD_PARTY_ERROR"
+	"THIRD_PARTY_ERROR",
 ];
 
 function generateErrorCodeRegex(strings: string[]): string {
@@ -33,7 +33,7 @@ export const ErrorResponseSchema = t.Object({
 	i18n: t.Optional(
 		t.Object({
 			key: t.String(),
-			values: t.Optional(t.Record(t.String(), t.Union([t.String(), t.Number(), t.Date()])))
+			values: t.Optional(t.Record(t.String(), t.Union([t.String(), t.Number(), t.Date()]))),
 		})
-	)
+	),
 });
