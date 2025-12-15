@@ -23,6 +23,75 @@ import {
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
 
+const aliRegions = ["hangzhou", "shanghai", "beijing", "chengdu", "qingdao"] as const;
+type AliRegion = (typeof aliRegions)[number];
+
+function createAliProxiesObject<T extends readonly string[]>(regions: T) {
+	return regions.reduce(
+		(result, currentRegion) => {
+			result[`alicloud_${currentRegion}`] = {
+				type: "alicloud-fc" as const,
+				data: {
+					region: currentRegion,
+					timeout: 15000
+				}
+			} as ProxyDef<AlicloudFcProxyData>;
+			return result;
+		},
+		{} as Record<`alicloud_${AliRegion}`, ProxyDef<AlicloudFcProxyData>>
+	);
+}
+
+const aliProxiesObject = createAliProxiesObject(aliRegions);
+const aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_${AliRegion}`);
+
+const proxies = {
+	native: {
+		type: "native" as const,
+		data: {}
+	},
+
+	...aliProxiesObject,
+
+	ip_proxy_pool: {
+		type: "ip-proxy" as const,
+		data: {
+			extractor: async (): Promise<IPEntry[]> => {
+				interface APIResponse {
+					code: number;
+					data: {
+						ip: string;
+						port: number;
+						endtime: string;
+						city: string;
+					}[];
+				}
+				const url = Bun.env.IP_PROXY_EXTRACTOR_URL;
+				const response = await fetch(url);
+				const data = (await response.json()) as APIResponse;
+				if (data.code !== 0) {
+					throw new Error(`IP proxy extractor failed with code ${data.code}`);
+				}
+				const ips = data.data;
+				return ips.map((item) => {
+					return {
+						address: item.ip,
+						port: item.port,
+						lifespan: Date.parse(item.endtime + "+08") - Date.now(),
+						createdAt: Date.now(),
+						used: false
+					};
+				});
+			},
+			strategy: "round-robin",
+			minPoolSize: 10,
+			maxPoolSize: 100,
+			refreshInterval: 5 * SECOND,
+			initialPoolSize: 10
+		}
+	}
+} satisfies Record<string, ProxyDef>;
+
 interface FCResponse {
 	statusCode: number;
 	body: string;
@@ -32,7 +101,7 @@ interface FCResponse {
 interface NativeProxyData {}
 
 interface AlicloudFcProxyData {
-	region: string;
+	region: (typeof aliRegions)[number];
 	timeout?: number;
 }
 
@@ -83,17 +152,89 @@ interface ProviderDef {
 	limiters: readonly RateLimiterConfig[];
 }
 
-interface TaskDef<ProxyKeys extends string = string, ProviderKeys extends string = string> {
+type ProxyName = keyof typeof proxies;
+
+interface TaskDef<ProviderKeys extends string = string> {
 	provider: ProviderKeys;
-	proxies: readonly ProxyKeys[] | "all";
+	proxies: readonly ProxyName[] | "all";
 	limiters?: readonly RateLimiterConfig[];
 }
 
-interface NetworkConfig {
+interface NetworkConfigInternal<ProviderKeys extends string> {
 	proxies: Record<string, ProxyDef>;
-	providers: Record<string, ProviderDef>;
-	tasks: Record<string, TaskDef<any, any>>;
+	providers: Record<ProviderKeys, ProviderDef>;
+	tasks: Record<string, TaskDef<ProviderKeys>>;
 }
+
+const biliLimiterConfig: RateLimiterConfig[] = [
+	{ duration: 1, max: 20 },
+	{ duration: 15, max: 130 },
+	{ duration: 5 * 60, max: 2000 }
+];
+
+const bili_normal = structuredClone(biliLimiterConfig);
+bili_normal[0].max = 5;
+bili_normal[1].max = 40;
+bili_normal[2].max = 200;
+
+const bili_strict = structuredClone(biliLimiterConfig);
+bili_strict[0].max = 1;
+bili_strict[1].max = 6;
+bili_strict[2].max = 100;
+
+type MyProxyKeys = keyof typeof proxies;
+
+const fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
+
+function createNetworkConfig<ProviderKeys extends string>(
+	config: NetworkConfigInternal<ProviderKeys>
+): NetworkConfigInternal<ProviderKeys> {
+	return config;
+}
+
+const config = createNetworkConfig({
+	proxies: proxies,
+	providers: {
+		test: { limiters: [] },
+		bilibili: { limiters: [] }
+	},
+	tasks: {
+		test: {
+			provider: "test",
+			proxies: fcProxies
+		},
+		test_ip: {
+			provider: "test",
+			proxies: ["ip_proxy_pool"]
+		},
+		getVideoInfo: {
+			provider: "bilibili",
+			proxies: "all",
+			limiters: bili_strict
+		},
+		getLatestVideos: {
+			provider: "bilibili",
+			proxies: "all",
+			limiters: bili_strict
+		},
+		snapshotMilestoneVideo: {
+			provider: "bilibili",
+			proxies: aliProxies
+		},
+		snapshotVideo: {
+			provider: "bilibili",
+			proxies: aliProxies
+		},
+		bulkSnapshot: {
+			provider: "bilibili",
+			proxies: aliProxies
+		}
+	}
+});
+
+type NetworkConfig = typeof config;
+
+export type RequestTasks = keyof typeof config.tasks;
 
 type NetworkDelegateErrorCode =
 	| "NO_PROXY_AVAILABLE"
@@ -595,123 +736,6 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 		);
 	}
 }
-
-const biliLimiterConfig: RateLimiterConfig[] = [
-	{ duration: 1, max: 20 },
-	{ duration: 15, max: 130 },
-	{ duration: 5 * 60, max: 2000 }
-];
-
-const bili_normal = structuredClone(biliLimiterConfig);
-bili_normal[0].max = 5;
-bili_normal[1].max = 40;
-bili_normal[2].max = 200;
-
-const bili_strict = structuredClone(biliLimiterConfig);
-bili_strict[0].max = 1;
-bili_strict[1].max = 6;
-bili_strict[2].max = 100;
-
-const aliRegions = ["hangzhou"] as const;
-
-const proxies = {
-	native: {
-		type: "native" as const,
-		data: {}
-	},
-
-	alicloud_hangzhou: {
-		type: "alicloud-fc" as const,
-		data: {
-			region: "hangzhou",
-			timeout: 15000
-		}
-	},
-
-	ip_proxy_pool: {
-		type: "ip-proxy" as const,
-		data: {
-			extractor: async (): Promise<IPEntry[]> => {
-				interface APIResponse {
-					code: number;
-					data: {
-						ip: string;
-						port: number;
-						endtime: string;
-						city: string;
-					}[];
-				}
-				const url = Bun.env.IP_PROXY_EXTRACTOR_URL;
-				const response = await fetch(url);
-				const data = (await response.json()) as APIResponse;
-				if (data.code !== 0) {
-					throw new Error(`IP proxy extractor failed with code ${data.code}`);
-				}
-				const ips = data.data;
-				return ips.map((item) => {
-					return {
-						address: item.ip,
-						port: item.port,
-						lifespan: Date.parse(item.endtime + "+08") - Date.now(),
-						createdAt: Date.now(),
-						used: false
-					};
-				});
-			},
-			strategy: "round-robin",
-			minPoolSize: 10,
-			maxPoolSize: 100,
-			refreshInterval: 5 * SECOND,
-			initialPoolSize: 10
-		}
-	}
-} satisfies Record<string, ProxyDef>;
-
-type MyProxyKeys = keyof typeof proxies;
-
-const fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
-
-const config = {
-	proxies: proxies,
-	providers: {
-		test: { limiters: [] },
-		bilibili: { limiters: [] }
-	},
-	tasks: {
-		test: {
-			provider: "test",
-			proxies: fcProxies
-		},
-		test_ip: {
-			provider: "test",
-			proxies: ["ip_proxy_pool"]
-		},
-		getVideoInfo: {
-			provider: "bilibili",
-			proxies: "all",
-			limiters: bili_strict
-		},
-		getLatestVideos: {
-			provider: "bilibili",
-			proxies: "all",
-			limiters: bili_strict
-		},
-		snapshotMilestoneVideo: {
-			provider: "bilibili",
-			proxies: ["ip_proxy_pool"]
-		},
-		snapshotVideo: {
-			provider: "bilibili",
-			proxies: ["ip_proxy_pool"],
-		},
-		bulkSnapshot: {
-			provider: "bilibili",
-			proxies: ["ip_proxy_pool"],
-		}
-	}
-} as const satisfies NetworkConfig;
-
-export type RequestTasks = keyof typeof config.tasks;
 
 const networkDelegate = new NetworkDelegate(config);
 
