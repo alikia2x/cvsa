@@ -56,6 +56,11 @@ class MultiChannelDataset(Dataset):
         self.max_length = max_length
         self.mode = mode
         
+        if self.mode == 'test' and os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                self.examples = [json.loads(line) for line in f]
+            return
+        
         # 检查train、eval和test文件是否存在
         train_file = os.path.join(os.path.dirname(file_path), 'train.jsonl')
         eval_file = os.path.join(os.path.dirname(file_path), 'eval.jsonl')
@@ -101,9 +106,9 @@ class MultiChannelDataset(Dataset):
         
         # 返回文本字典
         texts = {
-            'title': example['title'],
-            'description': example['description'],
-            'tags': tags_text
+            'title': example['title'] or 'no title',
+            'description': example['description'] or 'no description',
+            'tags': tags_text or 'no tags'
         }
         
         return {

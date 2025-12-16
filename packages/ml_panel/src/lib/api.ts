@@ -76,7 +76,6 @@ class ApiClient {
 		});
 	}
 
-
 	async sampleDataset(data: {
 		strategy: string;
 		limit?: number;

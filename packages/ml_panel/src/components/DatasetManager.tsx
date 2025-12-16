@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
 	Dialog,
 	DialogContent,
-	DialogDescription,
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
@@ -24,6 +23,8 @@ import { Trash2, Plus, Database, Upload } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { Input } from "./ui/input";
+import { Checkbox } from "./ui/checkbox";
 
 export function DatasetManager() {
 	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -37,14 +38,20 @@ export function DatasetManager() {
 		aidListFile: null as File | null,
 		aidList: [] as number[]
 	});
+	const [loadCost, setLoadCost] = useState(0);
 
 	const queryClient = useQueryClient();
 
 	// Fetch datasets
 	const { data: datasetsData, isLoading: datasetsLoading } = useQuery({
 		queryKey: ["datasets"],
-		queryFn: () => apiClient.getDatasets(),
-		refetchInterval: 30000 // Refresh every 30 seconds
+		queryFn: async () => {
+			const t = performance.now();
+			const r = await apiClient.getDatasets();
+			setLoadCost(performance.now() - t);
+			return r;
+		},
+		refetchInterval: 5000
 	});
 
 	// Fetch embedding models
@@ -235,9 +242,9 @@ export function DatasetManager() {
 			{/* Create Dataset Button */}
 			<div className="flex justify-between items-center">
 				<div>
-					<h3 className="text-lg font-medium">Dataset List</h3>
+					<h3 className="text-lg font-medium">Datasets</h3>
 					<p className="text-sm text-muted-foreground">
-						{datasetsData?.datasets?.length || 0} datasets created
+						{datasetsData?.datasets?.length || 0} datasets loaded. ({Math.round(loadCost)} ms)
 					</p>
 				</div>
 
@@ -245,21 +252,17 @@ export function DatasetManager() {
 					<DialogTrigger asChild>
 						<Button>
 							<Plus className="h-4 w-4 mr-2" />
-							Create Dataset
+							New Dataset
 						</Button>
 					</DialogTrigger>
 					<DialogContent className="sm:max-w-[500px]">
 						<DialogHeader>
-							<DialogTitle>Create New Dataset</DialogTitle>
-							<DialogDescription>
-								Select sampling strategy and configuration parameters to create a
-								new dataset
-							</DialogDescription>
+							<DialogTitle>New Dataset</DialogTitle>
 						</DialogHeader>
 
 						<div className="grid gap-4 py-4">
 							<div className="grid gap-2">
-								<Label htmlFor="creationMode">Creation Mode</Label>
+								<Label htmlFor="creationMode">Create new database from</Label>
 								<Select
 									value={createFormData.creationMode}
 									onValueChange={(value) =>
@@ -273,18 +276,20 @@ export function DatasetManager() {
 									}
 								>
 									<SelectTrigger>
-										<SelectValue placeholder="Select creation mode" />
+										<SelectValue placeholder="Create from..." />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="sampling">Sampling Strategy</SelectItem>
-										<SelectItem value="aidList">Upload Aid List</SelectItem>
+										<SelectItem value="sampling">
+											sampling the database
+										</SelectItem>
+										<SelectItem value="aidList">given aid list</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
 
 							{createFormData.creationMode === "sampling" && (
 								<div className="grid gap-2">
-									<Label htmlFor="strategy">Sampling Strategy</Label>
+									<Label htmlFor="strategy">Sampling strategy</Label>
 									<Select
 										value={createFormData.strategy}
 										onValueChange={(value) =>
@@ -298,8 +303,8 @@ export function DatasetManager() {
 											<SelectValue placeholder="Select sampling strategy" />
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="all">All Videos</SelectItem>
-											<SelectItem value="random">Random Sampling</SelectItem>
+											<SelectItem value="all">All videos</SelectItem>
+											<SelectItem value="random">Random sampling</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -308,8 +313,8 @@ export function DatasetManager() {
 							{createFormData.creationMode === "sampling" &&
 								createFormData.strategy === "random" && (
 									<div className="grid gap-2">
-										<Label htmlFor="limit">Sample Count</Label>
-										<Textarea
+										<Label htmlFor="limit">Sample count</Label>
+										<Input
 											id="limit"
 											placeholder="Enter number of samples, e.g., 1000"
 											value={createFormData.limit}
@@ -325,7 +330,7 @@ export function DatasetManager() {
 
 							{createFormData.creationMode === "aidList" && (
 								<div className="grid gap-2">
-									<Label htmlFor="aidListFile">Aid List File</Label>
+									<Label htmlFor="aidListFile">aid list file</Label>
 									<div
 										className="border-2 border-dashed rounded-lg p-4 cursor-pointer"
 										onClick={() =>
@@ -362,7 +367,7 @@ export function DatasetManager() {
 									/>
 									{createFormData.aidList.length > 0 && (
 										<div className="text-sm text-green-600">
-											✓ Loaded {createFormData.aidList.length} AIDs from{" "}
+											Loaded {createFormData.aidList.length} aids from{" "}
 											{createFormData.aidListFile?.name}
 										</div>
 									)}
@@ -370,7 +375,7 @@ export function DatasetManager() {
 							)}
 
 							<div className="grid gap-2">
-								<Label htmlFor="model">Embedding Model</Label>
+								<Label htmlFor="model">Embedding model</Label>
 								<Select
 									value={createFormData.embeddingModel}
 									onValueChange={(value) =>
@@ -411,14 +416,13 @@ export function DatasetManager() {
 							</div>
 
 							<div className="flex items-center space-x-2">
-								<input
-									type="checkbox"
+								<Checkbox
 									id="forceRegenerate"
 									checked={createFormData.forceRegenerate}
-									onChange={(e) =>
+									onCheckedChange={(e) =>
 										setCreateFormData((prev) => ({
 											...prev,
-											forceRegenerate: e.target.checked
+											forceRegenerate: e ? true : false
 										}))
 									}
 								/>
@@ -480,9 +484,11 @@ export function DatasetManager() {
 									<span>{dataset.stats.total_records} records</span>
 									<span>{dataset.stats.embedding_model}</span>
 									<span>{formatDate(dataset.created_at)}</span>
-									<span className="text-muted-foreground">
-										New: {dataset.stats.new_embeddings}
-									</span>
+									{dataset.stats.new_embeddings && (
+										<span className="text-muted-foreground">
+											New: {dataset.stats.new_embeddings}
+										</span>
+									)}
 								</div>
 							</CardContent>
 						</Card>

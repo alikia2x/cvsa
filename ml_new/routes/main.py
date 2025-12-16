@@ -101,7 +101,7 @@ async def build_dataset_endpoint(request: DatasetBuildRequest):
     if request.embedding_model not in config_loader.get_embedding_models():
         raise HTTPException(status_code=400, detail=f"Invalid embedding model: {request.embedding_model}")
     
-    dataset_id = str(uuid.uuid4())
+    dataset_id = request.id or str(uuid.uuid4())
     
     # Start task-based dataset building
     task_id = await dataset_builder.start_dataset_build_task(
@@ -335,7 +335,7 @@ async def create_dataset_with_sampling_endpoint(request: DatasetCreateRequest):
         raise HTTPException(status_code=400, detail=f"Invalid embedding model: {request.embedding_model}")
     
     import uuid
-    dataset_id = str(uuid.uuid4())
+    dataset_id = request.id or str(uuid.uuid4())
     
     try:
         # First sample the AIDs
