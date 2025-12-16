@@ -186,6 +186,7 @@ class ParquetDatasetStorage:
                 'dataset_id': dataset_id,
                 'description': f'Auto-regenerated metadata for dataset {dataset_id}',
                 'stats': {
+                    'total_records': total_records,
                     'regenerated': True,
                     'regeneration_reason': 'missing_or_corrupted_metadata_file'
                 },
@@ -404,7 +405,6 @@ class ParquetDatasetStorage:
             try:
                 # Extract dataset_id from filename (remove .parquet extension)
                 dataset_id = parquet_file.stem
-                print(dataset_id)
                 
                 # Try to load metadata, this will automatically regenerate if missing
                 metadata = self.load_dataset_metadata(dataset_id)

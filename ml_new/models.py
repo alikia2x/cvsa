@@ -3,6 +3,7 @@ Data models for dataset building functionality
 """
 
 from typing import List, Optional, Dict, Any, Literal
+import uuid
 from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
@@ -51,6 +52,7 @@ class DatasetBuildTaskStatus(BaseModel):
 
 class DatasetBuildRequest(BaseModel):
     """Request model for dataset building"""
+    id: Optional[str] = Field(str(uuid.uuid4()), description="Dataset ID")
     aid_list: List[int] = Field(..., description="List of video AIDs")
     embedding_model: str = Field(..., description="Embedding model name")
     force_regenerate: bool = Field(False, description="Whether to force regenerate embeddings")

@@ -197,42 +197,8 @@ def load_model_from_experiment(
 def safe_extract_aid(metadata_entry):
     """Safely extract aid from metadata entry"""
     if isinstance(metadata_entry, dict) and 'aid' in metadata_entry:
-        return metadata_entry['aid']
+        return metadata_entry['aid'].tolist()
     return None
-
-def normalize_batch_metadata(metadata, expected_batch_size):
-    """
-    Normalize batch metadata to ensure consistent structure
-    
-    Args:
-        metadata: Raw metadata from DataLoader (could be various formats)
-        expected_batch_size: Expected number of metadata entries
-        
-    Returns:
-        List of metadata dictionaries
-    """
-    # Handle different metadata structures
-    if metadata is None:
-        return [{}] * expected_batch_size
-    
-    if isinstance(metadata, dict):
-        # Single metadata object - duplicate for entire batch
-        return [metadata] * expected_batch_size
-    
-    if isinstance(metadata, (list, tuple)):
-        if len(metadata) == expected_batch_size:
-            return list(metadata)
-        elif len(metadata) < expected_batch_size:
-            # Pad with empty dicts
-            padded = list(metadata) + [{}] * (expected_batch_size - len(metadata))
-            return padded
-        else:
-            # Truncate to expected size
-            return list(metadata[:expected_batch_size])
-    
-    # Unknown format - return empty dicts
-    logger.warning(f"Unknown metadata format: {type(metadata)}")
-    return [{}] * expected_batch_size
 
 def evaluate_model(
     model,
@@ -257,7 +223,6 @@ def evaluate_model(
     all_predictions = []
     all_labels = []
     all_probabilities = []
-    all_metadata = []
     fn_aids = []
     fp_aids = []
     
@@ -277,33 +242,9 @@ def evaluate_model(
             all_labels.extend(labels.cpu().numpy())
             all_probabilities.extend(probabilities.cpu().numpy())
             
-            # Collect metadata and track FN/FP
-            batch_size = len(labels)
-            batch_metadata = normalize_batch_metadata(metadata, batch_size)
-            all_metadata.extend(batch_metadata)
-            
-            # Track FN and FP aids for this batch
-            logger.debug(f"Batch {batch_idx}: labels shape {labels.shape}, predictions shape {predictions.shape}, metadata structure: {type(batch_metadata)}")
-            if len(batch_metadata) != len(labels):
-                logger.warning(f"Metadata length mismatch: {len(batch_metadata)} metadata entries vs {len(labels)} samples")
-            
             for i, (true_label, pred_label) in enumerate(zip(labels.cpu().numpy(), predictions.cpu().numpy())):
                 try:
-                    # Safely get metadata entry with bounds checking
-                    if i >= len(batch_metadata):
-                        logger.warning(f"Index {i} out of range for batch_metadata (length: {len(batch_metadata)})")
-                        continue
-                    
-                    meta_entry = batch_metadata[i]
-                    if not isinstance(meta_entry, dict):
-                        logger.warning(f"Metadata entry {i} is not a dict: {type(meta_entry)}")
-                        continue
-                    
-                    if 'aid' not in meta_entry:
-                        logger.debug(f"No 'aid' key in metadata entry {i}")
-                        continue
-                    
-                    aid = safe_extract_aid(meta_entry)
+                    aid = metadata['aid'].tolist()[i]
                     if aid is not None:
                         if true_label == 1 and pred_label == 0:  # False Negative
                             fn_aids.append(aid)
@@ -620,30 +561,28 @@ def main():
         )
     
     # Print results
-    logger.info("=" * 50)
-    logger.info("Test Results")
-    logger.info("=" * 50)
-    logger.info(f"Dataset: {args.dataset_id}")
+    print("Test Results")
+    print("=" * 50)
+    print(f"Dataset: {args.dataset_id}")
     if args.use_api:
-        logger.info(f"Method: API ({args.api_url})")
+        print(f"Method: API ({args.api_url})")
     else:
-        logger.info(f"Experiment: {args.experiment}")
-    logger.info(f"Total samples: {metrics['total_samples']}")
-    logger.info(f"Class distribution: {metrics['class_distribution']}")
+        print(f"Experiment: {args.experiment}")
+    print(f"Total samples: {metrics['total_samples']}")
+    print(f"Class distribution: {metrics['class_distribution']}")
     if 'failed_requests' in metrics:
         logger.info(f"Failed API requests: {metrics['failed_requests']}")
-    logger.info("-" * 50)
-    logger.info(f"Accuracy: {metrics['accuracy']:.4f}")
-    logger.info(f"Precision: {metrics['precision']:.4f}")
-    logger.info(f"Recall: {metrics['recall']:.4f}")
-    logger.info(f"F1 Score: {metrics['f1']:.4f}")
-    logger.info(f"AUC: {metrics['auc']:.4f}")
-    logger.info("-" * 50)
-    logger.info(f"True Positives: {metrics['true_positives']}")
-    logger.info(f"True Negatives: {metrics['true_negatives']}")
-    logger.info(f"False Positives: {metrics['false_positives']}")
-    logger.info(f"False Negatives: {metrics['false_negatives']}")
-    logger.info("=" * 50)
+    print("-" * 50)
+    print(f"Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Precision: {metrics['precision']:.4f}")
+    print(f"Recall: {metrics['recall']:.4f}")
+    print(f"F1 Score: {metrics['f1']:.4f}")
+    print(f"AUC: {metrics['auc']:.4f}")
+    print(f"True Positives: {metrics['true_positives']}")
+    print(f"True Negatives: {metrics['true_negatives']}")
+    print(f"False Positives: {metrics['false_positives']}")
+    print(f"False Negatives: {metrics['false_negatives']}")
+    print("=" * 50)
     
     # Save detailed results if requested
     if args.output:

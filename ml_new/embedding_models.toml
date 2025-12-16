@@ -2,14 +2,23 @@
 
 model = "jina-embedding-v3-m2v"
 
-[models.qwen3-embedding]
-name = "text-embedding-v4"
-dimensions = 2048
+# [models.qwen3-embedding]
+# name = "text-embedding-v4"
+# dimensions = 2048
+# type = "openai-compatible"
+# api_endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+# max_tokens = 8192
+# max_batch_size = 10
+# api_key_env = "ALIYUN_KEY"
+
+[models.qwen3-embedding-8b]
+name = "qwen/qwen3-embedding-8b"
+dimensions = 4096
 type = "openai-compatible"
-api_endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-max_tokens = 8192
-max_batch_size = 10
-api_key_env = "ALIYUN_KEY"
+api_endpoint = "https://openrouter.ai/api/v1"
+max_tokens = 32768
+max_batch_size = 100
+api_key_env = "OPENROUTER_KEY"
 
 [models.jina-embedding-v3-m2v]
 name = "jina-embedding-v3-m2v-1024"
