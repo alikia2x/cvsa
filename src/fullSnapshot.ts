@@ -20,7 +20,6 @@ if (!dbPath) {
 }
 
 const sqlite = new Database(dbPath);
-const pg = sql;
 
 const getAids = async () => {
 	const aidsFile = args["--aids"];
@@ -46,12 +45,15 @@ async function addCandidates() {
 
 	const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
 
-	let stmt = "";
-    for (const aid of newAids) {
-        stmt += `INSERT OR IGNORE INTO bili_info_crawl (aid, status) VALUES (${aid}, 'pending');\n`;
-    }
-    await Bun.file("1.sql").write(stmt);
-	sqlite.exec(stmt);
+	let i = 0;
+	for (const aid of newAids) {
+		const stmt = sqlite.query(
+			`INSERT INTO bili_info_crawl (aid, status) VALUES ($aid, 'pending');`
+		);
+		stmt.all({ $aid: aid });
+		i++;
+		logger.log(`Added ${i} to local DB.`);
+	}
 	logger.log(`Added ${newAids.length} to local DB.`);
 }
 
@@ -84,7 +86,7 @@ async function insertAidsToDB() {
 		}
 	};
 
-	const groupSize = 5;
+	const groupSize = 20;
 	const groups = [];
 	for (let i = 0; i < totalAids; i += groupSize) {
 		groups.push(aidsInDB.slice(i, i + groupSize));

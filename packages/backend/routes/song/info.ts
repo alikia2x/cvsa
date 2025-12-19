@@ -141,7 +141,14 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 				message: "Given song is not associated with any bilibili video."
 			});
 		}
-		return db.select().from(eta).where(eq(eta.aid, aid));
+		const data = await db.select().from(eta).where(eq(eta.aid, aid));
+		return {
+			aid: data[0].aid,
+			eta: data[0].eta,
+			views: data[0].currentViews,
+			speed: data[0].speed,
+			updatedAt: data[0].updatedAt
+		}
 	})
 	.use(requireAuth)
 	.patch(

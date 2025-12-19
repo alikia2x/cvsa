@@ -79,40 +79,40 @@ export const MilestoneVideoCard = ({
 					</div>
 				</div>
 			</div>
-			<div className="grid grid-cols-2 gap-5 text-xs text-muted-foreground mb-2">
-				<div>
+			<div className="grid grid-rows-2 gap-1 text-xs text-muted-foreground mb-1">
+				<div className="flex gap-4">
 					<p>剩余播放: {remainingViews.toLocaleString()}</p>
-					<p>预计达成: {formatHours(video.eta.eta)}</p>
+					<p>播放增速: {Math.round(video.eta.speed)}/小时</p>
+					
 				</div>
 				<div>
-					<p>播放速度: {Math.round(video.eta.speed)}/小时</p>
-					<p>达成时间: {addHoursToNow(video.eta.eta)}</p>
+					<p>预计达成: {addHoursToNow(video.eta.eta)}（{formatHours(video.eta.eta)}）</p>
 				</div>
 			</div>
 
-			<div className="flex gap-4 text-xs text-muted-foreground">
+			<div className="max-sm:grid-rows-2 max-sm:grid flex gap-1 sm:gap-4 text-xs text-muted-foreground">
 				{video.bilibili_metadata.publishedAt && (
 					<span className="stat-num">
-						发布于 {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
+						发布于: {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
 					</span>
 				)}
-				<span>
-					数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前
-				</span>
-				<a
-					href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="text-pink-400 text-xs hover:underline"
-				>
-					观看视频
-				</a>
-				<a
-					href={`/song/av${video.bilibili_metadata.aid}/info`}
-					className="text-xs text-secondary-foreground hover:underline"
-				>
-					查看详情
-				</a>
+				<div className="flex gap-4">
+					<span>数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前</span>
+					<a
+						href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-pink-400 text-xs hover:underline"
+					>
+						观看视频
+					</a>
+					<a
+						href={`/song/av${video.bilibili_metadata.aid}/info`}
+						className="text-xs text-secondary-foreground hover:underline"
+					>
+						查看详情
+					</a>
+				</div>
 			</div>
 		</Card>
 	);

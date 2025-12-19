@@ -37,7 +37,7 @@ import { HOUR } from "@core/lib";
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 type SongInfo = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["data"];
-type EtaInfo = Awaited<ReturnType<ReturnType<typeof app.video>["eta"]["get"]>>["data"];
+type EtaInfo = Awaited<ReturnType<ReturnType<typeof app.song>["eta"]["get"]>>["data"];
 export type Snapshots = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["data"];
 type SongInfoError = Awaited<ReturnType<ReturnType<typeof app.song>["info"]["get"]>>["error"];
 type SnapshotsError = Awaited<ReturnType<ReturnType<typeof app.video>["snapshots"]["get"]>>["error"];
@@ -267,7 +267,7 @@ export default function SongInfo({ loaderData }: Route.ComponentProps) {
 	const [isSaving, setIsSaving] = useState(false);
 
 	const getEta = async () => {
-		const { data, error } = await app.video({ id: loaderData.id }).eta.get();
+		const { data, error } = await app.song({ id: loaderData.id }).eta.get();
 		if (error) {
 			console.log(error);
 			return;
