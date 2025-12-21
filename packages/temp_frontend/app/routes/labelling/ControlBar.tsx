@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Check, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ControlBarProps {
 	currentIndex: number;
@@ -9,7 +9,13 @@ interface ControlBarProps {
 	onLabel: (label: boolean) => void;
 }
 
-export function ControlBar({ currentIndex, videosLength, onPrevious, onNext, onLabel }: ControlBarProps) {
+export function ControlBar({
+	currentIndex,
+	videosLength,
+	onPrevious,
+	onNext,
+	onLabel,
+}: ControlBarProps) {
 	return (
 		<div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 shadow-lg">
 			<div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
@@ -24,7 +30,11 @@ export function ControlBar({ currentIndex, videosLength, onPrevious, onNext, onL
 				</Button>
 
 				<div className="flex gap-4">
-					<Button variant="destructive" onClick={() => onLabel(false)} className="flex items-center gap-2">
+					<Button
+						variant="destructive"
+						onClick={() => onLabel(false)}
+						className="flex items-center gap-2"
+					>
 						<X className="h-4 w-4" />否
 					</Button>
 					<Button

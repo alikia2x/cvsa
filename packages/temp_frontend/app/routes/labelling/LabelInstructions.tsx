@@ -1,6 +1,12 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 interface LabelInstructionsProps {
@@ -15,7 +21,10 @@ export function LabelInstructions({ open, onOpenChange }: LabelInstructionsProps
 				该视频是否包含一首<b>中V歌曲</b>？
 				<Dialog open={open} onOpenChange={onOpenChange}>
 					<DialogTrigger asChild>
-						<Button variant="link" className="p-0 h-auto text-secondary-foreground ml-2">
+						<Button
+							variant="link"
+							className="p-0 h-auto text-secondary-foreground ml-2"
+						>
 							点击查看说明
 						</Button>
 					</DialogTrigger>
@@ -42,12 +51,21 @@ export function LabelInstructions({ open, onOpenChange }: LabelInstructionsProps
 								</b>
 								<ul className="list-disc list-inside text-sm">
 									<li>对于“AI孙燕姿”一类使用RVC等技术生成的人声，请选择“否”。</li>
-									<li>对于外文歌姬（如初音未来）演唱的<b>中文歌曲</b>，请选择“是”。</li>
-									<li>对于中文歌姬（如洛天依）演唱的<b>外语歌曲</b>，请选择“是”。</li>
-									<li>对于自行制作的声库/歌姬（如自制UTAU/DiffSinger声库），只要歌词中有中文，请选择“是”。</li>
+									<li>
+										对于外文歌姬（如初音未来）演唱的<b>中文歌曲</b>
+										，请选择“是”。
+									</li>
+									<li>
+										对于中文歌姬（如洛天依）演唱的<b>外语歌曲</b>，请选择“是”。
+									</li>
+									<li>
+										对于自行制作的声库/歌姬（如自制UTAU/DiffSinger声库），只要歌词中有中文，请选择“是”。
+									</li>
 								</ul>
 							</p>
-							<p><b>如果你无法确定，请始终选择“是”。</b></p>
+							<p>
+								<b>如果你无法确定，请始终选择“是”。</b>
+							</p>
 							<div className="bg-muted p-4 rounded-md">
 								<h4 className="font-medium mb-2">键盘快捷键</h4>
 								<ul className="list-disc list-inside text-sm text-secondary-foreground">

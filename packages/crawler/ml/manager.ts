@@ -1,6 +1,6 @@
-import * as ort from "onnxruntime-node";
 import logger from "@core/log";
 import { WorkerError } from "mq/schema";
+import * as ort from "onnxruntime-node";
 
 export class AIManager {
 	public sessions: { [key: string]: ort.InferenceSession } = {};

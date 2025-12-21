@@ -1,22 +1,22 @@
-import { Elysia, ErrorHandler } from "elysia";
-import { getBindingInfo, logStartup } from "./startMessage";
-import { pingHandler } from "@backend/routes/ping";
-import { cors } from "@elysiajs/cors";
-import { songHandler } from "@backend/routes/song/info";
-import { rootHandler } from "@backend/routes/root";
-import { getVideoMetadataHandler } from "@backend/routes/video/metadata";
-import { closeMileStoneHandler } from "@backend/routes/song/milestone";
 import { authHandler } from "@backend/routes/auth";
-import { onAfterHandler } from "./onAfterHandle";
+import { pingHandler } from "@backend/routes/ping";
+import { rootHandler } from "@backend/routes/root";
 import { searchHandler } from "@backend/routes/search";
-import { getVideoSnapshotsHandler } from "@backend/routes/video/snapshots";
 import { addSongHandler } from "@backend/routes/song/add";
 import { deleteSongHandler } from "@backend/routes/song/delete";
+import { songHandler } from "@backend/routes/song/info";
+import { closeMileStoneHandler } from "@backend/routes/song/milestone";
 import { songEtaHandler } from "@backend/routes/video/eta";
+import { getVideoMetadataHandler } from "@backend/routes/video/metadata";
+import { getVideoSnapshotsHandler } from "@backend/routes/video/snapshots";
+import { cors } from "@elysiajs/cors";
+import { Elysia, type ErrorHandler } from "elysia";
+import { onAfterHandler } from "./onAfterHandle";
+import { getBindingInfo, logStartup } from "./startMessage";
 import "./mq";
-import pkg from "../package.json";
-import { getUnlabelledVideos, postVideoLabel } from "@backend/routes/video/label";
 import { openAPIMiddleware } from "@backend/middlewares/openapi";
+import { getUnlabelledVideos, postVideoLabel } from "@backend/routes/video/label";
+import pkg from "../package.json";
 
 const [host, port] = getBindingInfo();
 logStartup(host, port);
@@ -24,7 +24,7 @@ logStartup(host, port);
 const errorHandler: ErrorHandler = ({ code, status, error }) => {
 	if (code === "NOT_FOUND")
 		return status(404, {
-			message: "The requested resource was not found."
+			message: "The requested resource was not found.",
 		});
 	if (code === "VALIDATION") return error.detail(error.message);
 	return error;
@@ -32,8 +32,8 @@ const errorHandler: ErrorHandler = ({ code, status, error }) => {
 
 const app = new Elysia({
 	serve: {
-		hostname: host
-	}
+		hostname: host,
+	},
 })
 	.onError(errorHandler)
 	.use(onAfterHandler)
@@ -60,8 +60,8 @@ const app = new Elysia({
 		},
 		{
 			detail: {
-				hide: true
-			}
+				hide: true,
+			},
 		}
 	)
 	.get(
@@ -71,8 +71,8 @@ const app = new Elysia({
 		},
 		{
 			detail: {
-				hide: true
-			}
+				hide: true,
+			},
 		}
 	)
 	.listen(15412);

@@ -1,13 +1,13 @@
 import {
+	type BilibiliMetadataType,
 	bilibiliMetadata,
-	BilibiliMetadataType,
 	bilibiliUser,
 	db,
-	labellingResult
+	labellingResult,
 } from "@core/drizzle";
-import { AkariModelVersion } from "ml/const";
+import type { PartialBy } from "@core/lib";
 import { eq, isNull } from "drizzle-orm";
-import { PartialBy } from "@core/lib";
+import { AkariModelVersion } from "ml/const";
 
 export async function insertIntoMetadata(
 	data: PartialBy<BilibiliMetadataType, "id" | "createdAt" | "status">
@@ -18,7 +18,7 @@ export async function insertIntoMetadata(
 export async function videoExistsInAllData(aid: number) {
 	const rows = await db
 		.select({
-			id: bilibiliMetadata.id
+			id: bilibiliMetadata.id,
 		})
 		.from(bilibiliMetadata)
 		.where(eq(bilibiliMetadata.aid, aid))
@@ -53,10 +53,10 @@ export async function insertVideoLabel(aid: number, label: number) {
 		.values({
 			aid,
 			label,
-			modelVersion: AkariModelVersion
+			modelVersion: AkariModelVersion,
 		})
 		.onConflictDoNothing({
-			target: [labellingResult.aid, labellingResult.modelVersion]
+			target: [labellingResult.aid, labellingResult.modelVersion],
 		});
 }
 
@@ -75,7 +75,7 @@ export async function getVideoInfoFromAllData(aid: number) {
 	return {
 		title: row.title,
 		description: row.description,
-		tags: row.tags
+		tags: row.tags,
 	};
 }
 

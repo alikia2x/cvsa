@@ -1,6 +1,6 @@
+import { createSession, getSessionExpirationDate, verifyUser } from "@backend/lib/auth";
 import { Elysia, t } from "elysia";
 import { ip } from "elysia-ip";
-import { verifyUser, createSession, getSessionExpirationDate } from "@backend/lib/auth";
 
 export const loginHandler = new Elysia({ prefix: "/auth" }).use(ip()).post(
 	"/session",
@@ -29,9 +29,9 @@ export const loginHandler = new Elysia({ prefix: "/auth" }).use(ip()).post(
 				id: user.id,
 				username: user.username,
 				nickname: user.nickname,
-				role: user.role
+				role: user.role,
 			},
-			sessionID: sessionId
+			sessionID: sessionId,
 		};
 	},
 	{
@@ -42,24 +42,24 @@ export const loginHandler = new Elysia({ prefix: "/auth" }).use(ip()).post(
 					id: t.Integer(),
 					username: t.String(),
 					nickname: t.Optional(t.String()),
-					role: t.String()
+					role: t.String(),
 				}),
-				sessionID: t.String()
+				sessionID: t.String(),
 			}),
 			401: t.Object({
-				message: t.String()
-			})
+				message: t.String(),
+			}),
 		},
 		body: t.Object({
 			username: t.String(),
-			password: t.String()
+			password: t.String(),
 		}),
 		detail: {
 			summary: "User login",
 			description:
 				"This endpoint authenticates users by verifying their credentials and creates a new session. \
 			Upon successful authentication, it returns user information and sets a secure HTTP-only cookie \
-			for session management. The session includes IP address and user agent tracking for security purposes."
-		}
+			for session management. The session includes IP address and user agent tracking for security purposes.",
+		},
 	}
 );

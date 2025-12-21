@@ -22,7 +22,7 @@ export const postgresConfig = {
 	port: parseInt(databasePort),
 	database: databaseName,
 	username: databaseUser,
-	password: databasePassword
+	password: databasePassword,
 };
 
 export const postgresConfigCred = {
@@ -30,5 +30,5 @@ export const postgresConfigCred = {
 	port: parseInt(databasePort),
 	database: databaseNameCred,
 	user: databaseUser,
-	password: databasePassword
+	password: databasePassword,
 };

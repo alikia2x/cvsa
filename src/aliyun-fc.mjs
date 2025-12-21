@@ -1,5 +1,6 @@
 import { Buffer } from "node:buffer";
-"use strict";
+
+("use strict");
 
 export const handler = async (event, _context) => {
 	const eventObj = JSON.parse(event);
@@ -35,7 +36,7 @@ export const handler = async (event, _context) => {
 			const response = await fetch(eventObj.url, {
 				headers: {
 					"User-Agent": randomUserAgent,
-					"Referer": refererUrl,
+					Referer: refererUrl,
 				},
 			});
 			statusCode = response.status;
@@ -51,7 +52,7 @@ export const handler = async (event, _context) => {
 				const response = await fetch(url, {
 					headers: {
 						"User-Agent": randomUserAgent,
-						"Referer": refererUrl,
+						Referer: refererUrl,
 					},
 				});
 				const responseBody = await response.text();
@@ -72,7 +73,7 @@ export const handler = async (event, _context) => {
 	}
 
 	return {
-		"statusCode": statusCode,
-		"body": JSON.stringify(body),
+		statusCode: statusCode,
+		body: JSON.stringify(body),
 	};
 };

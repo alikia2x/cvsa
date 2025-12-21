@@ -1,4 +1,4 @@
-import { SVGProps } from "react";
+import type { SVGProps } from "react";
 
 export const Checkmark: React.FC<SVGProps<SVGSVGElement>> = (props) => {
 	return (
@@ -13,7 +13,7 @@ export const Checkmark: React.FC<SVGProps<SVGSVGElement>> = (props) => {
 				strokeDasharray="100"
 				strokeDashoffset="100"
 				style={{
-					animation: "draw 0.3s forwards ease-out"
+					animation: "draw 0.3s forwards ease-out",
 				}}
 			/>
 			<style>

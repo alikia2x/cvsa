@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -11,16 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProjectDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onSubmit: (data: {
-		name: string;
-		description: string;
-		isPublic: boolean;
-	}) => void;
+	onSubmit: (data: { name: string; description: string; isPublic: boolean }) => void;
 	onDelete?: () => void;
 	initialData?: {
 		name: string;
@@ -71,14 +67,11 @@ export function ProjectDialog({
 			<DialogContent className="sm:max-w-[425px]">
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
-						<DialogTitle>
-							{isEditing ? "Edit Project" : "Create Project"}
-						</DialogTitle>
+						<DialogTitle>{isEditing ? "Edit Project" : "Create Project"}</DialogTitle>
 						<DialogDescription>
-							{isEditing 
-								? "Update your project details." 
-								: "Create a new project to organize your tasks."
-							}
+							{isEditing
+								? "Update your project details."
+								: "Create a new project to organize your tasks."}
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4 py-4">
@@ -135,9 +128,7 @@ export function ProjectDialog({
 							>
 								Cancel
 							</Button>
-							<Button type="submit">
-								{isEditing ? "Update" : "Create"}
-							</Button>
+							<Button type="submit">{isEditing ? "Update" : "Create"}</Button>
 						</div>
 					</DialogFooter>
 				</form>

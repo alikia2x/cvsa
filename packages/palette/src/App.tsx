@@ -1,15 +1,15 @@
 import "virtual:uno.css";
-import { type Oklch } from "culori";
-import { Picker } from "./components/Picker/Picker";
-import { Switch } from "./Switch";
-import { i18nProvider } from "./utils";
-import { useTheme } from "./ThemeContext";
-import { ColorPalette } from "./components/Palette";
-import { Buttons, Paragraph, SearchBar } from "./components/Components";
-import { AnimatePresence, motion } from "motion/react";
-import { Moon, Sun } from "lucide-react";
+import type { Oklch } from "culori";
 import { useAtom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
+import { Moon, Sun } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Buttons, Paragraph, SearchBar } from "./components/Components";
+import { ColorPalette } from "./components/Palette";
+import { Picker } from "./components/Picker/Picker";
+import { Switch } from "./Switch";
+import { useTheme } from "./ThemeContext";
+import { i18nProvider } from "./utils";
 
 const defaultColor: Oklch = { mode: "oklch", h: 29.2339, c: 0.244572, l: 0.596005 };
 
@@ -60,16 +60,22 @@ function App() {
 	return (
 		<div className="min-h-screen my-12 sm:px-6">
 			<div className="max-w-7xl mx-auto">
-				<h1 className="text-3xl font-bold mb-8 ml-3 text-on-background">CVSA Color Palette Generator</h1>
+				<h1 className="text-3xl font-bold mb-8 ml-3 text-on-background">
+					CVSA Color Palette Generator
+				</h1>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:[grid-template-columns:2fr_3fr] xl:grid-cols-3 gap-8">
 					{/* Left Column - Color Picker */}
 					<div className="xl:col-span-1 sm:bg-white sm:dark:bg-zinc-800 rounded-lg shadow-sm p-3 sm:p-6">
-						<h2 className="text-xl font-semibold text-on-background mb-4">Color Selection</h2>
+						<h2 className="text-xl font-semibold text-on-background mb-4">
+							Color Selection
+						</h2>
 
 						<div className="space-y-6">
 							<div>
-								<label className="block font-bold text-on-background mb-2">OKLCH Color Picker</label>
+								<label className="block font-bold text-on-background mb-2">
+									OKLCH Color Picker
+								</label>
 								<div className="mx-3">
 									<Picker
 										className="m-3"

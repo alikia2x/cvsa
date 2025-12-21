@@ -1,25 +1,25 @@
 // noinspection ExceptionCaughtLocallyJS
 
+import Credential from "@alicloud/credentials";
+import Stream from "@alicloud/darabonba-stream";
+import FC20230330, * as $FC20230330 from "@alicloud/fc20230330";
+import * as OpenApi from "@alicloud/openapi-client";
+import * as Util from "@alicloud/tea-util";
+import { SECOND } from "@core/lib";
 import logger from "@core/log";
 import {
 	MultipleRateLimiter,
 	type RateLimiterConfig,
-	RateLimiterError
+	RateLimiterError,
 } from "@core/mq/multipleRateLimiter";
-import { ReplyError } from "ioredis";
-import { SECOND } from "@core/lib";
-import FC20230330, * as $FC20230330 from "@alicloud/fc20230330";
-import Credential from "@alicloud/credentials";
-import * as OpenApi from "@alicloud/openapi-client";
-import Stream from "@alicloud/darabonba-stream";
-import * as Util from "@alicloud/tea-util";
-import { Readable } from "stream";
 import {
 	aliFCCounter,
 	aliFCErrorCounter,
 	ipProxyCounter,
-	ipProxyErrorCounter
+	ipProxyErrorCounter,
 } from "crawler/metrics";
+import { ReplyError } from "ioredis";
+import type { Readable } from "stream";
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
 
@@ -33,8 +33,8 @@ function createAliProxiesObject<T extends readonly string[]>(regions: T) {
 				type: "alicloud-fc" as const,
 				data: {
 					region: currentRegion,
-					timeout: 15000
-				}
+					timeout: 15000,
+				},
 			} as ProxyDef<AlicloudFcProxyData>;
 			return result;
 		},
@@ -48,7 +48,7 @@ const aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_
 const proxies = {
 	native: {
 		type: "native" as const,
-		data: {}
+		data: {},
 	},
 
 	...aliProxiesObject,
@@ -79,7 +79,7 @@ const proxies = {
 						port: item.port,
 						lifespan: Date.parse(item.endtime + "+08") - Date.now(),
 						createdAt: Date.now(),
-						used: false
+						used: false,
 					};
 				});
 			},
@@ -87,9 +87,9 @@ const proxies = {
 			minPoolSize: 10,
 			maxPoolSize: 100,
 			refreshInterval: 5 * SECOND,
-			initialPoolSize: 10
-		}
-	}
+			initialPoolSize: 10,
+		},
+	},
 } satisfies Record<string, ProxyDef>;
 
 interface FCResponse {
@@ -98,7 +98,7 @@ interface FCResponse {
 	serverTime: number;
 }
 
-interface NativeProxyData {}
+type NativeProxyData = {};
 
 interface AlicloudFcProxyData {
 	region: (typeof aliRegions)[number];
@@ -169,7 +169,7 @@ interface NetworkConfigInternal<ProviderKeys extends string> {
 const biliLimiterConfig: RateLimiterConfig[] = [
 	{ duration: 1, max: 20 },
 	{ duration: 15, max: 130 },
-	{ duration: 5 * 60, max: 2000 }
+	{ duration: 5 * 60, max: 2000 },
 ];
 
 const bili_normal = structuredClone(biliLimiterConfig);
@@ -196,40 +196,40 @@ const config = createNetworkConfig({
 	proxies: proxies,
 	providers: {
 		test: { limiters: [] },
-		bilibili: { limiters: [] }
+		bilibili: { limiters: [] },
 	},
 	tasks: {
 		test: {
 			provider: "test",
-			proxies: fcProxies
+			proxies: fcProxies,
 		},
 		test_ip: {
 			provider: "test",
-			proxies: ["ip_proxy_pool"]
+			proxies: ["ip_proxy_pool"],
 		},
 		getVideoInfo: {
 			provider: "bilibili",
 			proxies: "all",
-			limiters: bili_strict
+			limiters: bili_strict,
 		},
 		getLatestVideos: {
 			provider: "bilibili",
 			proxies: "all",
-			limiters: bili_strict
+			limiters: bili_strict,
 		},
 		snapshotMilestoneVideo: {
 			provider: "bilibili",
-			proxies: aliProxies
+			proxies: aliProxies,
 		},
 		snapshotVideo: {
 			provider: "bilibili",
-			proxies: aliProxies
+			proxies: aliProxies,
 		},
 		bulkSnapshot: {
 			provider: "bilibili",
-			proxies: aliProxies
-		}
-	}
+			proxies: aliProxies,
+		},
+	},
 });
 
 type NetworkConfig = typeof config;
@@ -279,7 +279,7 @@ class IPPoolManager {
 			minPoolSize: config.minPoolSize ?? 5,
 			maxPoolSize: config.maxPoolSize ?? 50,
 			refreshInterval: config.refreshInterval ?? 30_000,
-			initialPoolSize: config.initialPoolSize ?? 10
+			initialPoolSize: config.initialPoolSize ?? 10,
 		};
 	}
 
@@ -374,7 +374,7 @@ class IPPoolManager {
 				const ipEntry: IPEntry = {
 					...ipData,
 					createdAt: Date.now(),
-					used: false
+					used: false,
 				};
 				this.pool.push(ipEntry);
 			}
@@ -458,14 +458,14 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 
 			this.tasks[taskName] = {
 				provider: taskDef.provider,
-				proxies: [...targetProxies]
+				proxies: [...targetProxies],
 			};
 
 			if (taskDef.limiters && taskDef.limiters.length > 0) {
 				for (const proxyName of targetProxies) {
 					const limiterId = `proxy-${proxyName}-${taskName}`;
 					this.proxyLimiters[limiterId] = new MultipleRateLimiter(limiterId, [
-						...taskDef.limiters
+						...taskDef.limiters,
 					]);
 				}
 			}
@@ -485,7 +485,7 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 				const limiterId = `provider-${proxyName}-${providerName}`;
 				if (!this.providerLimiters[limiterId]) {
 					this.providerLimiters[limiterId] = new MultipleRateLimiter(limiterId, [
-						...providerDef.limiters
+						...providerDef.limiters,
 					]);
 				}
 			}
@@ -654,7 +654,7 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 			} else {
 				return {
 					data: JSON.parse(rawData.body) as R,
-					time: rawData.serverTime
+					time: rawData.serverTime,
 				};
 			}
 		} catch (e) {
@@ -700,7 +700,7 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 
 				const response = await fetch(url, {
 					signal: controller.signal,
-					proxy: `http://${ipEntry.address}:${ipEntry.port}`
+					proxy: `http://${ipEntry.address}:${ipEntry.port}`,
 				});
 
 				clearTimeout(timeout);

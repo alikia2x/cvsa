@@ -1,5 +1,5 @@
-import logger from "@core/log";
 import { sql } from "@core/index";
+import logger from "@core/log";
 import arg from "arg";
 import fs from "fs/promises";
 import path from "path";
@@ -30,13 +30,13 @@ interface Record {
 async function fetchData(aid: number): Promise<Record[]> {
 	const cacheDir = path.resolve("temp/tdd");
 	const cacheFile = path.join(cacheDir, `${aid}.json`);
-	console.log(cacheFile)
+	console.log(cacheFile);
 	try {
 		const cached = await fs.readFile(cacheFile, "utf-8");
 		logger.log(`Using cached data for aid ${aid}`);
 		return JSON.parse(cached) as Record[];
-	} catch (e){
-		console.error(e)
+	} catch (e) {
+		console.error(e);
 		logger.log(`Fetching data from API for aid ${aid}`);
 		const url = `https://api.bunnyxt.com/tdd/v2/video/${aid}/record`;
 		const res = await fetch(url);
@@ -53,7 +53,7 @@ async function fetchData(aid: number): Promise<Record[]> {
 }
 
 const args = arg({
-	"--aid": Number
+	"--aid": Number,
 });
 
 const aid = args["--aid"];

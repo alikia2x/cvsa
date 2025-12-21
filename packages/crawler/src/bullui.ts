@@ -1,8 +1,8 @@
-import express from "express";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { ExpressAdapter } from "@bull-board/express";
-import { ClassifyVideoQueue, LatestVideosQueue, SnapshotQueue, MiscQueue } from "mq/index";
+import express from "express";
+import { ClassifyVideoQueue, LatestVideosQueue, MiscQueue, SnapshotQueue } from "mq/index";
 
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/");
@@ -12,9 +12,9 @@ createBullBoard({
 		new BullMQAdapter(LatestVideosQueue),
 		new BullMQAdapter(ClassifyVideoQueue),
 		new BullMQAdapter(SnapshotQueue),
-		new BullMQAdapter(MiscQueue)
+		new BullMQAdapter(MiscQueue),
 	],
-	serverAdapter: serverAdapter
+	serverAdapter: serverAdapter,
 });
 
 const app = express();

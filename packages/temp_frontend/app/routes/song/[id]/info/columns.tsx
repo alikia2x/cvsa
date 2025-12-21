@@ -2,8 +2,8 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/components/SearchResults";
+import { Button } from "@/components/ui/button";
 
 export type Snapshot = {
 	createdAt: string;
@@ -20,7 +20,10 @@ export const columns: ColumnDef<Snapshot>[] = [
 		accessorKey: "createdAt",
 		header: ({ column }) => {
 			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
 					时间
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>

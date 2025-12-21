@@ -1,22 +1,21 @@
+import { Search, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { UserPlus, Search, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
+	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function UserSearchModal({
 	availableUsers,
-	projectId
+	projectId,
 }: {
 	availableUsers: Array<{ id: string; username: string }>;
 	projectId: string;
@@ -42,7 +41,7 @@ export function UserSearchModal({
 		try {
 			const response = await fetch(`/project/${projectId}/settings`, {
 				method: "POST",
-				body: formData
+				body: formData,
 			});
 
 			if (response.ok) {

@@ -1,6 +1,6 @@
-import networkDelegate from "@core/net/delegate";
-import type { VideoInfoData, VideoInfoResponse } from "@core/net/bilibili.d";
 import logger from "@core/log";
+import type { VideoInfoData, VideoInfoResponse } from "@core/net/bilibili.d";
+import networkDelegate from "@core/net/delegate";
 
 /*
  * Fetch video metadata from bilibili API
@@ -34,6 +34,6 @@ export async function getVideoInfo(
 	}
 	return {
 		data: data.data,
-		time: time
+		time: time,
 	};
 }

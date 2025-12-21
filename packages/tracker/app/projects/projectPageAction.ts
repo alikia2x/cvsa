@@ -1,10 +1,10 @@
-import type { Route } from "./+types/projectPage";
-import { db } from "@lib/db";
-import { projects, columns, tasks } from "@lib/db/schema";
-import { eq, asc, desc } from "drizzle-orm";
 import { generate as generateId } from "@alikia/random-key";
-import { getCurrentUser } from "@lib/auth-utils";
 import { canUserEditProject } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
+import { db } from "@lib/db";
+import { columns, projects, tasks } from "@lib/db/schema";
+import { asc, desc, eq } from "drizzle-orm";
+import type { Route } from "./+types/projectPage";
 
 export const projectPageAction = async ({ request, params }: Route.ActionArgs) => {
 	const user = await getCurrentUser(request);
@@ -24,7 +24,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 
 	if (intent === "getColumns") {
 		const projectId = formData.get("projectId") as string;
-		
+
 		const projectColumns = await db
 			.select()
 			.from(columns)
@@ -46,7 +46,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 						if (a.dueDate === null) return 1;
 						if (b.dueDate === null) return -1;
 						return a.dueDate.getTime() - b.dueDate.getTime();
-					})
+					}),
 				};
 			})
 		);
@@ -75,7 +75,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 			priority: priority,
 			dueDate: dueDate ? new Date(dueDate) : null,
 			createdAt: new Date(),
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		});
 
 		return { success: true, taskId };
@@ -101,7 +101,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 				columnId: columnId,
 				priority: priority,
 				dueDate: dueDate ? new Date(dueDate) : null,
-				updatedAt: new Date()
+				updatedAt: new Date(),
 			})
 			.where(eq(tasks.id, taskId));
 
@@ -147,7 +147,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 			name: name,
 			position: newPosition,
 			createdAt: new Date(),
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		});
 
 		return { success: true, columnId };
@@ -167,7 +167,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 			.set({
 				name: name,
 				position: parseInt(position) || 0,
-				updatedAt: new Date()
+				updatedAt: new Date(),
 			})
 			.where(eq(columns.id, columnId));
 
@@ -203,7 +203,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 				.update(columns)
 				.set({
 					position: i,
-					updatedAt: new Date()
+					updatedAt: new Date(),
 				})
 				.where(eq(columns.id, columnId));
 		}
@@ -226,7 +226,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 				name: name,
 				description: description,
 				updatedAt: new Date(),
-				isPublic: isPublic
+				isPublic: isPublic,
 			})
 			.where(eq(projects.id, projectId));
 
@@ -242,7 +242,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 
 		if (projectColumns.length > 0) {
 			return {
-				error: "Cannot delete project with columns. Please delete all columns first."
+				error: "Cannot delete project with columns. Please delete all columns first.",
 			};
 		}
 

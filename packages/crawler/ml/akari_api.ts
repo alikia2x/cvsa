@@ -1,6 +1,6 @@
-import apiManager from "./api_manager";
 import logger from "@core/log";
 import { WorkerError } from "mq/schema";
+import apiManager from "./api_manager";
 
 class AkariAPI {
 	private readonly serviceReady: Promise<boolean>;

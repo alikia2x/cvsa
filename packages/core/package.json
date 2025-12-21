@@ -1,31 +1,27 @@
 {
-	"name": "core",
-	"private": false,
-	"version": "0.0.10",
-	"scripts": {
-		"test": "bun --env-file=.env.test run vitest",
-		"build": "bun build ./index.ts --target node --outdir ./dist",
-		"drizzle:pull": "drizzle-kit pull"
-	},
-	"dependencies": {
-		"@alicloud/credentials": "^2.4.4",
-		"@alicloud/darabonba-stream": "^0.0.2",
-		"@alicloud/fc20230330": "^4.6.2",
-		"@alicloud/openapi-client": "^0.4.15",
-		"@alicloud/tea-util": "^1.4.10",
-		"@koshnic/ratelimit": "^1.0.3",
-		"@types/luxon": "^3.7.1",
-		"chalk": "^5.4.1",
-		"ioredis": "^5.6.1",
-		"logform": "^2.7.0",
-		"luxon": "^3.7.2",
-		"postgres": "^3.4.5",
-		"winston": "^3.17.0"
-	},
-	"devDependencies": {
-		"@types/ioredis": "^5.0.0",
-		"drizzle-kit": "^0.31.4"
-	},
-	"main": "./dist/index.js",
-	"types": "./types.d.ts"
+    "name": "core",
+    "private": true,
+    "scripts": {
+        "test": "bun --env-file=.env.test run vitest",
+        "drizzle:pull": "drizzle-kit pull"
+    },
+    "dependencies": {
+        "@alicloud/credentials": "^2.4.4",
+        "@alicloud/darabonba-stream": "^0.0.2",
+        "@alicloud/fc20230330": "^4.6.2",
+        "@alicloud/openapi-client": "^0.4.15",
+        "@alicloud/tea-util": "^1.4.10",
+        "@koshnic/ratelimit": "^1.0.3",
+        "@types/luxon": "^3.7.1",
+        "chalk": "^5.4.1",
+        "ioredis": "^5.6.1",
+        "logform": "^2.7.0",
+        "luxon": "^3.7.2",
+        "postgres": "^3.4.5",
+        "winston": "^3.17.0"
+    },
+    "devDependencies": {
+        "@types/ioredis": "^5.0.0",
+        "drizzle-kit": "^0.31.4"
+    }
 }

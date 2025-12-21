@@ -1,10 +1,10 @@
-import { Layout } from "@/components/Layout";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import { Layout } from "@/components/Layout";
+import { formatDateTime } from "@/components/SearchResults";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatDateTime } from "@/components/SearchResults";
 
 export default function Home() {
 	const now = new Date();
@@ -89,9 +89,13 @@ export default function Home() {
 					<CardContent>
 						<div className="text-center space-y-4">
 							<div className="space-y-2">
-								<div className="text-2xl font-bold">{isNegative ? "时间差为负值" : diffString}</div>
+								<div className="text-2xl font-bold">
+									{isNegative ? "时间差为负值" : diffString}
+								</div>
 								{isNegative && (
-									<div className="text-lg text-muted-foreground">结束时间早于开始时间</div>
+									<div className="text-lg text-muted-foreground">
+										结束时间早于开始时间
+									</div>
 								)}
 							</div>
 

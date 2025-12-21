@@ -1,5 +1,5 @@
-import { redirect } from "react-router";
 import { authenticateUser, createSession } from "@lib/auth";
+import { redirect } from "react-router";
 
 export async function action({ request }: { request: Request }) {
 	const formData = await request.formData();
@@ -16,7 +16,7 @@ export async function action({ request }: { request: Request }) {
 	}
 
 	const sessionId = await createSession(user.id);
-	
+
 	// Set session cookie
 	const headers = new Headers();
 	headers.append(

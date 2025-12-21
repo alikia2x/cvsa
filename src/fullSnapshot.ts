@@ -1,8 +1,8 @@
-import arg from "arg";
-import logger from "@core/log";
 import { Database } from "bun:sqlite";
-import { getVideoDetails } from "@core/net/getVideoDetails";
 import { sql } from "@core/index";
+import logger from "@core/log";
+import { getVideoDetails } from "@core/net/getVideoDetails";
+import arg from "arg";
 
 const quit = (reason?: string) => {
 	reason && logger.error(reason);
@@ -11,7 +11,7 @@ const quit = (reason?: string) => {
 
 const args = arg({
 	"--db": String,
-	"--aids": String
+	"--aids": String,
 });
 
 const dbPath = args["--db"];
@@ -113,7 +113,7 @@ function updateAidStatus(aid: number, status: string, bvid?: string, data?: stri
 		...(bvid ? [bvid] : []),
 		...(data ? [data] : []),
 		Date.now() / 1000,
-		aid
+		aid,
 	];
 	stmt.run(...params);
 }

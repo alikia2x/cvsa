@@ -1,22 +1,22 @@
-import type { Route } from "./+types/profile";
+import { hashPassword, passwordMatches } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
+import { db } from "@lib/db";
+import { users } from "@lib/db/schema";
+import { eq } from "drizzle-orm";
+import { ArrowLeft } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Form, Link, useActionData } from "react-router";
+import Layout from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
-import { Link, Form, useActionData } from "react-router";
-import { db } from "@lib/db";
-import { users } from "@lib/db/schema";
-import { getCurrentUser } from "@lib/auth-utils";
-import Layout from "@/components/layout";
-import { eq } from "drizzle-orm";
-import { hashPassword, passwordMatches } from "@lib/auth";
-import { useState, useEffect } from "react";
+import type { Route } from "./+types/profile";
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "User Profile" },
-		{ name: "description", content: "Manage your account settings" }
+		{ name: "description", content: "Manage your account settings" },
 	];
 }
 
@@ -96,7 +96,7 @@ export async function action({ request }: Route.ActionArgs) {
 		return {
 			success: true,
 			message: "Username updated successfully",
-			updatedUser
+			updatedUser,
 		};
 	}
 

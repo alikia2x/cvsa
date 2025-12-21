@@ -1,8 +1,8 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import { SearchIcon } from "@/components/icons/search";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react";
-import { useNavigate } from "react-router";
 
 interface SearchBoxProps extends React.ComponentProps<"div"> {
 	query: string;
@@ -12,7 +12,10 @@ interface SearchBoxProps extends React.ComponentProps<"div"> {
 
 export function SearchBox({ query = "", setQuery, onSearch, className, ...rest }: SearchBoxProps) {
 	return (
-		<div className={"flex h-12 gap-2 relative w-full " + (className ? ` ${className}` : "")} {...rest}>
+		<div
+			className={"flex h-12 gap-2 relative w-full " + (className ? ` ${className}` : "")}
+			{...rest}
+		>
 			<Input
 				className="h-full pl-5 pr-12 rounded-full"
 				type="search"
@@ -28,7 +31,11 @@ export function SearchBox({ query = "", setQuery, onSearch, className, ...rest }
 				}}
 				id="search-input"
 			/>
-			<Button variant="ghost" className="absolute rounded-full size-10 top-1 right-1" onClick={onSearch}>
+			<Button
+				variant="ghost"
+				className="absolute rounded-full size-10 top-1 right-1"
+				onClick={onSearch}
+			>
 				<SearchIcon className="size-6" />
 			</Button>
 		</div>
@@ -37,8 +44,13 @@ export function SearchBox({ query = "", setQuery, onSearch, className, ...rest }
 
 export function Search(props: React.ComponentProps<"div">) {
 	const [query, setQuery] = useState("");
-	let navigate = useNavigate();
+	const navigate = useNavigate();
 	return (
-		<SearchBox query={query} setQuery={setQuery} onSearch={() => navigate(`/search?q=${query}`)} {...props} />
+		<SearchBox
+			query={query}
+			setQuery={setQuery}
+			onSearch={() => navigate(`/search?q=${query}`)}
+			{...props}
+		/>
 	);
 }

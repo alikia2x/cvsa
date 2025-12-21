@@ -1,10 +1,10 @@
-import { getLatestVideoAids } from "net/getLatestVideoAids";
-import { videoExistsInAllData } from "db/bilibili_metadata";
-import { sleep } from "utils/sleep";
+import type { Psql } from "@core/db/psql.d";
 import { SECOND } from "@core/lib";
 import logger from "@core/log";
+import { videoExistsInAllData } from "db/bilibili_metadata";
 import { LatestVideosQueue } from "mq/index";
-import type { Psql } from "@core/db/psql.d";
+import { getLatestVideoAids } from "net/getLatestVideoAids";
+import { sleep } from "utils/sleep";
 
 export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 	let page = 1;
@@ -32,8 +32,8 @@ export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 					attempts: 100,
 					backoff: {
 						type: "fixed",
-						delay: SECOND * 5
-					}
+						delay: SECOND * 5,
+					},
 				}
 			);
 			videosFound.add(aid);

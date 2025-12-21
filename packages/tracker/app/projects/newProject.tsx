@@ -1,20 +1,20 @@
-import type { Route } from "./+types/newProject";
+import { generate as generateId } from "@alikia/random-key";
+import { getCurrentUser } from "@lib/auth-utils";
+import { db } from "@lib/db";
+import { columns, projects } from "@lib/db/schema";
+import { ArrowLeft } from "lucide-react";
+import { Form, Link, redirect } from "react-router";
+import Layout from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft } from "lucide-react";
-import { Link, Form, redirect } from "react-router";
-import { db } from "@lib/db";
-import { projects, columns } from "@lib/db/schema";
-import { generate as generateId } from "@alikia/random-key";
-import Layout from "@/components/layout";
-import { getCurrentUser } from "@lib/auth-utils";
+import type { Route } from "./+types/newProject";
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Create New Project" },
-		{ name: "description", content: "Create a new project for task management" }
+		{ name: "description", content: "Create a new project for task management" },
 	];
 }
 
@@ -43,14 +43,14 @@ export async function action({ request }: Route.ActionArgs) {
 			name,
 			description,
 			createdAt: now,
-			updatedAt: now
+			updatedAt: now,
 		});
 
 		// Create default columns for the project
 		const defaultColumns = [
 			{ name: "To Do", position: 0 },
 			{ name: "In Progress", position: 1 },
-			{ name: "Done", position: 2 }
+			{ name: "Done", position: 2 },
 		];
 
 		for (const column of defaultColumns) {
@@ -60,7 +60,7 @@ export async function action({ request }: Route.ActionArgs) {
 				name: column.name,
 				position: column.position,
 				createdAt: now,
-				updatedAt: now
+				updatedAt: now,
 			});
 		}
 

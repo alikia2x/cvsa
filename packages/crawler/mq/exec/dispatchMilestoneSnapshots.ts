@@ -1,12 +1,12 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import { HOUR, MINUTE, SECOND } from "@core/lib";
+import logger from "@core/log";
+import type { Job } from "bullmq";
 import { getVideosNearMilestone } from "db/snapshot";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import { jobCounter, jobDurationRaw } from "metrics";
 import { getAdjustedShortTermETA } from "mq/scheduling";
 import { truncate } from "utils/truncate";
-import { scheduleSnapshot } from "db/snapshotSchedule";
-import logger from "@core/log";
-import { HOUR, MINUTE, SECOND } from "@core/lib";
-import { sql } from "@core/db/dbNew";
-import { jobCounter, jobDurationRaw } from "metrics";
 
 export const dispatchMilestoneSnapshotsWorker = async (_job: Job) => {
 	const start = Date.now();

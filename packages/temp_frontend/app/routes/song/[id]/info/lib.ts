@@ -27,7 +27,7 @@ const getDataIntervalMins = (interval: number, timeRangeHours?: number) => {
 export const processSnapshots = (
 	snapshotTimestamps: (Exclude<Snapshots, null>[number] & { timestamp: number })[] | null,
 	timeRangeHours?: number,
-	timeOffsetHours: number = 0,
+	timeOffsetHours: number = 0
 ) => {
 	if (!snapshotTimestamps || snapshotTimestamps.length === 0) {
 		return [];
@@ -36,8 +36,12 @@ export const processSnapshots = (
 	const oldestTimestamp = snapshotTimestamps[0].timestamp;
 	const newestTimestamp = snapshotTimestamps[snapshotTimestamps.length - 1].timestamp;
 
-	const targetEndTime = timeRangeHours ? newestTimestamp - timeOffsetHours * HOUR : newestTimestamp;
-	const targetStartTime = timeRangeHours ? targetEndTime - timeRangeHours * HOUR : oldestTimestamp;
+	const targetEndTime = timeRangeHours
+		? newestTimestamp - timeOffsetHours * HOUR
+		: newestTimestamp;
+	const targetStartTime = timeRangeHours
+		? targetEndTime - timeRangeHours * HOUR
+		: oldestTimestamp;
 
 	const startTime = Math.max(oldestTimestamp, targetStartTime);
 	const endTime = targetEndTime;
@@ -46,10 +50,14 @@ export const processSnapshots = (
 	const afterRangeSnapshots = snapshotTimestamps.filter((s) => s.timestamp > endTime);
 
 	const closestBefore =
-		beforeRangeSnapshots.length > 0 ? beforeRangeSnapshots[beforeRangeSnapshots.length - 1] : null;
+		beforeRangeSnapshots.length > 0
+			? beforeRangeSnapshots[beforeRangeSnapshots.length - 1]
+			: null;
 	const closestAfter = afterRangeSnapshots.length > 0 ? afterRangeSnapshots[0] : null;
 
-	const relevantSnapshots = snapshotTimestamps.filter((s) => s.timestamp >= startTime && s.timestamp <= endTime);
+	const relevantSnapshots = snapshotTimestamps.filter(
+		(s) => s.timestamp >= startTime && s.timestamp <= endTime
+	);
 
 	if (relevantSnapshots.length === 0) {
 		if (!closestBefore && !closestAfter) {
@@ -84,7 +92,10 @@ export const processSnapshots = (
 	const processedData = [];
 
 	for (const timePoint of hourlyTimePoints) {
-		while (snapshotIndex < relevantSnapshots.length - 1 && relevantSnapshots[snapshotIndex].timestamp < timePoint) {
+		while (
+			snapshotIndex < relevantSnapshots.length - 1 &&
+			relevantSnapshots[snapshotIndex].timestamp < timePoint
+		) {
 			snapshotIndex++;
 		}
 
@@ -96,7 +107,9 @@ export const processSnapshots = (
 		if (currentSnapshot && currentSnapshot.timestamp === timePoint) {
 			result = createSnapshotData(timePoint, currentSnapshot);
 		} else if (prevSnapshot && currentSnapshot && prevSnapshot.timestamp <= timePoint) {
-			const ratio = (timePoint - prevSnapshot.timestamp) / (currentSnapshot.timestamp - prevSnapshot.timestamp);
+			const ratio =
+				(timePoint - prevSnapshot.timestamp) /
+				(currentSnapshot.timestamp - prevSnapshot.timestamp);
 			result = createInterpolatedSnapshot(timePoint, prevSnapshot, currentSnapshot, ratio);
 		} else if (!prevSnapshot && currentSnapshot && currentSnapshot.timestamp >= timePoint) {
 			result = createSnapshotData(timePoint, currentSnapshot);
@@ -139,21 +152,25 @@ const createInterpolatedSnapshot = (timestamp: number, prev: any, next: any, rat
 	createdAt: new Date(timestamp).toISOString(),
 	views: Math.round(prev.views + (next.views - prev.views) * ratio),
 	likes: Math.round((prev.likes || 0) + ((next.likes || 0) - (prev.likes || 0)) * ratio),
-	favorites: Math.round((prev.favorites || 0) + ((next.favorites || 0) - (prev.favorites || 0)) * ratio),
+	favorites: Math.round(
+		(prev.favorites || 0) + ((next.favorites || 0) - (prev.favorites || 0)) * ratio
+	),
 	coins: Math.round((prev.coins || 0) + ((next.coins || 0) - (prev.coins || 0)) * ratio),
-	danmakus: Math.round((prev.danmakus || 0) + ((next.danmakus || 0) - (prev.danmakus || 0)) * ratio),
+	danmakus: Math.round(
+		(prev.danmakus || 0) + ((next.danmakus || 0) - (prev.danmakus || 0)) * ratio
+	),
 });
 
 export const detectMilestoneAchievements = (
 	snapshots: Snapshots | null,
-	publishedAt?: string,
+	publishedAt?: string
 ): MilestoneAchievement[] => {
 	if (!snapshots || snapshots.length < 2) {
 		return [];
 	}
 
 	const sortedSnapshots = [...snapshots].sort(
-		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+		(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
 	);
 
 	const milestones = [100000, 1000000, 10000000];
@@ -176,7 +193,9 @@ export const detectMilestoneAchievements = (
 				const milestoneName = milestoneNames[j];
 
 				if (prevSnapshot.views < milestone && currentSnapshot.views >= milestone) {
-					const ratio = (milestone - prevSnapshot.views) / (currentSnapshot.views - prevSnapshot.views);
+					const ratio =
+						(milestone - prevSnapshot.views) /
+						(currentSnapshot.views - prevSnapshot.views);
 					const milestoneTime = new Date(prevTime + ratio * timeDiff);
 
 					const achievement: MilestoneAchievement = {
@@ -188,14 +207,16 @@ export const detectMilestoneAchievements = (
 
 					if (
 						!earliestAchievements.has(milestone) ||
-						new Date(achievement.achievedAt) < new Date(earliestAchievements.get(milestone)!.achievedAt)
+						new Date(achievement.achievedAt) <
+							new Date(earliestAchievements.get(milestone)!.achievedAt)
 					) {
 						earliestAchievements.set(milestone, achievement);
 					}
 				}
 
 				if (prevSnapshot.views === milestone || currentSnapshot.views === milestone) {
-					const exactSnapshot = prevSnapshot.views === milestone ? prevSnapshot : currentSnapshot;
+					const exactSnapshot =
+						prevSnapshot.views === milestone ? prevSnapshot : currentSnapshot;
 					const achievement: MilestoneAchievement = {
 						milestone,
 						milestoneName,
@@ -205,7 +226,8 @@ export const detectMilestoneAchievements = (
 
 					if (
 						!earliestAchievements.has(milestone) ||
-						new Date(achievement.achievedAt) < new Date(earliestAchievements.get(milestone)!.achievedAt)
+						new Date(achievement.achievedAt) <
+							new Date(earliestAchievements.get(milestone)!.achievedAt)
 					) {
 						earliestAchievements.set(milestone, achievement);
 					}
@@ -214,7 +236,9 @@ export const detectMilestoneAchievements = (
 		}
 	}
 
-	const achievementsWithTime = Array.from(earliestAchievements.values()).sort((a, b) => a.milestone - b.milestone);
+	const achievementsWithTime = Array.from(earliestAchievements.values()).sort(
+		(a, b) => a.milestone - b.milestone
+	);
 
 	if (publishedAt) {
 		const publishTime = new Date(publishedAt).getTime();

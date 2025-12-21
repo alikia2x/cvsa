@@ -1,9 +1,9 @@
+import type { Psql } from "@core/db/psql.d";
+import { HOUR, MINUTE } from "@core/lib";
+import { updateETA } from "db/eta";
 import { findClosestSnapshot, getLatestSnapshot, hasAtLeast2Snapshots } from "db/snapshotSchedule";
 import { truncate } from "utils/truncate";
 import { closetMilestone } from "./exec/snapshotTick";
-import { HOUR, MINUTE } from "@core/lib";
-import type { Psql } from "@core/db/psql.d";
-import { updateETA } from "db/eta";
 
 const log = (value: number, base: number = 10) => Math.log(value) / Math.log(base);
 

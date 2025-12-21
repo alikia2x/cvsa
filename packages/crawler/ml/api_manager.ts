@@ -33,9 +33,9 @@ export class APIManager {
 			const response = await fetch(`${this.baseUrl}/health`, {
 				method: "GET",
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
 				},
-				signal: AbortSignal.timeout(this.timeout)
+				signal: AbortSignal.timeout(this.timeout),
 			});
 
 			if (!response.ok) {
@@ -60,17 +60,17 @@ export class APIManager {
 			title: title.trim() || "untitled",
 			description: description.trim() || "N/A",
 			tags: tags.trim() || "empty",
-			aid: aid
+			aid: aid,
 		};
 
 		try {
 			const response = await fetch(`${this.baseUrl}/classify`, {
 				method: "POST",
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(request),
-				signal: AbortSignal.timeout(this.timeout)
+				signal: AbortSignal.timeout(this.timeout),
 			});
 
 			if (!response.ok) {
@@ -100,10 +100,10 @@ export class APIManager {
 			const response = await fetch(`${this.baseUrl}/classify_batch`, {
 				method: "POST",
 				headers: {
-					"Content-Type": "application/json"
+					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(requests),
-				signal: AbortSignal.timeout(this.timeout * 2) // Longer timeout for batch
+				signal: AbortSignal.timeout(this.timeout * 2), // Longer timeout for batch
 			});
 
 			if (!response.ok) {

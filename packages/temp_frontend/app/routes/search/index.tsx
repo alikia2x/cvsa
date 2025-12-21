@@ -1,13 +1,13 @@
-import { treaty } from "@elysiajs/eden";
 import type { App } from "@backend/src";
+import { treaty } from "@elysiajs/eden";
 import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Error } from "@/components/Error";
 import { useSearchParams } from "react-router";
+import { ErrorPage } from "@/components/Error";
+import { LayoutWithoutSearch } from "@/components/Layout";
 import { SearchBox } from "@/components/Search";
 import { SearchResults } from "@/components/SearchResults";
 import { Title } from "@/components/Title";
-import { LayoutWithoutSearch } from "@/components/Layout";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // @ts-expect-error anyway...
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
@@ -24,7 +24,9 @@ const Search = ({
 	query: string;
 	setQuery: (value: string) => void;
 	onSearch: () => void;
-} & React.ComponentProps<"div">) => <SearchBox query={query} setQuery={setQuery} onSearch={onSearch} {...props} />;
+} & React.ComponentProps<"div">) => (
+	<SearchBox query={query} setQuery={setQuery} onSearch={onSearch} {...props} />
+);
 
 export default function SearchResult() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -68,14 +70,19 @@ export default function SearchResult() {
 		return (
 			<LayoutWithoutSearch>
 				<Title title={searchParams.get("q") || "搜索"} />
-				<Search query={query} setQuery={setQuery} onSearch={handleSearch} className="mb-6" />
+				<Search
+					query={query}
+					setQuery={setQuery}
+					onSearch={handleSearch}
+					className="mb-6"
+				/>
 				<Skeleton className="w-full h-24 mb-2" />
 			</LayoutWithoutSearch>
 		);
 	}
 
 	if (error) {
-		return <Error error={error} />;
+		return <ErrorPage error={error} />;
 	}
 
 	return (

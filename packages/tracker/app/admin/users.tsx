@@ -1,33 +1,41 @@
-import type { Route } from "./+types/users";
+import { generate as generateId } from "@alikia/random-key";
+import { hashPassword } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
+import { db } from "@lib/db";
+import { users } from "@lib/db/schema";
+import { eq } from "drizzle-orm";
+import { ArrowLeft, Edit, Plus, Shield, ShieldOff, Trash2, UserPlus } from "lucide-react";
+import { Form, Link } from "react-router";
+import Layout from "@/components/layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
+	TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Trash2, Edit, Shield, ShieldOff, UserPlus } from "lucide-react";
-import { Link, Form } from "react-router";
-import { db } from "@lib/db";
-import { users } from "@lib/db/schema";
-import { getCurrentUser } from "@lib/auth-utils";
-import Layout from "@/components/layout";
-import { eq } from "drizzle-orm";
-import { hashPassword } from "@lib/auth";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { generate as generateId } from "@alikia/random-key";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { Route } from "./+types/users";
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "User Management - Admin" },
-		{ name: "description", content: "Manage users and permissions" }
+		{ name: "description", content: "Manage users and permissions" },
 	];
 }
 
@@ -64,10 +72,7 @@ export async function action({ request }: Route.ActionArgs) {
 			return { error: "Cannot change your own admin status" };
 		}
 
-		await db
-			.update(users)
-			.set({ isAdmin: !targetUser.isAdmin })
-			.where(eq(users.id, userId));
+		await db.update(users).set({ isAdmin: !targetUser.isAdmin }).where(eq(users.id, userId));
 
 		return { success: true };
 	}
@@ -103,7 +108,11 @@ export async function action({ request }: Route.ActionArgs) {
 		}
 
 		// Check if username already exists
-		const existingUser = await db.select().from(users).where(eq(users.username, username)).get();
+		const existingUser = await db
+			.select()
+			.from(users)
+			.where(eq(users.username, username))
+			.get();
 		if (existingUser) {
 			return { error: "Username already exists" };
 		}
@@ -115,7 +124,7 @@ export async function action({ request }: Route.ActionArgs) {
 			password: hashedPassword,
 			isAdmin,
 			createdAt: new Date(),
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		});
 
 		return { success: true };
@@ -136,7 +145,11 @@ export async function action({ request }: Route.ActionArgs) {
 		}
 
 		// Check if username already exists (excluding current user)
-		const existingUser = await db.select().from(users).where(eq(users.username, username)).get();
+		const existingUser = await db
+			.select()
+			.from(users)
+			.where(eq(users.username, username))
+			.get();
 		if (existingUser && existingUser.id !== userId) {
 			return { error: "Username already exists" };
 		}
@@ -151,10 +164,7 @@ export async function action({ request }: Route.ActionArgs) {
 			updateData.password = await hashPassword(password);
 		}
 
-		await db
-			.update(users)
-			.set(updateData)
-			.where(eq(users.id, userId));
+		await db.update(users).set(updateData).where(eq(users.id, userId));
 
 		return { success: true };
 	}
@@ -281,11 +291,23 @@ export default function UserManagement({ loaderData }: Route.ComponentProps) {
 														</DialogDescription>
 													</DialogHeader>
 													<Form method="post">
-														<input type="hidden" name="userId" value={user.id} />
-														<input type="hidden" name="intent" value="updateUser" />
+														<input
+															type="hidden"
+															name="userId"
+															value={user.id}
+														/>
+														<input
+															type="hidden"
+															name="intent"
+															value="updateUser"
+														/>
 														<div className="grid gap-4 py-4">
 															<div className="grid gap-2">
-																<Label htmlFor={`username-${user.id}`}>Username</Label>
+																<Label
+																	htmlFor={`username-${user.id}`}
+																>
+																	Username
+																</Label>
 																<Input
 																	id={`username-${user.id}`}
 																	name="username"
@@ -295,7 +317,11 @@ export default function UserManagement({ loaderData }: Route.ComponentProps) {
 																/>
 															</div>
 															<div className="grid gap-2">
-																<Label htmlFor={`password-${user.id}`}>New Password</Label>
+																<Label
+																	htmlFor={`password-${user.id}`}
+																>
+																	New Password
+																</Label>
 																<Input
 																	id={`password-${user.id}`}
 																	name="password"
@@ -308,25 +334,46 @@ export default function UserManagement({ loaderData }: Route.ComponentProps) {
 																	type="checkbox"
 																	id={`isAdmin-${user.id}`}
 																	name="isAdmin"
-																	defaultChecked={user.isAdmin || false}
+																	defaultChecked={
+																		user.isAdmin || false
+																	}
 																	className="rounded border-gray-300"
-																	disabled={user.id === currentUser.id}
+																	disabled={
+																		user.id === currentUser.id
+																	}
 																/>
-																<Label htmlFor={`isAdmin-${user.id}`}>Admin User</Label>
+																<Label
+																	htmlFor={`isAdmin-${user.id}`}
+																>
+																	Admin User
+																</Label>
 																{user.id === currentUser.id && (
-																	<span className="text-xs text-muted-foreground">(Cannot change your own admin status)</span>
+																	<span className="text-xs text-muted-foreground">
+																		(Cannot change your own
+																		admin status)
+																	</span>
 																)}
 															</div>
 														</div>
 														<DialogFooter>
-															<Button type="submit">Update User</Button>
+															<Button type="submit">
+																Update User
+															</Button>
 														</DialogFooter>
 													</Form>
 												</DialogContent>
 											</Dialog>
 											<Form method="post">
-												<input type="hidden" name="userId" value={user.id} />
-												<input type="hidden" name="intent" value="toggleAdmin" />
+												<input
+													type="hidden"
+													name="userId"
+													value={user.id}
+												/>
+												<input
+													type="hidden"
+													name="intent"
+													value="toggleAdmin"
+												/>
 												<Button
 													type="submit"
 													variant="outline"
@@ -342,13 +389,23 @@ export default function UserManagement({ loaderData }: Route.ComponentProps) {
 												</Button>
 											</Form>
 											<Form method="post">
-												<input type="hidden" name="userId" value={user.id} />
-												<input type="hidden" name="intent" value="deleteUser" />
+												<input
+													type="hidden"
+													name="userId"
+													value={user.id}
+												/>
+												<input
+													type="hidden"
+													name="intent"
+													value="deleteUser"
+												/>
 												<Button
 													type="submit"
 													variant="destructive"
 													size="sm"
-													disabled={user.isAdmin || user.id === currentUser.id} // Prevent deleting admin or self
+													disabled={
+														user.isAdmin || user.id === currentUser.id
+													} // Prevent deleting admin or self
 												>
 													<Trash2 className="size-4 mr-1" />
 													Delete

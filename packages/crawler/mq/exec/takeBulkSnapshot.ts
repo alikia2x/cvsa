@@ -1,21 +1,21 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import type { SnapshotScheduleType } from "@core/db/schema";
+import { HOUR, MINUTE, SECOND } from "@core/lib";
+import logger from "@core/log";
+import { NetSchedulerError } from "@core/net/delegate";
+import type { Job } from "bullmq";
+import { updateETA } from "db/eta";
 import {
 	bulkScheduleSnapshot,
 	bulkSetSnapshotStatus,
 	getLatestSnapshot,
 	scheduleSnapshot,
-	snapshotScheduleExists
+	snapshotScheduleExists,
 } from "db/snapshotSchedule";
-import { bulkGetVideoStats } from "net/bulkGetVideoStats";
-import logger from "@core/log";
-import { NetSchedulerError } from "@core/net/delegate";
-import { HOUR, MINUTE, SECOND } from "@core/lib";
-import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval";
-import { SnapshotScheduleType } from "@core/db/schema";
-import { sql } from "@core/db/dbNew";
-import { updateETA } from "db/eta";
-import { closetMilestone } from "./snapshotTick";
 import { snapshotCounter } from "metrics";
+import { getRegularSnapshotInterval } from "mq/task/regularSnapshotInterval";
+import { bulkGetVideoStats } from "net/bulkGetVideoStats";
+import { closetMilestone } from "./snapshotTick";
 
 export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 	const schedules: SnapshotScheduleType[] = job.data.schedules;

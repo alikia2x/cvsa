@@ -1,8 +1,8 @@
-import { Elysia, t } from "elysia";
-import { db, eta, history, songs, videoSnapshot } from "@core/drizzle";
-import { eq, and, desc } from "drizzle-orm";
 import { bv2av } from "@backend/lib/bilibiliID";
 import { requireAuth } from "@backend/middlewares/auth";
+import { db, eta, history, songs, videoSnapshot } from "@core/drizzle";
+import { and, desc, eq } from "drizzle-orm";
+import { Elysia, t } from "elysia";
 
 async function getSongIDFromBiliID(id: string) {
 	let aid: number;
@@ -48,11 +48,11 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 		if (Number.isNaN(songID)) {
 			return status(404, {
 				code: "SONG_NOT_FOUND",
-				message: "Given song cannot be found."
+				message: "Given song cannot be found.",
 			});
 		}
 		return {
-			songID
+			songID,
 		};
 	})
 	.get(
@@ -62,7 +62,7 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 			if (!info) {
 				return status(404, {
 					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
+					message: "Given song cannot be found.",
 				});
 			}
 			return {
@@ -72,7 +72,7 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 				producer: info.producer,
 				duration: info.duration,
 				cover: info.image || undefined,
-				publishedAt: info.publishedAt
+				publishedAt: info.publishedAt,
 			};
 		},
 		{
@@ -84,15 +84,15 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 					producer: t.Union([t.String(), t.Null()]),
 					duration: t.Union([t.Number(), t.Null()]),
 					cover: t.Optional(t.String()),
-					publishedAt: t.Union([t.String(), t.Null()])
+					publishedAt: t.Union([t.String(), t.Null()]),
 				}),
 				404: t.Object({
 					code: t.String(),
-					message: t.String()
-				})
+					message: t.String(),
+				}),
 			},
 			headers: t.Object({
-				Authorization: t.Optional(t.String())
+				Authorization: t.Optional(t.String()),
 			}),
 			detail: {
 				summary: "Get information of a song",
@@ -101,23 +101,23 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 			which can be provided in several formats. \
 			The endpoint accepts a song ID in either a numerical format as the internal ID in our database\
 			 or as a bilibili video ID (either av or BV format). \
-			 It responds with the song's name, bilibili ID (av), producer, duration, and associated singers."
-			}
+			 It responds with the song's name, bilibili ID (av), producer, duration, and associated singers.",
+			},
 		}
 	)
 	.get("/snapshots", async ({ status, songID }) => {
 		const r = await db.select().from(songs).where(eq(songs.id, songID)).limit(1);
-		if (r.length == 0) {
+		if (r.length === 0) {
 			return status(404, {
 				code: "SONG_NOT_FOUND",
-				message: "Given song cannot be found."
+				message: "Given song cannot be found.",
 			});
 		}
 		const song = r[0];
 		const aid = song.aid;
 		if (!aid) {
 			return status(404, {
-				message: "Given song is not associated with any bilibili video."
+				message: "Given song is not associated with any bilibili video.",
 			});
 		}
 		return db
@@ -128,17 +128,17 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 	})
 	.get("/eta", async ({ status, songID }) => {
 		const r = await db.select().from(songs).where(eq(songs.id, songID)).limit(1);
-		if (r.length == 0) {
+		if (r.length === 0) {
 			return status(404, {
 				code: "SONG_NOT_FOUND",
-				message: "Given song cannot be found."
+				message: "Given song cannot be found.",
 			});
 		}
 		const song = r[0];
 		const aid = song.aid;
 		if (!aid) {
 			return status(404, {
-				message: "Given song is not associated with any bilibili video."
+				message: "Given song is not associated with any bilibili video.",
 			});
 		}
 		const data = await db.select().from(eta).where(eq(eta.aid, aid));
@@ -158,7 +158,7 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 			if (!info) {
 				return status(404, {
 					code: "SONG_NOT_FOUND",
-					message: "Given song cannot be found."
+					message: "Given song cannot be found.",
 				});
 			}
 
@@ -181,32 +181,32 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 					updatedData.length > 0
 						? {
 								old: info,
-								new: updatedData[0]
+								new: updatedData[0],
 							}
-						: null
+						: null,
 			});
 			return {
 				message: "Successfully updated song info.",
-				updated: updatedData.length > 0 ? updatedData[0] : null
+				updated: updatedData.length > 0 ? updatedData[0] : null,
 			};
 		},
 		{
 			response: {
 				200: t.Object({
 					message: t.String(),
-					updated: t.Any()
+					updated: t.Any(),
 				}),
 				401: t.Object({
-					message: t.String()
+					message: t.String(),
 				}),
 				404: t.Object({
 					message: t.String(),
-					code: t.String()
-				})
+					code: t.String(),
+				}),
 			},
 			body: t.Object({
 				name: t.Optional(t.String()),
-				producer: t.Optional(t.String())
+				producer: t.Optional(t.String()),
 			}),
 			detail: {
 				summary: "Update song information",
@@ -214,7 +214,7 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 					"This endpoint allows authenticated users to update song metadata. It accepts partial updates \
 			for song name and producer fields. The endpoint validates the song ID (accepting both internal database IDs \
 			and bilibili video IDs in av/BV format), applies the requested changes, and logs the update in the history table \
-			for audit purposes. Requires authentication."
-			}
+			for audit purposes. Requires authentication.",
+			},
 		}
 	);

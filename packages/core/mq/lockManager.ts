@@ -1,5 +1,5 @@
-import { Redis } from "ioredis";
 import { redis } from "@core/db/redis";
+import type { Redis } from "ioredis";
 
 class LockManager {
 	private redis: Redis;

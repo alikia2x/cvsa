@@ -1,6 +1,6 @@
-import { Elysia, t } from "elysia";
 import { deactivateSession } from "@backend/lib/auth";
 import requireAuth from "@backend/middlewares/auth";
+import { Elysia, t } from "elysia";
 
 export const logoutHandler = new Elysia({ prefix: "/auth" }).use(requireAuth).delete(
 	"/session",
@@ -20,18 +20,18 @@ export const logoutHandler = new Elysia({ prefix: "/auth" }).use(requireAuth).de
 	{
 		response: {
 			200: t.Object({
-				message: t.String()
+				message: t.String(),
 			}),
 			401: t.Object({
-				message: t.String()
-			})
+				message: t.String(),
+			}),
 		},
 		detail: {
 			summary: "Logout current session",
 			description:
 				"This endpoint logs out the current user by deactivating their session and removing the session cookie. \
 				It requires an active session cookie to be present in the request. After successful logout, the session \
-				is invalidated and cannot be used again."
-		}
+				is invalidated and cannot be used again.",
+		},
 	}
 );

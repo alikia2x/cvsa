@@ -1,12 +1,13 @@
-import { Elysia } from "elysia";
-import { db, bilibiliMetadata, latestVideoSnapshot, songs } from "@core/drizzle";
-import { eq, ilike } from "drizzle-orm";
-import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@backend/lib/schema";
-import { z } from "zod";
-import { getVideoInfo } from "@core/net/getVideoInfo";
 import { biliIDToAID } from "@backend/lib/bilibiliID";
-import { retrieveVideoInfoFromCache } from "../video/metadata";
+import { BiliAPIVideoMetadataSchema, BiliVideoSchema, SongSchema } from "@backend/lib/schema";
 import { redis } from "@core/db/redis";
+import { bilibiliMetadata, db, latestVideoSnapshot, songs } from "@core/drizzle";
+import type { VideoInfoData } from "@core/net/bilibili";
+import { getVideoInfo } from "@core/net/getVideoInfo";
+import { eq, ilike } from "drizzle-orm";
+import { Elysia } from "elysia";
+import { z } from "zod";
+import { retrieveVideoInfoFromCache } from "../video/metadata";
 
 const getSongSearchResult = async (searchQuery: string) => {
 	const data = await db
@@ -26,7 +27,7 @@ const getSongSearchResult = async (searchQuery: string) => {
 				data: song,
 				occurrences,
 				viewsLog,
-				lengthRatio
+				lengthRatio,
 			};
 		})
 		.filter((d) => d !== null);
@@ -53,7 +54,7 @@ const getSongSearchResult = async (searchQuery: string) => {
 		return {
 			type: result.type,
 			data: result.data.songs,
-			rank: Math.min(Math.max(rank, 0), 1) // Ensure rank is between 0 and 1
+			rank: Math.min(Math.max(rank, 0), 1), // Ensure rank is between 0 and 1
 		};
 	});
 
@@ -71,21 +72,21 @@ const getDBVideoSearchResult = async (searchQuery: string) => {
 	return results.map((video) => ({
 		type: "bili-video-db" as "bili-video-db",
 		data: { views: video.latest_video_snapshot.views, ...video.bilibili_metadata },
-		rank: 1 // Exact match
+		rank: 1, // Exact match
 	}));
 };
 
 const getVideoSearchResult = async (searchQuery: string) => {
 	const aid = biliIDToAID(searchQuery);
 	if (!aid) return [];
-	let data;
+	let data: VideoInfoData;
 	const cachedData = await retrieveVideoInfoFromCache(aid);
 	if (cachedData) {
 		data = cachedData;
 	} else {
-		data = await getVideoInfo(aid, "getVideoInfo");
-		if (typeof data === "number") return [];
-		data = data.data;
+		const result = await getVideoInfo(aid, "getVideoInfo");
+		if (typeof result === "number") return [];
+		data = result.data;
 		const cacheKey = `cvsa:videoInfo:av${aid}`;
 		await redis.setex(cacheKey, 60, JSON.stringify(data));
 	}
@@ -93,13 +94,13 @@ const getVideoSearchResult = async (searchQuery: string) => {
 		{
 			type: "bili-video" as "bili-video",
 			data: data,
-			rank: 0.99 // Exact match
-		}
+			rank: 0.99, // Exact match
+		},
 	];
 };
 
 const BiliVideoDataSchema = BiliVideoSchema.extend({
-	views: z.number()
+	views: z.number(),
 });
 
 export const searchHandler = new Elysia({ prefix: "/search" }).get(
@@ -110,7 +111,7 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 		const [songResults, videoResults, dbVideoResults] = await Promise.all([
 			getSongSearchResult(searchQuery),
 			getVideoSearchResult(searchQuery),
-			getDBVideoSearchResult(searchQuery)
+			getDBVideoSearchResult(searchQuery),
 		]);
 
 		const combinedResults = [...songResults, ...videoResults, ...dbVideoResults];
@@ -118,7 +119,7 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 		const end = performance.now();
 		return {
 			data,
-			elapsedMs: end - start
+			elapsedMs: end - start,
 		};
 	},
 	{
@@ -130,27 +131,27 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 						z.object({
 							type: z.literal("song"),
 							data: SongSchema,
-							rank: z.number()
+							rank: z.number(),
 						}),
 						z.object({
 							type: z.literal("bili-video-db"),
 							data: BiliVideoDataSchema,
-							rank: z.number()
+							rank: z.number(),
 						}),
 						z.object({
 							type: z.literal("bili-video"),
 							data: BiliAPIVideoMetadataSchema,
-							rank: z.number()
-						})
+							rank: z.number(),
+						}),
 					])
-				)
+				),
 			}),
 			404: z.object({
-				message: z.string()
-			})
+				message: z.string(),
+			}),
 		},
 		query: z.object({
-			query: z.string()
+			query: z.string(),
 		}),
 		detail: {
 			summary: "Search songs and videos",
@@ -158,7 +159,7 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 				"This endpoint performs a comprehensive search across songs and videos in the database. \
 			It searches for songs by name and videos by bilibili ID (av/BV format). The results are ranked \
 			by relevance using a weighted algorithm that considers search term frequency, title length, \
-			and view count. Returns search results with performance timing information."
-		}
+			and view count. Returns search results with performance timing information.",
+		},
 	}
 );

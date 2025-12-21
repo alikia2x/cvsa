@@ -1,14 +1,14 @@
-import type { Route } from "./+types/home";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Kanban, LogOut } from "lucide-react";
-import { Link, Form, redirect } from "react-router";
+import { getUserProjects } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
 import { db } from "@lib/db";
 import { projects as projectsTable, tasks, users } from "@lib/db/schema";
 import { count, eq } from "drizzle-orm";
+import { Kanban, LogOut, Plus } from "lucide-react";
+import { Form, Link, redirect } from "react-router";
 import Layout from "@/components/layout";
-import { getCurrentUser } from "@lib/auth-utils";
-import { getUserProjects } from "@lib/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
 	return [{ title: "Projects - FramSpor" }];
@@ -41,7 +41,7 @@ export async function loader({ request }: { request: Request }) {
 
 			return {
 				...project,
-				taskCount: taskCountResult[0]?.count || 0
+				taskCount: taskCountResult[0]?.count || 0,
 			};
 		})
 	);
@@ -59,9 +59,17 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 				<div>
 					<h1 className="text-3xl font-bold tracking-tight">Projects</h1>
 					<p className="text-muted-foreground mt-2">
-						Welcome, <Link to="/profile" className="text-blue-500">{user.username}</Link>! You have {projects.length} project
+						Welcome,{" "}
+						<Link to="/profile" className="text-blue-500">
+							{user.username}
+						</Link>
+						! You have {projects.length} project
 						{projects.length === 1 ? "" : "s"}.
-						{user.isAdmin && <Link to="/admin/users"><span className="ml-2 text-blue-500">(Admin)</span></Link>}
+						{user.isAdmin && (
+							<Link to="/admin/users">
+								<span className="ml-2 text-blue-500">(Admin)</span>
+							</Link>
+						)}
 					</p>
 				</div>
 				<div className="flex gap-2">

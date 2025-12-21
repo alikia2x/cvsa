@@ -1,7 +1,7 @@
 import { TriangleAlert } from "lucide-react";
 import { Title } from "./Title";
 
-export function Error({ error }: { error: { status: number; value: { message?: string } } }) {
+export function ErrorPage({ error }: { error: { status: number; value: { message?: string } } }) {
 	return (
 		<div className="w-screen min-h-screen flex items-center justify-center">
 			<Title title="出错了" />
@@ -12,9 +12,13 @@ export function Error({ error }: { error: { status: number; value: { message?: s
 				<div className="w-16 h-16 flex items-center justify-center rounded-full bg-red-500 text-white text-3xl">
 					<TriangleAlert size={34} className="-translate-y-0.5" />
 				</div>
-				<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">出错了</h1>
+				<h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">
+					出错了
+				</h1>
 				{error.value.message && (
-					<p className="text-neutral-600 dark:text-neutral-400 wrap-break-word">{error.value.message}</p>
+					<p className="text-neutral-600 dark:text-neutral-400 wrap-break-word">
+						{error.value.message}
+					</p>
 				)}
 				<a href="/" className="hover:underline">
 					返回首页

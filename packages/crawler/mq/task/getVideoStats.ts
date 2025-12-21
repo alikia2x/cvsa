@@ -1,6 +1,6 @@
-import { getVideoInfo } from "@core/net/getVideoInfo";
-import logger from "@core/log";
 import type { Psql } from "@core/db/psql.d";
+import logger from "@core/log";
+import { getVideoInfo } from "@core/net/getVideoInfo";
 import { insertVideoSnapshot } from "db/snapshot";
 
 export interface SnapshotNumber {
@@ -52,7 +52,7 @@ export async function takeVideoSnapshot(
 		shares,
 		danmakus,
 		replies,
-		aid
+		aid,
 	});
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
@@ -66,6 +66,6 @@ export async function takeVideoSnapshot(
 		coins,
 		shares,
 		favorites,
-		time
+		time,
 	};
 }

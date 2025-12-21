@@ -1,10 +1,10 @@
-import { AIManager } from "ml/manager";
-import * as ort from "onnxruntime-node";
-import logger from "@core/log";
-import { WorkerError } from "mq/schema";
-import { AutoTokenizer, PreTrainedTokenizer } from "@huggingface/transformers";
-import { AkariModelVersion } from "./const";
 import path from "node:path";
+import logger from "@core/log";
+import { AutoTokenizer, type PreTrainedTokenizer } from "@huggingface/transformers";
+import { AIManager } from "ml/manager";
+import { WorkerError } from "mq/schema";
+import * as ort from "onnxruntime-node";
+import { AkariModelVersion } from "./const";
 
 const currentDir = import.meta.dir;
 const modelDir = path.join(currentDir, "../../../model/");
@@ -21,7 +21,7 @@ class AkariProto extends AIManager {
 		super();
 		this.models = {
 			classifier: onnxClassifierPath,
-			embedding: onnxEmbeddingPath
+			embedding: onnxEmbeddingPath,
 		};
 	}
 
@@ -59,7 +59,7 @@ class AkariProto extends AIManager {
 
 		const { input_ids } = await tokenizer(texts, {
 			add_special_tokens: false,
-			return_tensor: false
+			return_tensor: false,
 		});
 
 		const cumsum = (arr: number[]): number[] =>
@@ -70,17 +70,17 @@ class AkariProto extends AIManager {
 
 		const offsets: number[] = [
 			0,
-			...cumsum(input_ids.slice(0, -1).map((x: string) => x.length))
+			...cumsum(input_ids.slice(0, -1).map((x: string) => x.length)),
 		];
 		const flattened_input_ids = input_ids.flat();
 
 		const inputs = {
 			input_ids: new ort.Tensor("int64", new BigInt64Array(flattened_input_ids.map(BigInt)), [
-				flattened_input_ids.length
+				flattened_input_ids.length,
 			]),
 			offsets: new ort.Tensor("int64", new BigInt64Array(offsets.map(BigInt)), [
-				offsets.length
-			])
+				offsets.length,
+			]),
 		};
 
 		const { embeddings } = await session.run(inputs);

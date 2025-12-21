@@ -1,22 +1,21 @@
-import openapi from "@elysiajs/openapi";
-import pkg from "../package.json";
+import openapi, { fromTypes } from "@elysiajs/openapi";
 import * as z from "zod";
-import { fromTypes } from "@elysiajs/openapi";
+import pkg from "../package.json";
 
 export const openAPIMiddleware = openapi({
 	documentation: {
 		info: {
 			title: "CVSA API Docs",
-			version: pkg.version
-		}
+			version: pkg.version,
+		},
 	},
 	mapJsonSchema: {
-		zod: z.toJSONSchema
+		zod: z.toJSONSchema,
 	},
 	references: fromTypes(),
 	scalar: {
 		theme: "kepler",
 		hideClientButton: true,
-		hideDarkModeToggle: true
-	}
+		hideDarkModeToggle: true,
+	},
 });

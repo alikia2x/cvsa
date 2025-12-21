@@ -1,10 +1,10 @@
-import { Elysia } from "elysia";
-import { db, videoSnapshot } from "@core/drizzle";
 import { biliIDToAID } from "@backend/lib/bilibiliID";
-import { ErrorResponseSchema } from "@backend/src/schema";
-import { eq, desc } from "drizzle-orm";
-import z from "zod";
 import { SnapshotQueue } from "@backend/lib/mq";
+import { ErrorResponseSchema } from "@backend/src/schema";
+import { db, videoSnapshot } from "@core/drizzle";
+import { desc, eq } from "drizzle-orm";
+import { Elysia } from "elysia";
+import z from "zod";
 
 export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 	"/:id/snapshots",
@@ -17,7 +17,7 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 				code: "MALFORMED_SLOT",
 				message:
 					"We cannot parse the video ID, or we currently do not support this format.",
-				errors: []
+				errors: [],
 			});
 		}
 
@@ -29,7 +29,7 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 
 		if (data.length === 0) {
 			await SnapshotQueue.add("directSnapshot", {
-				aid
+				aid,
 			});
 		}
 
@@ -48,11 +48,11 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 					shares: z.number().nullable(),
 					danmakus: z.number().nullable(),
 					aid: z.number(),
-					replies: z.number().nullable()
+					replies: z.number().nullable(),
 				})
 			),
 			400: ErrorResponseSchema,
-			500: ErrorResponseSchema
+			500: ErrorResponseSchema,
 		},
 		detail: {
 			summary: "Get video snapshots",
@@ -60,7 +60,7 @@ export const getVideoSnapshotsHandler = new Elysia({ prefix: "/video" }).get(
 				"This endpoint retrieves historical view count snapshots for a bilibili video. It accepts video IDs in av or BV format \
 			and returns a chronological list of snapshots showing how the video's statistics (views, likes, coins, favorites, etc.) \
 			have changed over time. If no snapshots exist for the video, it automatically queues a snapshot job to collect initial data. \
-			Results are ordered by creation date in descending order."
-		}
+			Results are ordered by creation date in descending order.",
+		},
 	}
 );

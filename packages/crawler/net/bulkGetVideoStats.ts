@@ -1,6 +1,6 @@
-import networkDelegate from "@core/net/delegate";
-import type { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d";
 import logger from "@core/log";
+import type { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d";
+import networkDelegate from "@core/net/delegate";
 
 /*
  * Bulk fetch video metadata from bilibili API
@@ -34,6 +34,6 @@ export async function bulkGetVideoStats(aids: number[]): Promise<
 	}
 	return {
 		data: data.data,
-		time: time
+		time: time,
 	};
 }

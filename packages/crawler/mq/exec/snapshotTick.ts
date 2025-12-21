@@ -1,21 +1,21 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import { getClosetMilestone as closetMilestone } from "@core/lib/milestone";
+import logger from "@core/log";
+import type { Job } from "bullmq";
 import {
 	bulkGetVideosWithoutProcessingSchedules,
 	bulkSetSnapshotStatus,
 	getBulkSnapshotsInNextSecond,
 	getSnapshotsInNextSecond,
 	setSnapshotStatus,
-	videoHasProcessingSchedule
+	videoHasProcessingSchedule,
 } from "db/snapshotSchedule";
-import logger from "@core/log";
-import { SnapshotQueue } from "mq/index";
-import { sql } from "@core/db/dbNew";
 import { jobCounter, jobDurationRaw } from "metrics";
-import { getClosetMilestone as closetMilestone } from "@core/lib/milestone";
+import { SnapshotQueue } from "mq/index";
 
 const priorityMap: { [key: string]: number } = {
 	milestone: 1,
-	normal: 3
+	normal: 3,
 };
 
 export const bulkSnapshotTickWorker = async (_job: Job) => {
@@ -37,13 +37,13 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 					created_at: schedule.created_at,
 					started_at: schedule.started_at,
 					finished_at: schedule.finished_at,
-					status: schedule.status
+					status: schedule.status,
 				};
 			});
 			await SnapshotQueue.add(
 				"bulkSnapshotVideo",
 				{
-					schedules: schedulesData
+					schedules: schedulesData,
 				},
 				{ priority: 3 }
 			);
@@ -73,7 +73,7 @@ export const snapshotTickWorker = async (_job: Job) => {
 				{
 					aid: Number(aid),
 					id: Number(schedule.id),
-					type: schedule.type ?? "normal"
+					type: schedule.type ?? "normal",
 				},
 				{ priority }
 			);

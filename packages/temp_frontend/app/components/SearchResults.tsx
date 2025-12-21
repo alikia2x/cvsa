@@ -1,5 +1,5 @@
-import type { SearchResult } from "@/routes/search";
 import { z } from "zod";
+import type { SearchResult } from "@/routes/search";
 
 interface SearchResultsProps {
 	results: SearchResult;
@@ -40,8 +40,12 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 			</div>
 		);
 	}
-	
-	const SearchResultItem = ({ result }: { result: Exclude<SearchResult, null>["data"][number] }) => {
+
+	const SearchResultItem = ({
+		result,
+	}: {
+		result: Exclude<SearchResult, null>["data"][number];
+	}) => {
 		switch (result.type) {
 			case "song":
 				return <SongResult result={result} />;
@@ -88,18 +92,24 @@ function SongResult({ result }: { result: Exclude<SearchResult, null>["data"][nu
 			)}
 			<div className="flex-col">
 				<h3 className="text-lg font-medium line-clamp-1 text-wrap">{data.name}</h3>
-				{data.producer && <p className="text-sm text-muted-foreground truncate">{data.producer}</p>}
+				{data.producer && (
+					<p className="text-sm text-muted-foreground truncate">{data.producer}</p>
+				)}
 				<div className="flex items-center space-x-4 my-1 text-xs text-muted-foreground">
 					{data.duration && (
 						<span>
-							{Math.floor(data.duration / 60)}:{(data.duration % 60).toString().padStart(2, "0")}
+							{Math.floor(data.duration / 60)}:
+							{(data.duration % 60).toString().padStart(2, "0")}
 						</span>
 					)}
 					{data.publishedAt && <span>{formatDateTime(new Date(data.publishedAt))}</span>}
 				</div>
 				<div className="flex gap-2">
 					{data.aid && (
-						<a href={`https://www.bilibili.com/video/av${data.aid}`} className="text-pink-400 text-sm">
+						<a
+							href={`https://www.bilibili.com/video/av${data.aid}`}
+							className="text-pink-400 text-sm"
+						>
 							观看视频
 						</a>
 					)}
@@ -126,7 +136,9 @@ function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>["data
 				/>
 			)}
 			<div className="flex-col mt-4">
-				<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{data.title}</h3>
+				<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+					{data.title}
+				</h3>
 				{data.desc && (
 					<pre className="text-sm font-sans text-gray-600 dark:text-gray-400 line-clamp-3 mt-1 text-wrap">
 						{data.desc}
@@ -135,7 +147,8 @@ function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>["data
 				<div className="grid-cols-2 sm:flex items-center space-x-4 my-2 text-xs text-gray-500 dark:text-gray-500">
 					{data.duration && (
 						<span>
-							{Math.floor(data.duration / 60)}:{(data.duration % 60).toString().padStart(2, "0")}
+							{Math.floor(data.duration / 60)}:
+							{(data.duration % 60).toString().padStart(2, "0")}
 						</span>
 					)}
 					{data.pubdate && <span>{formatDateTime(new Date(data.pubdate * 1000))}</span>}
@@ -155,7 +168,10 @@ function BiliVideoResult({ result }: { result: Exclude<SearchResult, null>["data
 						</a>
 					)}
 					{data.bvid && (
-						<a href={`/video/av${data.aid}/info`} className="text-sm text-secondary-foreground">
+						<a
+							href={`/video/av${data.aid}/info`}
+							className="text-sm text-secondary-foreground"
+						>
 							查看视频详情
 						</a>
 					)}
@@ -180,7 +196,9 @@ function BiliVideoDBResult({ result }: { result: Exclude<SearchResult, null>["da
 				/>
 			)}
 			<div className="flex-col mt-4">
-				<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{data.title}</h3>
+				<h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+					{data.title}
+				</h3>
 				{data.description && (
 					<pre className="text-sm font-sans text-gray-600 dark:text-gray-400 line-clamp-3 mt-1 text-wrap">
 						{data.description}
@@ -189,7 +207,8 @@ function BiliVideoDBResult({ result }: { result: Exclude<SearchResult, null>["da
 				<div className="grid-cols-2 sm:flex items-center space-x-4 my-2 text-xs text-gray-500 dark:text-gray-500">
 					{data.duration && (
 						<span>
-							{Math.floor(data.duration / 60)}:{(data.duration % 60).toString().padStart(2, "0")}
+							{Math.floor(data.duration / 60)}:
+							{(data.duration % 60).toString().padStart(2, "0")}
 						</span>
 					)}
 					{data.publishedAt && <span>{formatDateTime(new Date(data.publishedAt))}</span>}
@@ -208,7 +227,10 @@ function BiliVideoDBResult({ result }: { result: Exclude<SearchResult, null>["da
 						</a>
 					)}
 					{data.bvid && (
-						<a href={`/song/av${data.aid}/info`} className="text-sm text-secondary-foreground">
+						<a
+							href={`/song/av${data.aid}/info`}
+							className="text-sm text-secondary-foreground"
+						>
 							查看曲目详情
 						</a>
 					)}

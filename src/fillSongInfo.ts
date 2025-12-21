@@ -1,6 +1,6 @@
-import arg from "arg";
-import logger from "@core/log";
 import { sql } from "@core/index";
+import logger from "@core/log";
+import arg from "arg";
 import type { Row } from "postgres";
 
 const quit = (reason?: string) => {
@@ -9,7 +9,7 @@ const quit = (reason?: string) => {
 };
 
 const args = arg({
-	"--file": String
+	"--file": String,
 });
 
 const dataPath = args["--file"];
@@ -87,9 +87,9 @@ async function processVideo(key: string, item: Item) {
 		SET name = ${item.name}
 		WHERE aid = ${aid}
 	`;
-	const singerIDs = (await Promise.all(item.singer.map(async (singer) => await getSingerID(singer)))).filter(
-		(id) => id !== undefined
-	);
+	const singerIDs = (
+		await Promise.all(item.singer.map(async (singer) => await getSingerID(singer)))
+	).filter((id) => id !== undefined);
 	for (const singerID of singerIDs) {
 		await pg`
 			INSERT INTO
@@ -101,7 +101,7 @@ async function processVideo(key: string, item: Item) {
 }
 
 async function fillSongInfo() {
-	let fixQuery = "";
+	const fixQuery = "";
 	let i = 0;
 	const file = Bun.file(dataPath!);
 	const candidates: DataFile = await file.json();

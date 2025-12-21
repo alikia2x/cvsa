@@ -1,18 +1,18 @@
+import { format } from "date-fns";
+import { CalendarIcon, Flag, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
+	SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Trash2, X, Flag } from "lucide-react";
-import { format } from "date-fns";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 interface TaskFormProps {
@@ -42,7 +42,7 @@ export function TaskForm({
 	onDelete,
 	initialData,
 	isEditing = false,
-	canEdit = true
+	canEdit = true,
 }: TaskFormProps) {
 	const [title, setTitle] = useState(initialData?.title || "");
 	const [description, setDescription] = useState(initialData?.description || "");
@@ -58,7 +58,7 @@ export function TaskForm({
 	const priorityColor = {
 		low: "bg-green-100 text-green-800",
 		medium: "bg-yellow-100 text-yellow-800",
-		high: "bg-red-100 text-red-800"
+		high: "bg-red-100 text-red-800",
 	}[priority];
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -75,7 +75,7 @@ export function TaskForm({
 				description: description.trim(),
 				columnId,
 				priority,
-				dueDate
+				dueDate,
 			});
 		} finally {
 			setIsSubmitting(false);
@@ -174,7 +174,9 @@ export function TaskForm({
 					) : (
 						<div className="h-12 px-4 justify-between bg-background border rounded-md flex items-center gap-2">
 							<Flag className="w-4 h-4" />
-							<span className={`px-2 py-0.5 rounded-md text-xs font-medium ${priorityColor}`}>
+							<span
+								className={`px-2 py-0.5 rounded-md text-xs font-medium ${priorityColor}`}
+							>
 								{priorityLabel}
 							</span>
 						</div>

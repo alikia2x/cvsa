@@ -12,13 +12,13 @@ export const pingHandler = new Elysia({ prefix: "/ping" }).use(ip()).get(
 				ip: ip,
 				method: request.method,
 				body: body,
-				url: request.url
+				url: request.url,
 			},
 			response: {
 				time: Date.now(),
 				status: 200,
-				version: VERSION
-			}
+				version: VERSION,
+			},
 		};
 	},
 	{
@@ -30,20 +30,20 @@ export const pingHandler = new Elysia({ prefix: "/ping" }).use(ip()).get(
 					ip: t.Optional(t.String()),
 					method: t.String(),
 					body: t.Optional(t.Union([t.String(), t.Null()])),
-					url: t.String()
+					url: t.String(),
 				}),
 				response: t.Object({
 					time: t.Number(),
 					status: t.Number(),
-					version: t.String()
-				})
-			})
+					version: t.String(),
+				}),
+			}),
 		},
 		body: t.Optional(t.String()),
 		detail: {
 			summary: "Send a ping",
 			description:
-				"This endpoint returns a 'pong' message along with comprehensive information about the incoming request and the server's current status, including request headers, IP address, and server version. It's useful for monitoring API availability and debugging."
-		}
+				"This endpoint returns a 'pong' message along with comprehensive information about the incoming request and the server's current status, including request headers, IP address, and server version. It's useful for monitoring API availability and debugging.",
+		},
 	}
 );

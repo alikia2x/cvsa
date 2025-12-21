@@ -1,5 +1,5 @@
-import type { VideoListResponse } from "@core/net/bilibili.d";
 import logger from "@core/log";
+import type { VideoListResponse } from "@core/net/bilibili.d";
 import networkDelegate from "@core/net/delegate";
 
 export async function getLatestVideoAids(

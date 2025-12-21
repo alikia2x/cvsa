@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { oklch, formatHex, inGamut, parse, type Oklch, rgb } from "culori";
+import { formatHex, inGamut, type Oklch, oklch, parse, rgb } from "culori";
+import { useEffect, useState } from "react";
 import { Slider } from "./Slider";
 import { displaySupportsP3, roundOklch } from "./utils";
 
@@ -34,13 +34,17 @@ const Preview = ({ color, i18n }: { color: Oklch; i18n: I18nProvider }) => {
 					className="w-full h-20 mb-5 rounded-lg flex items-center justify-center 
 					border border-dashed border-gray-300 dark:border-gray-500"
 				>
-					<span className="text-gray-700 dark:text-zinc-300 text-sm text-center">{i18n("unsupported")}</span>
+					<span className="text-gray-700 dark:text-zinc-300 text-sm text-center">
+						{i18n("unsupported")}
+					</span>
 				</div>
 				<div
 					className="w-full h-20 mb-5 rounded-lg flex items-end justify-center"
 					style={{ backgroundColor: fallbackColor }}
 				>
-					<span className="text-sm mb-1 bg-black/70 text-white px-2 rounded-xl">{i18n("fallback")}</span>
+					<span className="text-sm mb-1 bg-black/70 text-white px-2 rounded-xl">
+						{i18n("fallback")}
+					</span>
 				</div>
 			</div>
 		);
@@ -59,7 +63,9 @@ const Preview = ({ color, i18n }: { color: Oklch; i18n: I18nProvider }) => {
 					className="w-full h-20 mb-5 rounded-lg flex items-end justify-center"
 					style={{ backgroundColor: hex }}
 				>
-					<span className="text-sm mb-1 bg-black/70 text-white px-2 rounded-xl">{i18n("fallback")}</span>
+					<span className="text-sm mb-1 bg-black/70 text-white px-2 rounded-xl">
+						{i18n("fallback")}
+					</span>
 				</div>
 			</div>
 		);

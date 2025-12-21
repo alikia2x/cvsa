@@ -1,11 +1,11 @@
-import { Elysia, t } from "elysia";
-import { ErrorResponseSchema } from "@backend/src/schema";
-import z from "zod";
+import { biliIDToAID } from "@backend/lib/bilibiliID";
 import { BiliVideoSchema } from "@backend/lib/schema";
 import requireAuth from "@backend/middlewares/auth";
-import { eq, sql } from "drizzle-orm";
+import { ErrorResponseSchema } from "@backend/src/schema";
 import { bilibiliMetadata, db, videoTypeLabelInInternal } from "@core/drizzle";
-import { biliIDToAID } from "@backend/lib/bilibiliID";
+import { eq, sql } from "drizzle-orm";
+import { Elysia, t } from "elysia";
+import z from "zod";
 
 const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
 	.omit({ createdAt: true })
@@ -16,7 +16,7 @@ const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
 		uid: z.number(),
 		published_at: z.string(),
 		createdAt: z.string(),
-		cover_url: z.string()
+		cover_url: z.string(),
 	});
 
 export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(requireAuth).get(
@@ -60,8 +60,8 @@ export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(require
 		response: {
 			200: z.array(videoSchema),
 			400: ErrorResponseSchema,
-			500: ErrorResponseSchema
-		}
+			500: ErrorResponseSchema,
+		},
 	}
 );
 
@@ -77,7 +77,7 @@ export const postVideoLabel = new Elysia({ prefix: "/video" }).use(requireAuth).
 				code: "MALFORMED_SLOT",
 				message:
 					"We cannot parse the video ID, or we currently do not support this format.",
-				errors: []
+				errors: [],
 			});
 		}
 
@@ -91,23 +91,23 @@ export const postVideoLabel = new Elysia({ prefix: "/video" }).use(requireAuth).
 			return status(400, {
 				code: "VIDEO_NOT_FOUND",
 				message: "Video not found",
-				errors: []
+				errors: [],
 			});
 		}
 
 		await db.insert(videoTypeLabelInInternal).values({
 			aid,
 			label,
-			user: user!.unqId
+			user: user!.unqId,
 		});
 
 		return status(201, {
-			message: `Labelled video av${aid} as ${label}`
+			message: `Labelled video av${aid} as ${label}`,
 		});
 	},
 	{
 		body: t.Object({
-			label: t.Boolean()
-		})
+			label: t.Boolean(),
+		}),
 	}
 );

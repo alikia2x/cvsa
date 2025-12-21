@@ -1,7 +1,7 @@
-import { Job } from "bullmq";
-import { takeVideoSnapshot } from "mq/task/getVideoStats";
 import { sql } from "@core/db/dbNew";
 import { lockManager } from "@core/mq/lockManager";
+import type { Job } from "bullmq";
+import { takeVideoSnapshot } from "mq/task/getVideoStats";
 
 export const directSnapshotWorker = async (job: Job): Promise<void> => {
 	const lock = await lockManager.isLocked(`directSnapshot-${job.data.aid}`);

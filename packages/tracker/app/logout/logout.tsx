@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { deleteSession } from "@lib/auth";
 import { getCurrentUser } from "@lib/auth-utils";
 import { db } from "@lib/db";
 import { users } from "@lib/db/schema";
 import { Link, redirect } from "react-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export async function loader({ request }: { request: Request }) {
 	const existingUsers = await db.select().from(users).limit(1);

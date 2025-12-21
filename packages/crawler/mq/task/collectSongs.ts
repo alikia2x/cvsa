@@ -1,11 +1,11 @@
 import { sql } from "@core/db/dbNew";
-import { aidExistsInSongs, getNotCollectedSongs } from "db/songs";
-import logger from "@core/log";
-import { scheduleSnapshot } from "db/snapshotSchedule";
-import { MINUTE } from "@core/lib";
 import type { Psql } from "@core/db/psql.d";
 import { db, songs } from "@core/drizzle";
-import { and, eq, sql as drizzleSQL } from "drizzle-orm";
+import { MINUTE } from "@core/lib";
+import logger from "@core/log";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import { aidExistsInSongs, getNotCollectedSongs } from "db/songs";
+import { and, sql as drizzleSQL, eq } from "drizzle-orm";
 
 export async function collectSongs() {
 	const aids = await getNotCollectedSongs(sql);
@@ -51,7 +51,7 @@ export async function insertIntoSongs(aid: number) {
 		)
 		ON CONFLICT DO NOTHING
 		RETURNING *
-	`
+	`;
 
 	return data;
 }

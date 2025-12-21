@@ -1,5 +1,5 @@
-import { Oklch } from "culori";
-import { i18nKeys } from "./components/Picker/Picker";
+import type { Oklch } from "culori";
+import type { i18nKeys } from "./components/Picker/Picker";
 
 export const i18nProvider = (key: i18nKeys) => {
 	switch (key) {

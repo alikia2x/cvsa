@@ -1,5 +1,5 @@
-import { useEffect, type RefObject } from "react";
-import { oklch, formatHex, inGamut, type Oklch } from "culori";
+import { formatHex, inGamut, type Oklch, oklch } from "culori";
+import { type RefObject, useEffect } from "react";
 
 interface UseOklchCanvasOptions {
 	useP3: boolean;
@@ -47,7 +47,7 @@ export function useOklchCanvas({ useP3, channel, max, canvasRef, color }: UseOkl
 					mode: "oklch",
 					l: channel === "l" ? value : color.l,
 					c: channel === "c" ? value : color.c,
-					h: channel === "h" ? value : color.h
+					h: channel === "h" ? value : color.h,
 				});
 
 				if (testColor && inGamut(colorGamut)(testColor)) {

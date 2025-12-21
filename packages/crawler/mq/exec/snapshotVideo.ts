@@ -1,24 +1,24 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import { HOUR, MINUTE, SECOND } from "@core/lib";
+import logger from "@core/log";
+import { NetSchedulerError } from "@core/net/delegate";
+import type { Job } from "bullmq";
 import {
 	getLatestSnapshot,
 	scheduleSnapshot,
 	setSnapshotStatus,
-	snapshotScheduleExists
+	snapshotScheduleExists,
 } from "db/snapshotSchedule";
-import logger from "@core/log";
-import { HOUR, MINUTE, SECOND } from "@core/lib";
-import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata";
-import { takeVideoSnapshot } from "mq/task/getVideoStats";
 import { getSongsPublihsedAt } from "db/songs";
 import { getAdjustedShortTermETA } from "mq/scheduling";
-import { NetSchedulerError } from "@core/net/delegate";
-import { sql } from "@core/db/dbNew";
+import { takeVideoSnapshot } from "mq/task/getVideoStats";
+import { getBiliVideoStatus, setBiliVideoStatus } from "../../db/bilibili_metadata";
 import { closetMilestone } from "./snapshotTick";
 
 const snapshotTypeToTaskMap = {
 	milestone: "snapshotMilestoneVideo",
 	normal: "snapshotVideo",
-	new: "snapshotMilestoneVideo"
+	new: "snapshotMilestoneVideo",
 } as const;
 
 export const snapshotVideoWorker = async (job: Job): Promise<void> => {

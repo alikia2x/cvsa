@@ -39,12 +39,12 @@ export function detectBiliID(id: string) {
 	if (bvSchema.safeParse(id).success) {
 		return {
 			type: "bv" as const,
-			id: id as `BV1${string}`
+			id: id as `BV1${string}`,
 		};
 	} else if (avSchema.safeParse(id).success) {
 		return {
 			type: "av" as const,
-			id: id as `av${string}`
+			id: id as `av${string}`,
 		};
 	}
 	return null;

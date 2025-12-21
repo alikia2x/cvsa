@@ -1,4 +1,4 @@
-import { Psql } from "@core/db/psql";
+import type { Psql } from "@core/db/psql";
 
 export async function updateETA(sql: Psql, aid: number, eta: number, speed: number, views: number) {
 	return sql`

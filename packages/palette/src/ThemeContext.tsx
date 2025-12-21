@@ -1,6 +1,6 @@
 // ThemeContext.tsx
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { type ThemeMode } from "./colorTokens";
+import type { ThemeMode } from "./colorTokens";
 
 type ThemeContextType = {
 	theme: ThemeMode;

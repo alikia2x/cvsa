@@ -1,49 +1,49 @@
-import type { Route } from "./+types/settings";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Trash2, UserPlus, UserMinus, Search, X } from "lucide-react";
-import { Link, Form, redirect } from "react-router";
+import { canUserEditProject } from "@lib/auth";
+import { getCurrentUser } from "@lib/auth-utils";
 import { db } from "@lib/db";
 import {
-	projects,
-	users,
-	projectPermissions,
 	type Project,
+	type ProjectPermission,
+	projectPermissions,
+	projects,
 	type User,
-	type ProjectPermission
+	users,
 } from "@lib/db/schema";
-import { getCurrentUser } from "@lib/auth-utils";
+import { and, eq, like } from "drizzle-orm";
+import { ArrowLeft, Save, Search, Trash2, UserMinus, UserPlus, X } from "lucide-react";
+import { useState } from "react";
+import { Form, Link, redirect } from "react-router";
 import Layout from "@/components/layout";
-import { eq, and, like } from "drizzle-orm";
-import { canUserEditProject } from "@lib/auth";
+import { UserSearchModal } from "@/components/project/UserSearch";
 import { Badge } from "@/components/ui/badge";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
+	DialogTrigger,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { UserSearchModal } from "@/components/project/UserSearch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import type { Route } from "./+types/settings";
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Project Settings" },
-		{ name: "description", content: "Manage project settings and permissions" }
+		{ name: "description", content: "Manage project settings and permissions" },
 	];
 }
 
@@ -130,7 +130,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 				name,
 				description,
 				isPublic,
-				updatedAt: new Date()
+				updatedAt: new Date(),
 			})
 			.where(eq(projects.id, projectId));
 
@@ -176,7 +176,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 			projectId,
 			userId,
 			canEdit: canEditPermission,
-			createdAt: new Date()
+			createdAt: new Date(),
 		});
 
 		return redirect(`/project/${projectId}`);
@@ -248,7 +248,7 @@ export function UsersManagement({
 	project,
 	availableUsers,
 	currentPermissions,
-	allUsers
+	allUsers,
 }: UsersManagementProps) {
 	return (
 		<Card className="mb-6">
@@ -334,7 +334,7 @@ export function UsersManagement({
 																`/project/${project.id}/settings`,
 																{
 																	method: "POST",
-																	body: formData
+																	body: formData,
 																}
 															);
 														}}

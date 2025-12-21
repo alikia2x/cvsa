@@ -3,8 +3,7 @@
 	"version": "1.1.0",
 	"scripts": {
 		"dev": "NODE_ENV=development bun run --watch src/index.ts",
-		"start": "NODE_ENV=production bun run src/index.ts",
-		"format": "prettier --write ."
+		"start": "NODE_ENV=production bun run src/index.ts"
 	},
 	"dependencies": {
 		"@alikia/random-key": "^2.0.0",

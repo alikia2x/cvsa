@@ -1,25 +1,25 @@
-import type { Route } from "./+types/setup";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Form, redirect } from "react-router";
+import { createSession, createUser } from "@lib/auth";
 import { db } from "@lib/db";
 import { users } from "@lib/db/schema";
-import { createUser, createSession } from "@lib/auth";
 import { eq } from "drizzle-orm";
+import { Form, redirect } from "react-router";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Route } from "./+types/setup";
 
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Initial Setup" },
-		{ name: "description", content: "Create initial admin user" }
+		{ name: "description", content: "Create initial admin user" },
 	];
 }
 
 export async function loader() {
 	// Check if there are any users
 	const existingUsers = await db.select().from(users).limit(1);
-	
+
 	// If users exist, redirect to login
 	if (existingUsers.length > 0) {
 		return redirect("/login");
@@ -40,16 +40,13 @@ export async function action({ request }: Route.ActionArgs) {
 	try {
 		// Create admin user
 		const userId = await createUser(username, password);
-		
+
 		// Make user admin
-		await db
-			.update(users)
-			.set({ isAdmin: true })
-			.where(eq(users.id, userId));
+		await db.update(users).set({ isAdmin: true }).where(eq(users.id, userId));
 
 		// Create session and redirect
 		const sessionId = await createSession(userId);
-		
+
 		const headers = new Headers();
 		headers.append(
 			"Set-Cookie",
@@ -70,9 +67,7 @@ export default function SetupPage() {
 			<Card className="w-full max-w-md">
 				<CardHeader>
 					<CardTitle>Initial Setup</CardTitle>
-					<CardDescription>
-						Create the first admin user for the system
-					</CardDescription>
+					<CardDescription>Create the first admin user for the system</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Form method="post" className="space-y-4">

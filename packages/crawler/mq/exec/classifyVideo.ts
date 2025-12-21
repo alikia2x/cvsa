@@ -1,18 +1,18 @@
-import { Job } from "bullmq";
+import { sql } from "@core/db/dbNew";
+import { MINUTE } from "@core/lib";
+import logger from "@core/log";
+import { lockManager } from "@core/mq/lockManager";
+import type { Job } from "bullmq";
+import { scheduleSnapshot } from "db/snapshotSchedule";
+import { aidExistsInSongs } from "db/songs";
+import Akari from "ml/akari_api";
+import { ClassifyVideoQueue } from "mq/index";
+import { insertIntoSongs } from "mq/task/collectSongs";
 import {
 	getUnlabelledVideos,
 	getVideoInfoFromAllData,
-	insertVideoLabel
+	insertVideoLabel,
 } from "../../db/bilibili_metadata";
-import Akari from "ml/akari_api";
-import { ClassifyVideoQueue } from "mq/index";
-import logger from "@core/log";
-import { lockManager } from "@core/mq/lockManager";
-import { aidExistsInSongs } from "db/songs";
-import { insertIntoSongs } from "mq/task/collectSongs";
-import { scheduleSnapshot } from "db/snapshotSchedule";
-import { MINUTE } from "@core/lib";
-import { sql } from "@core/db/dbNew";
 
 export const classifyVideoWorker = async (job: Job) => {
 	const aid = job.data.aid;
@@ -44,7 +44,7 @@ export const classifyVideoWorker = async (job: Job) => {
 
 	await job.updateData({
 		...job.data,
-		label: label
+		label: label,
 	});
 
 	return 0;

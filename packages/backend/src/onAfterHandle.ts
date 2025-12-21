@@ -26,8 +26,8 @@ export const onAfterHandler = new Elysia().onAfterHandle(
 			return new Response(encoder.encode(text), {
 				status: realResponse.code as any,
 				headers: {
-					"Content-Type": "application/json; charset=utf-8"
-				}
+					"Content-Type": "application/json; charset=utf-8",
+				},
 			});
 		}
 		const text = isBrowser
@@ -35,8 +35,8 @@ export const onAfterHandler = new Elysia().onAfterHandle(
 			: JSON.stringify(realResponse);
 		return new Response(encoder.encode(text), {
 			headers: {
-				"Content-Type": "application/json; charset=utf-8"
-			}
+				"Content-Type": "application/json; charset=utf-8",
+			},
 		});
 	}
 );

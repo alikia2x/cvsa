@@ -1,5 +1,6 @@
-import React, { useRef } from "react";
-import { type Oklch } from "culori";
+import type { Oklch } from "culori";
+import type React from "react";
+import { useRef } from "react";
 
 export const Handle = ({
 	pos,
@@ -7,7 +8,7 @@ export const Handle = ({
 	onChange,
 	maxValue,
 	onTouchMove,
-	onTouchStart
+	onTouchStart,
 }: {
 	pos: number;
 	color: Omit<Oklch, "mode">;
@@ -85,7 +86,7 @@ export const Handle = ({
 			style={{
 				left: `${pos}%`,
 				backgroundColor: `oklch(${color.l} ${color.c} ${color.h})`,
-				transform: "translateY(-50%) translateX(-50%) rotate(45deg)"
+				transform: "translateY(-50%) translateX(-50%) rotate(45deg)",
 			}}
 			onMouseDown={handleMouseDown}
 			onTouchStart={handleTouchStart}

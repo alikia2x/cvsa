@@ -1,10 +1,10 @@
-import type { SnapshotScheduleType } from "@core/db/schema.d";
-import logger from "@core/log";
-import { MINUTE } from "@core/lib";
-import { redis } from "@core/db/redis";
-import { Redis } from "ioredis";
-import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre";
 import type { Psql } from "@core/db/psql.d";
+import { redis } from "@core/db/redis";
+import type { SnapshotScheduleType } from "@core/db/schema.d";
+import { MINUTE } from "@core/lib";
+import logger from "@core/log";
+import type { Redis } from "ioredis";
+import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
@@ -141,7 +141,7 @@ export async function findClosestSnapshot(
 	const row = result[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views
+		views: row.views,
 	};
 }
 
@@ -162,7 +162,7 @@ export async function findSnapshotBefore(
 	const row = result[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views
+		views: row.views,
 	};
 }
 
@@ -190,7 +190,7 @@ export async function getLatestSnapshot(sql: Psql, aid: number): Promise<Snapsho
 	const row = res[0];
 	return {
 		created_at: new Date(row.created_at).getTime(),
-		views: row.views
+		views: row.views,
 	};
 }
 
