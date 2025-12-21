@@ -364,8 +364,6 @@ class IPPoolManager {
 
 		this.isRefreshing = true;
 		try {
-			logger.debug("Refreshing IP pool", "net", "IPPoolManager.refreshPool");
-
 			const extractedIPs = await this.config.extractor();
 			const newIPs = extractedIPs.slice(0, this.config.maxPoolSize - this.pool.length);
 
@@ -378,12 +376,6 @@ class IPPoolManager {
 				};
 				this.pool.push(ipEntry);
 			}
-
-			logger.debug(
-				`IP pool refreshed. Pool size: ${this.pool.length}`,
-				"net",
-				"IPPoolManager.refreshPool"
-			);
 		} catch (error) {
 			logger.error(error as Error, "net", "IPPoolManager.refreshPool");
 		} finally {
@@ -477,7 +469,9 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 			const boundProxies = new Set<string>();
 			for (const [_taskName, taskImpl] of Object.entries(this.tasks)) {
 				if (taskImpl.provider === providerName) {
-					taskImpl.proxies.forEach((p) => boundProxies.add(p));
+					taskImpl.proxies.forEach((p) => {
+						boundProxies.add(p);
+					});
 				}
 			}
 

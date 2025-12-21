@@ -2,6 +2,7 @@
 
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { useDarkMode } from "usehooks-ts";
+import { formatDateTime } from "@/components/SearchResults";
 import {
 	type ChartConfig,
 	ChartContainer,
@@ -34,29 +35,21 @@ interface ChartData {
 	views: number;
 }
 
-function formatDate(dateStr: string, showYear = false): string {
-	const date = new Date(dateStr);
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	const hours = String(date.getHours()).padStart(2, "0");
-	const minutes = String(date.getMinutes()).padStart(2, "0");
-	const yearStr = showYear ? ` ${year}-` : "";
-	return `${yearStr}${month}-${day} ${hours}:${minutes}`;
-}
+const formatDate = (dateStr: string, showYear = false) =>
+	formatDateTime(new Date(dateStr), showYear);
 
 const formatYAxisLabel = (value: number) => {
 	if (value >= 1000000) {
-		return (value / 10000).toPrecision(4) + "万";
+		return `${(value / 10000).toPrecision(4)}万`;
 	} else if (value >= 10000) {
-		return (value / 10000).toPrecision(3) + "万";
+		return `${(value / 10000).toPrecision(3)}万`;
 	}
 	return value.toLocaleString();
 };
 
 export function ViewsChart({ chartData }: { chartData: ChartData[] }) {
 	const { isDarkMode } = useDarkMode();
-	if (!chartData || chartData.length === 0) return <></>;
+	if (!chartData || chartData.length === 0) return;
 	return (
 		<ChartContainer
 			config={isDarkMode ? chartConfigDark : chartConfigLight}

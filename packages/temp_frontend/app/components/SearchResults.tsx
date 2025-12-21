@@ -6,15 +6,16 @@ interface SearchResultsProps {
 	query: string;
 }
 
-export const formatDateTime = (date: Date): string => {
+export const formatDateTime = (date: Date, showYear = true, showSec = false): string => {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, "0"); // 月份从0开始，补0
 	const day = String(date.getDate()).padStart(2, "0");
 	const hour = String(date.getHours()).padStart(2, "0");
 	const minute = String(date.getMinutes()).padStart(2, "0");
 	const second = String(date.getSeconds()).padStart(2, "0");
-
-	return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+	const yearStr = showYear ? ` ${year}-` : "";
+	const secStr = showSec ? `:${second}` : "";
+	return `${yearStr}${month}-${day} ${hour}:${minute}${secStr}`;
 };
 
 const biliIDSchema = z.union([z.string().regex(/BV1[0-9A-Za-z]{9}/), z.string().regex(/av[0-9]+/)]);
@@ -65,6 +66,7 @@ export function SearchResults({ results, query }: SearchResultsProps) {
 			</p>
 			{results.data.map((result, index) => (
 				<div
+					// biome-ignore lint/suspicious/noArrayIndexKey: `result` will never change
 					key={index}
 					className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm border
 					 border-gray-200 dark:border-neutral-700 p-2 sm:p-4 hover:shadow-md transition-shadow"

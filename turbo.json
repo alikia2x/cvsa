@@ -9,6 +9,19 @@
 		"//#biome:lint": {},
 		"//#lint": {
 			"dependsOn": ["biome:lint"]
-		}
+		},
+		"dev": {
+			"persistent": true,
+			"cache": false
+		},
+		"drizzle:pull": {
+			"cache": false
+		},
+		"test": {},
+		"deploy": {
+			"cache": false,
+			"dependsOn": ["temp_frontend#build"]
+		},
+		"build": {}
 	}
 }

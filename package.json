@@ -6,7 +6,10 @@
 	"scripts": {
 		"biome:format": "bunx --bun biome format --write",
 		"biome:lint": "bunx --bun biome lint",
-		"biome:check": "bunx --bun biome check --write"
+		"dev": "turbo run dev --filter=temp_frontend --filter=backend",
+		"db": "turbo run drizzle:pull",
+		"biome": "turbo run biome",
+		"test": "turbo run test"
 	},
 	"workspaces": {
 		"packages": [

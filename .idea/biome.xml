@@ -2,6 +2,7 @@
 <project version="4">
   <component name="BiomeSettings">
     <option name="enableLspFormat" value="true" />
+    <option name="formatOnSave" value="true" />
     <option name="sortImportOnSave" value="true" />
   </component>
 </project>

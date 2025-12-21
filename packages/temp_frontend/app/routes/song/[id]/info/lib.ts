@@ -14,7 +14,7 @@ const getDataIntervalMins = (interval: number, timeRangeHours?: number) => {
 		return 24 * 60;
 	} else if (interval >= 6 * HOUR) {
 		return 6 * 60;
-	} else if (interval >= 1 * HOUR) {
+	} else if (interval >= HOUR) {
 		return 60;
 	} else if (interval >= 15 * MINUTE) {
 		return 15;
@@ -175,7 +175,6 @@ export const detectMilestoneAchievements = (
 
 	const milestones = [100000, 1000000, 10000000];
 	const milestoneNames = ["殿堂", "传说", "神话"];
-	const achievements: MilestoneAchievement[] = [];
 
 	const earliestAchievements = new Map<number, MilestoneAchievement>();
 
