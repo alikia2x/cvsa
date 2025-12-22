@@ -52,44 +52,6 @@ const proxies = {
 	},
 
 	...aliProxiesObject,
-
-	ip_proxy_pool: {
-		type: "ip-proxy" as const,
-		data: {
-			extractor: async (): Promise<IPEntry[]> => {
-				interface APIResponse {
-					code: number;
-					data: {
-						ip: string;
-						port: number;
-						endtime: string;
-						city: string;
-					}[];
-				}
-				const url = Bun.env.IP_PROXY_EXTRACTOR_URL;
-				const response = await fetch(url);
-				const data = (await response.json()) as APIResponse;
-				if (data.code !== 0) {
-					throw new Error(`IP proxy extractor failed with code ${data.code}`);
-				}
-				const ips = data.data;
-				return ips.map((item) => {
-					return {
-						address: item.ip,
-						port: item.port,
-						lifespan: Date.parse(item.endtime + "+08") - Date.now(),
-						createdAt: Date.now(),
-						used: false,
-					};
-				});
-			},
-			strategy: "round-robin",
-			minPoolSize: 10,
-			maxPoolSize: 100,
-			refreshInterval: 5 * SECOND,
-			initialPoolSize: 10,
-		},
-	},
 } satisfies Record<string, ProxyDef>;
 
 interface FCResponse {
@@ -202,10 +164,6 @@ const config = createNetworkConfig({
 		test: {
 			provider: "test",
 			proxies: fcProxies,
-		},
-		test_ip: {
-			provider: "test",
-			proxies: ["ip_proxy_pool"],
 		},
 		getVideoInfo: {
 			provider: "bilibili",
