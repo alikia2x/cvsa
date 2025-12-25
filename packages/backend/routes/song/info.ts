@@ -66,42 +66,42 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 				});
 			}
 			return {
+				aid: info.aid,
+				cover: info.image || undefined,
+				duration: info.duration,
 				id: info.id,
 				name: info.name,
-				aid: info.aid,
 				producer: info.producer,
-				duration: info.duration,
-				cover: info.image || undefined,
 				publishedAt: info.publishedAt,
 			};
 		},
 		{
-			response: {
-				200: t.Object({
-					id: t.Number(),
-					name: t.Union([t.String(), t.Null()]),
-					aid: t.Union([t.Number(), t.Null()]),
-					producer: t.Union([t.String(), t.Null()]),
-					duration: t.Union([t.Number(), t.Null()]),
-					cover: t.Optional(t.String()),
-					publishedAt: t.Union([t.String(), t.Null()]),
-				}),
-				404: t.Object({
-					code: t.String(),
-					message: t.String(),
-				}),
-			},
-			headers: t.Object({
-				Authorization: t.Optional(t.String()),
-			}),
 			detail: {
-				summary: "Get information of a song",
 				description:
 					"This endpoint retrieves detailed information about a song using its unique ID, \
 			which can be provided in several formats. \
 			The endpoint accepts a song ID in either a numerical format as the internal ID in our database\
 			 or as a bilibili video ID (either av or BV format). \
 			 It responds with the song's name, bilibili ID (av), producer, duration, and associated singers.",
+				summary: "Get information of a song",
+			},
+			headers: t.Object({
+				Authorization: t.Optional(t.String()),
+			}),
+			response: {
+				200: t.Object({
+					aid: t.Union([t.Number(), t.Null()]),
+					cover: t.Optional(t.String()),
+					duration: t.Union([t.Number(), t.Null()]),
+					id: t.Number(),
+					name: t.Union([t.String(), t.Null()]),
+					producer: t.Union([t.String(), t.Null()]),
+					publishedAt: t.Union([t.String(), t.Null()]),
+				}),
+				404: t.Object({
+					code: t.String(),
+					message: t.String(),
+				}),
 			},
 		}
 	)
@@ -145,10 +145,10 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 		return {
 			aid: data[0].aid,
 			eta: data[0].eta,
-			views: data[0].currentViews,
 			speed: data[0].speed,
-			updatedAt: data[0].updatedAt
-		}
+			updatedAt: data[0].updatedAt,
+			views: data[0].currentViews,
+		};
 	})
 	.use(requireAuth)
 	.patch(
@@ -174,16 +174,16 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 			}
 			const updatedData = await db.select().from(songs).where(eq(songs.id, songID));
 			await db.insert(history).values({
-				objectId: songID,
-				changeType: "update-song",
 				changedBy: user!.unqId,
+				changeType: "update-song",
 				data:
 					updatedData.length > 0
 						? {
-								old: info,
 								new: updatedData[0],
+								old: info,
 							}
 						: null,
+				objectId: songID,
 			});
 			return {
 				message: "Successfully updated song info.",
@@ -191,6 +191,18 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 			};
 		},
 		{
+			body: t.Object({
+				name: t.Optional(t.String()),
+				producer: t.Optional(t.String()),
+			}),
+			detail: {
+				description:
+					"This endpoint allows authenticated users to update song metadata. It accepts partial updates \
+			for song name and producer fields. The endpoint validates the song ID (accepting both internal database IDs \
+			and bilibili video IDs in av/BV format), applies the requested changes, and logs the update in the history table \
+			for audit purposes. Requires authentication.",
+				summary: "Update song information",
+			},
 			response: {
 				200: t.Object({
 					message: t.String(),
@@ -200,21 +212,9 @@ export const songHandler = new Elysia({ prefix: "/song/:id" })
 					message: t.String(),
 				}),
 				404: t.Object({
-					message: t.String(),
 					code: t.String(),
+					message: t.String(),
 				}),
-			},
-			body: t.Object({
-				name: t.Optional(t.String()),
-				producer: t.Optional(t.String()),
-			}),
-			detail: {
-				summary: "Update song information",
-				description:
-					"This endpoint allows authenticated users to update song metadata. It accepts partial updates \
-			for song name and producer fields. The endpoint validates the song ID (accepting both internal database IDs \
-			and bilibili video IDs in av/BV format), applies the requested changes, and logs the update in the history table \
-			for audit purposes. Requires authentication.",
 			},
 		}
 	);

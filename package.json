@@ -4,12 +4,11 @@
 	"private": false,
 	"type": "module",
 	"scripts": {
-		"biome:format": "bunx --bun biome format --write",
-		"biome:lint": "bunx --bun biome lint",
+		"format": "bunx --bun biome format --write",
+		"lint": "bunx --bun biome lint",
 		"dev": "turbo run dev --filter=temp_frontend --filter=backend",
 		"db": "turbo run drizzle:pull",
-		"biome": "turbo run biome",
-		"test": "turbo run test"
+		"test": "turbo run biome:lint"
 	},
 	"workspaces": {
 		"packages": [
@@ -18,7 +17,8 @@
 			"packages/crawler",
 			"packages/palette",
 			"packages/temp_frontend",
-			"packages/tracker"
+			"packages/tracker",
+			"packages/cf-worker"
 		],
 		"catalog": {
 			"elysia": "^1.4.16"

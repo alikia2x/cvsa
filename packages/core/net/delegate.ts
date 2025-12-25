@@ -1,5 +1,6 @@
 // noinspection ExceptionCaughtLocallyJS
 
+import type { Readable } from "node:stream";
 import Credential from "@alicloud/credentials";
 import Stream from "@alicloud/darabonba-stream";
 import FC20230330, * as $FC20230330 from "@alicloud/fc20230330";
@@ -19,9 +20,8 @@ import {
 	ipProxyErrorCounter,
 } from "crawler/metrics";
 import { ReplyError } from "ioredis";
-import type { Readable } from "stream";
 
-type ProxyType = "native" | "alicloud-fc" | "ip-proxy";
+type ProxyType = "native" | "alicloud-fc" | "ip-proxy" | "cf-worker";
 
 const aliRegions = ["hangzhou"] as const;
 type AliRegion = (typeof aliRegions)[number];
@@ -30,11 +30,11 @@ function createAliProxiesObject<T extends readonly string[]>(regions: T) {
 	return regions.reduce(
 		(result, currentRegion) => {
 			result[`alicloud_${currentRegion}`] = {
-				type: "alicloud-fc" as const,
 				data: {
 					region: currentRegion,
 					timeout: 15000,
 				},
+				type: "alicloud-fc" as const,
 			} as ProxyDef<AlicloudFcProxyData>;
 			return result;
 		},
@@ -47,11 +47,18 @@ const aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_
 
 const proxies = {
 	native: {
-		type: "native" as const,
 		data: {},
+		type: "native" as const,
 	},
 
 	...aliProxiesObject,
+
+	"cf-worker": {
+		data: {
+			url: Bun.env.CF_WORKER_URL,
+		},
+		type: "cf-worker",
+	},
 } satisfies Record<string, ProxyDef>;
 
 interface FCResponse {
@@ -60,10 +67,15 @@ interface FCResponse {
 	serverTime: number;
 }
 
-type NativeProxyData = {};
+type NativeProxyData = Record<string, never>;
 
 interface AlicloudFcProxyData {
 	region: (typeof aliRegions)[number];
+	timeout?: number;
+}
+
+interface CFFcProxyData {
+	url: string;
 	timeout?: number;
 }
 
@@ -95,7 +107,7 @@ interface IPProxyConfig {
 	initialPoolSize?: number; // how many IPs to fetch initially (default: 10)
 }
 
-type ProxyData = NativeProxyData | AlicloudFcProxyData | IPProxyConfig;
+type ProxyData = NativeProxyData | AlicloudFcProxyData | IPProxyConfig | CFFcProxyData;
 
 interface ProxyDef<T extends ProxyData = ProxyData> {
 	type: ProxyType;
@@ -110,6 +122,10 @@ function isIpProxy(proxy: ProxyDef): proxy is ProxyDef<IPProxyConfig> {
 	return proxy.type === "ip-proxy";
 }
 
+function isCFFcProxy(proxy: ProxyDef): proxy is ProxyDef<CFFcProxyData> {
+	return proxy.type === "cf-worker";
+}
+
 interface ProviderDef {
 	limiters: readonly RateLimiterConfig[];
 }
@@ -122,11 +138,11 @@ interface TaskDef<ProviderKeys extends string = string> {
 	limiters?: readonly RateLimiterConfig[];
 }
 
-interface NetworkConfigInternal<ProviderKeys extends string> {
+type NetworkConfigInternal<ProviderKeys extends string, TaskKeys extends string> = {
 	proxies: Record<string, ProxyDef>;
 	providers: Record<ProviderKeys, ProviderDef>;
-	tasks: Record<string, TaskDef<ProviderKeys>>;
-}
+	tasks: Record<TaskKeys, TaskDef<ProviderKeys>>;
+};
 
 const biliLimiterConfig: RateLimiterConfig[] = [
 	{ duration: 1, max: 20 },
@@ -148,44 +164,49 @@ type MyProxyKeys = keyof typeof proxies;
 
 const fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
 
-function createNetworkConfig<ProviderKeys extends string>(
-	config: NetworkConfigInternal<ProviderKeys>
-): NetworkConfigInternal<ProviderKeys> {
+function createNetworkConfig<ProviderKeys extends string, TaskKeys extends string>(
+	config: NetworkConfigInternal<ProviderKeys, TaskKeys>
+): NetworkConfigInternal<ProviderKeys, TaskKeys> {
 	return config;
 }
 
 const config = createNetworkConfig({
-	proxies: proxies,
 	providers: {
-		test: { limiters: [] },
 		bilibili: { limiters: [] },
+		test: { limiters: [] },
+		testCF: { limiters: [] },
 	},
+	proxies: proxies,
 	tasks: {
+		bulkSnapshot: {
+			provider: "bilibili",
+			proxies: ["cf-worker"],
+		},
+		getLatestVideos: {
+			limiters: bili_strict,
+			provider: "bilibili",
+			proxies: "all",
+		},
+		getVideoInfo: {
+			limiters: bili_strict,
+			provider: "bilibili",
+			proxies: "all",
+		},
+		snapshotMilestoneVideo: {
+			provider: "bilibili",
+			proxies: ["cf-worker"],
+		},
+		snapshotVideo: {
+			provider: "bilibili",
+			proxies: ["cf-worker"],
+		},
 		test: {
 			provider: "test",
 			proxies: fcProxies,
 		},
-		getVideoInfo: {
-			provider: "bilibili",
-			proxies: "all",
-			limiters: bili_strict,
-		},
-		getLatestVideos: {
-			provider: "bilibili",
-			proxies: "all",
-			limiters: bili_strict,
-		},
-		snapshotMilestoneVideo: {
-			provider: "bilibili",
-			proxies: aliProxies,
-		},
-		snapshotVideo: {
-			provider: "bilibili",
-			proxies: aliProxies,
-		},
-		bulkSnapshot: {
-			provider: "bilibili",
-			proxies: aliProxies,
+		testCf: {
+			provider: "testCF",
+			proxies: ["cf-worker"],
 		},
 	},
 });
@@ -233,11 +254,11 @@ class IPPoolManager {
 	constructor(config: IPProxyConfig) {
 		this.config = {
 			extractor: config.extractor,
-			strategy: config.strategy ?? "single-use",
-			minPoolSize: config.minPoolSize ?? 5,
-			maxPoolSize: config.maxPoolSize ?? 50,
-			refreshInterval: config.refreshInterval ?? 30_000,
 			initialPoolSize: config.initialPoolSize ?? 10,
+			maxPoolSize: config.maxPoolSize ?? 50,
+			minPoolSize: config.minPoolSize ?? 5,
+			refreshInterval: config.refreshInterval ?? 30_000,
+			strategy: config.strategy ?? "single-use",
 		};
 	}
 
@@ -546,6 +567,14 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 				} finally {
 					ipProxyCounter.add(1);
 				}
+			case "cf-worker":
+				if (!isCFFcProxy(proxy)) {
+					throw new NetSchedulerError(
+						"Invalid cf-worker proxy configuration",
+						"NOT_IMPLEMENTED"
+					);
+				}
+				return await this.cfWorkerRequest<R>(url, proxy.data);
 			default:
 				throw new NetSchedulerError(
 					`Proxy type ${proxy.type} not supported`,
@@ -651,8 +680,8 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 				);
 
 				const response = await fetch(url, {
-					signal: controller.signal,
 					proxy: `http://${ipEntry.address}:${ipEntry.port}`,
+					signal: controller.signal,
 				});
 
 				clearTimeout(timeout);
@@ -686,6 +715,70 @@ export class NetworkDelegate<const C extends NetworkConfig> {
 			"IP_EXTRACTION_FAILED",
 			lastError
 		);
+	}
+
+	private async cfWorkerRequest<R>(
+		url: string,
+		proxyData: CFFcProxyData
+	): Promise<{ data: R; time: number }> {
+		const cfClientId = process.env.CF_CLIENT_ID;
+		const cfClientSecret = process.env.CF_CLIENT_SECRET;
+
+		if (!cfClientId || !cfClientSecret) {
+			throw new NetSchedulerError(
+				"CF_ACCESS_CLIENT_ID or CF_ACCESS_CLIENT_SECRET not configured",
+				"FETCH_ERROR"
+			);
+		}
+
+		const payload = {
+			headers: {
+				Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+				"Accept-Encoding": "identity",
+				"Accept-Language": "zh,en-US;q=0.9,en;q=0.8,zh-CN;q=0.7",
+				Origin: "https://www.bilibili.com",
+				referer: "https://www.bilibili.com",
+				"User-Agent":
+					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+			},
+			url: url,
+		};
+
+		const headers = {
+			"CF-Access-Client-Id": cfClientId,
+			"CF-Access-Client-Secret": cfClientSecret,
+			"Content-Type": "application/json",
+		};
+
+		try {
+			const controller = new AbortController();
+			const timeout = setTimeout(() => controller.abort(), proxyData.timeout ?? 15000);
+
+			const response = await fetch(proxyData.url, {
+				body: JSON.stringify(payload),
+				headers: headers,
+				method: "POST",
+				signal: controller.signal,
+			});
+
+			clearTimeout(timeout);
+
+			const responseData = (await response.json()) as { data: string; time: number };
+
+			if (!response.ok) {
+				throw new NetSchedulerError(
+					`CF Worker request failed: ${response.statusText}`,
+					"FETCH_ERROR"
+				);
+			}
+
+			return { data: JSON.parse(responseData.data) as R, time: responseData.time };
+		} catch (e) {
+			if (e instanceof NetSchedulerError) {
+				throw e;
+			}
+			throw new NetSchedulerError("CF Worker request failed", "FETCH_ERROR", e);
+		}
 	}
 }
 

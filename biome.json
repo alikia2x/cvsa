@@ -1,9 +1,12 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
-	"vcs": {
-		"enabled": true,
-		"useIgnoreFile": true,
-		"clientKind": "git"
+	"assist": {
+		"actions": {
+			"source": {
+				"useSortedKeys": "on"
+			}
+		},
+		"enabled": true
 	},
 	"formatter": {
 		"enabled": true,
@@ -19,5 +22,21 @@
 			"semicolons": "always",
 			"trailingCommas": "es5"
 		}
+	},
+	"json": {
+		"assist": {
+			"enabled": false
+		},
+		"formatter": {
+			"enabled": false
+		},
+		"linter": {
+			"enabled": false
+		}
+	},
+	"vcs": {
+		"clientKind": "git",
+		"enabled": true,
+		"useIgnoreFile": true
 	}
 }

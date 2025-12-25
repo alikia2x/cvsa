@@ -42,7 +42,7 @@ export default function VideoInfo({ loaderData }: Route.ComponentProps) {
 	}, [loaderData.id]);
 
 	useEffect(() => {
-		getInfo().then(()=>{});
+		getInfo().then(() => {});
 	}, [getInfo]);
 
 	if (!videoInfo && !error) {
@@ -85,9 +85,13 @@ export default function VideoInfo({ loaderData }: Route.ComponentProps) {
 					<p>
 						<span>{videoInfo?.bvid}</span> · <span>av{videoInfo?.aid}</span>
 					</p>
-					{videoInfo?.pubdate && <p>
-						<span>发布于 {formatDateTime(new Date(videoInfo?.pubdate * 1000))}</span>
-					</p>}
+					{videoInfo?.pubdate && (
+						<p>
+							<span>
+								发布于 {formatDateTime(new Date(videoInfo?.pubdate * 1000))}
+							</span>
+						</p>
+					)}
 					<p>
 						<span>播放：{(videoInfo?.stat?.view ?? 0).toLocaleString()}</span> ·{" "}
 						<span>弹幕：{(videoInfo?.stat?.danmaku ?? 0).toLocaleString()}</span>
