@@ -1,8 +1,8 @@
-import { sql } from "@core/index";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { sql } from "@core/db/dbNew";
 import logger from "@core/log";
 import arg from "arg";
-import fs from "fs/promises";
-import path from "path";
 
 const quit = (reason?: string) => {
 	reason && logger.error(reason);
@@ -64,7 +64,8 @@ if (!aid) {
 const pg = sql;
 
 async function importData() {
-	const data = await fetchData(aid!);
+	if (!aid) return;
+	const data = await fetchData(aid);
 	const length = data.length;
 	logger.log(`Found ${length} snapshots for aid ${aid}`);
 	let i = 0;
@@ -75,7 +76,7 @@ async function importData() {
 			await pg`
                 INSERT INTO video_snapshot (aid, created_at, views, danmakus, replies, favorites, coins, shares, likes)
                 VALUES (${record.aid}, ${timeString}, ${record.view}, ${record.danmaku}, ${record.reply}, ${record.favorite}, ${record.coin}, ${record.share}, ${record.like})
-            `;
+			`;
 		} catch (e) {
 			logger.error(e as Error);
 			logger.warn(

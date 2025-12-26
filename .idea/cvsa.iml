@@ -29,13 +29,17 @@
       <excludeFolder url="file://$MODULE_DIR$/data" />
       <excludeFolder url="file://$MODULE_DIR$/redis" />
       <excludeFolder url="file://$MODULE_DIR$/ml" />
-      <excludeFolder url="file://$MODULE_DIR$/src" />
       <excludeFolder url="file://$MODULE_DIR$/packages/crawler/.cache" />
       <excludeFolder url="file://$MODULE_DIR$/packages/solid/.vinxi" />
       <excludeFolder url="file://$MODULE_DIR$/.jj" />
       <excludeFolder url="file://$MODULE_DIR$/.jj/repo" />
       <excludeFolder url="file://$MODULE_DIR$/.jj/working_copy" />
       <excludeFolder url="file://$MODULE_DIR$/packages/solid/.output" />
+      <excludeFolder url="file://$MODULE_DIR$/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/cf-worker/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/crawler/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/temp_frontend/.turbo" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
