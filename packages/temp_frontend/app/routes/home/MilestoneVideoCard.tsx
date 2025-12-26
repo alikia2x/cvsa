@@ -86,34 +86,39 @@ export const MilestoneVideoCard = ({
 				<div className="flex gap-4">
 					<p>剩余播放: {remainingViews.toLocaleString()}</p>
 					<p>播放增速: {Math.round(video.eta.speed)}/小时</p>
-					
 				</div>
 				<div>
-					<p>预计达成: {addHoursToNow(video.eta.eta)}（{formatHours(video.eta.eta)}）</p>
+					<p>
+						预计达成: {addHoursToNow(video.eta.eta)}（{formatHours(video.eta.eta)}）
+					</p>
 				</div>
 			</div>
 
-			<div className="max-sm:grid-rows-2 max-sm:grid flex gap-1 sm:gap-4 text-xs text-muted-foreground">
-				{video.bilibili_metadata.publishedAt && (
-					<span className="stat-num">
-						发布于: {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
-					</span>
-				)}
-				<span>数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前</span>
-				<a
-					href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="text-pink-400 text-xs hover:underline"
-				>
-					观看视频
-				</a>
-				<a
-					href={`/song/av${video.bilibili_metadata.aid}/info`}
-					className="text-xs text-secondary-foreground hover:underline"
-				>
-					查看详情
-				</a>
+			<div className="max-sm:grid-rows-2 max-sm:grid flex gap-1 sm:justify-between text-xs text-muted-foreground">
+				<div className="flex max-sm:justify-between gap-2 w-full">
+					{video.bilibili_metadata.publishedAt && (
+						<span className="stat-num">
+							发布于: {formatDateTime(new Date(video.bilibili_metadata.publishedAt))}
+						</span>
+					)}
+					<span>数据更新于 {timeAgo(new Date(video.eta.updatedAt))}前</span>
+				</div>
+				<div className="flex gap-4">
+					<a
+						href={`https://www.bilibili.com/video/av${video.bilibili_metadata.aid}`}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-pink-400 max-sm:text-sm hover:underline whitespace-nowrap"
+					>
+						观看视频
+					</a>
+					<a
+						href={`/song/av${video.bilibili_metadata.aid}/info`}
+						className="max-sm:text-sm text-secondary-foreground hover:underline whitespace-nowrap"
+					>
+						查看详情
+					</a>
+				</div>
 			</div>
 		</Card>
 	);

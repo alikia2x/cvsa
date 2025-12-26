@@ -19,7 +19,7 @@
 		},
 		"test": {},
 		"deploy": {
-			"cache": false,
+			"cache": true,
 			"dependsOn": ["temp_frontend#build"]
 		},
 		"build": {}
