@@ -12,15 +12,22 @@ import "./app.css";
 import { ErrorPage as ErrPage } from "./components/Error";
 
 export const links: Route.LinksFunction = () => [
-	{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+	{ href: "https://fonts.googleapis.com", rel: "preconnect" },
 	{
-		rel: "preconnect",
-		href: "https://fonts.gstatic.com",
 		crossOrigin: "anonymous",
+		href: "https://fonts.gstatic.com",
+		rel: "preconnect",
 	},
 	{
-		rel: "stylesheet",
+		as: "style",
 		href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+		rel: "preload",
+	},
+	{
+		href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+		media: "print",
+		onload: "this.media='all'",
+		rel: "stylesheet",
 	},
 ];
 
