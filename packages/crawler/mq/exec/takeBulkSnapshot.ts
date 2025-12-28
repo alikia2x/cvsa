@@ -1,6 +1,6 @@
 import { sql } from "@core/db/dbNew";
 import type { SnapshotScheduleType } from "@core/db/schema";
-import { HOUR, MINUTE, SECOND } from "@core/lib";
+import { HOUR, SECOND } from "@core/lib";
 import logger from "@core/log";
 import { NetSchedulerError } from "@core/net/delegate";
 import type { Job } from "bullmq";
@@ -87,7 +87,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 		for (const schedule of schedules) {
 			const aid = Number(schedule.aid);
 			const type = schedule.type;
-			if (type == "archive") continue;
+			if (type === "archive") continue;
 			const interval = await getRegularSnapshotInterval(sql, aid);
 			logger.log(`Scheduled regular snapshot for aid ${aid} in ${interval} hours.`, "mq");
 			await scheduleSnapshot(sql, aid, "normal", Date.now() + interval * HOUR);
@@ -105,7 +105,7 @@ export const takeBulkSnapshotForVideosWorker = async (job: Job) => {
 				sql,
 				aidsToFetch,
 				"normal",
-				Date.now() + 20 * MINUTE * Math.random(),
+				Date.now() + 30 * SECOND * Math.random(),
 				false,
 				true
 			);

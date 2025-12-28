@@ -12,6 +12,7 @@
  */
 
 import { connect } from "cloudflare:sockets";
+import { HttpParser, MessageType } from '@alikia/http-parser';
 
 interface ProxyConfig {
 	TIMEOUT_MS: number;
@@ -65,10 +66,10 @@ function parseHttpHeaders(buff: Uint8Array): ParsedHeaders | null {
 	}
 
 	return {
+		headerEnd,
+		headers,
 		status: Number(statusMatch[1]),
 		statusText: statusMatch[2],
-		headers,
-		headerEnd,
 	};
 }
 
@@ -97,7 +98,7 @@ async function handleSocket(
 			hostname: targetUrl.hostname,
 			port: port,
 		},
-		{ secureTransport: targetUrl.protocol === "https:" ? "on" : "off", allowHalfOpen: false }
+		{ allowHalfOpen: false, secureTransport: targetUrl.protocol === "https:" ? "on" : "off" }
 	);
 
 	const writer = socket.writable.getWriter();
@@ -105,7 +106,7 @@ async function handleSocket(
 	headers.set("Host", targetUrl.hostname);
 	headers.set("Connection", "close");
 	if (!headers.has("Accept-Encoding")) {
-		headers.set("Accept-Encoding", "gzip, deflate, br");
+		headers.set("Accept-Encoding", "identity");
 	}
 
 	const requestLine =
@@ -118,71 +119,30 @@ async function handleSocket(
 	await writer.write(encoder.encode(requestLine));
 
 	const reader = socket.readable.getReader();
-	let buffer: Uint8Array<ArrayBufferLike> = new Uint8Array();
+	const buffer: Uint8Array[] = [];
 
 	while (true) {
 		const { value, done } = await reader.read();
 		if (done) break;
-		buffer = concatUint8Arrays(buffer, value);
-
-		const parsed = parseHttpHeaders(buffer);
-		if (!parsed) {
-			continue;
-		}
-		const { headers: respHeaders, headerEnd } = parsed;
-		const initialData = buffer.slice(headerEnd + 4);
-		const encoding = respHeaders.get("content-encoding");
-
-		const chunks: Uint8Array[] = [];
-		if (initialData.length > 0) chunks.push(initialData);
-
-		const rawStream = new ReadableStream({
-			start: async (ctrl) => {
-				if (initialData.length > 0) ctrl.enqueue(initialData);
-				try {
-					while (true) {
-						const { value, done } = await reader.read();
-						if (done) break;
-						ctrl.enqueue(value);
-						chunks.push(value);
-					}
-					ctrl.close();
-				} catch (e) {
-					ctrl.error(e);
-				}
-			},
-		});
-
-		let decompressedChunks: Uint8Array[] = chunks;
-		if (encoding === "gzip" || encoding === "deflate") {
-			const decompressionStream = rawStream.pipeThrough(new DecompressionStream(encoding));
-			decompressedChunks = [];
-			const decompressReader = decompressionStream.getReader();
-			while (true) {
-				const { value, done } = await decompressReader.read();
-				if (done) break;
-				decompressedChunks.push(value);
-			}
-			respHeaders.delete("content-encoding");
-			respHeaders.delete("content-length");
-		}
-
-		const responseTime = Date.now();
-		const combinedTime = Math.floor((requestTime + responseTime) / 2);
-		const data = new Uint8Array(decompressedChunks.reduce((sum, arr) => sum + arr.length, 0));
-		let offset = 0;
-		for (const chunk of decompressedChunks) {
-			data.set(chunk, offset);
-			offset += chunk.length;
-		}
-
-		return {
-			data: new TextDecoder().decode(data),
-			time: combinedTime,
-		};
+		buffer.push(value);
 	}
 
-	throw new Error("Unable to parse response");
+	const rawContent = concatUint8Arrays(...buffer)
+
+	const parser = new HttpParser();
+
+	const parsed = parser.parse(rawContent);
+
+	for (const msg of parsed) {
+		if (msg.type === MessageType.RESPONSE) {
+			return {
+				data: new TextDecoder().decode(msg.body),
+				time: Math.floor((requestTime + Date.now()) / 2),
+			}
+		}
+	}
+	
+	throw new Error("Invalid response");
 }
 
 async function handleFetch(
@@ -191,8 +151,8 @@ async function handleFetch(
 	requestTime: number
 ): Promise<ProxyResponseData> {
 	const response = await fetch(dstUrl, {
-		method: "GET",
 		headers: customHeaders,
+		method: "GET",
 	});
 
 	const responseTime = Date.now();
@@ -208,8 +168,8 @@ async function handleFetch(
 function createJsonResponse(data: ProxyResponseData): Response {
 	return new Response(JSON.stringify(data), {
 		headers: {
-			"Content-Type": "application/json",
 			"Access-Control-Allow-Origin": "*",
+			"Content-Type": "application/json",
 		},
 	});
 }
@@ -218,15 +178,15 @@ function createErrorResponse(message: string, status: number): Response {
 	return new Response(
 		JSON.stringify({
 			data: "",
-			time: Date.now(),
 			error: message,
+			time: Date.now(),
 		}),
 		{
-			status,
 			headers: {
-				"Content-Type": "application/json",
 				"Access-Control-Allow-Origin": "*",
+				"Content-Type": "application/json",
 			},
+			status,
 		}
 	);
 }

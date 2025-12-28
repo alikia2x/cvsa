@@ -28,9 +28,9 @@ describe("Proxy Worker", () => {
 
 	it("rejects Invalid request", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
 			body: "invalid json",
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
@@ -45,9 +45,9 @@ describe("Proxy Worker", () => {
 
 	it("rejects missing url field", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
 			body: JSON.stringify({ headers: { "X-Custom": "value" } }),
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
@@ -62,9 +62,9 @@ describe("Proxy Worker", () => {
 
 	it("rejects invalid URL format", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
-			body: JSON.stringify({ url: "not-a-valid-url", headers: {} }),
+			body: JSON.stringify({ headers: {}, url: "not-a-valid-url" }),
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 		const ctx = createExecutionContext();
 		const response = await worker.fetch(request, env, ctx);
@@ -79,12 +79,12 @@ describe("Proxy Worker", () => {
 
 	it("includes CORS headers in response", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
 			body: JSON.stringify({
-				url: "https://httpbin.org/status/200",
 				headers: {},
+				url: "https://httpbin.org/status/200",
 			}),
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 
 		const ctx = createExecutionContext();
@@ -97,12 +97,12 @@ describe("Proxy Worker", () => {
 
 	it("handles proxy request failures", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
 			body: JSON.stringify({
-				url: "https://invalid-domain-that-does-not-exist-12345.com",
 				headers: {},
+				url: "https://invalid-domain-that-does-not-exist-12345.com",
 			}),
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 
 		const ctx = createExecutionContext();
@@ -118,12 +118,12 @@ describe("Proxy Worker", () => {
 
 	it("returns JSON response with data and time fields on success", async () => {
 		const request = new IncomingRequest("http://example.com", {
-			method: "POST",
 			body: JSON.stringify({
-				url: "https://postman-echo.com/get",
 				headers: {},
+				url: "https://postman-echo.com/get",
 			}),
 			headers: { "Content-Type": "application/json" },
+			method: "POST",
 		});
 
 		const ctx = createExecutionContext();

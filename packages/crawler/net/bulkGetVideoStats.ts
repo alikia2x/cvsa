@@ -29,7 +29,7 @@ export async function bulkGetVideoStats(aids: number[]): Promise<
 	);
 	const errMessage = `Error fetching metadata for aid list: ${aids.join(",")}:`;
 	if (data.code !== 0) {
-		logger.error(errMessage + data.code + "-" + data.message, "net", "fn:getVideoInfo");
+		logger.error(`${errMessage + data.code}-${data.message}`, "net", "fn:getVideoInfo");
 		return data.code;
 	}
 	return {

@@ -2,7 +2,7 @@
 	"name": "core",
 	"private": true,
 	"scripts": {
-		"test": "bun run test",
+		"test": "bun test",
 		"drizzle:pull": "drizzle-kit pull"
 	},
 	"dependencies": {
