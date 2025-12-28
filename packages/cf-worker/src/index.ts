@@ -12,7 +12,7 @@
  */
 
 import { connect } from "cloudflare:sockets";
-import { HttpParser, MessageType } from '@alikia/http-parser';
+import { HttpParser, MessageType } from "@alikia/http-parser";
 
 interface ProxyConfig {
 	TIMEOUT_MS: number;
@@ -127,7 +127,7 @@ async function handleSocket(
 		buffer.push(value);
 	}
 
-	const rawContent = concatUint8Arrays(...buffer)
+	const rawContent = concatUint8Arrays(...buffer);
 
 	const parser = new HttpParser();
 
@@ -138,10 +138,10 @@ async function handleSocket(
 			return {
 				data: new TextDecoder().decode(msg.body),
 				time: Math.floor((requestTime + Date.now()) / 2),
-			}
+			};
 		}
 	}
-	
+
 	throw new Error("Invalid response");
 }
 
@@ -165,8 +165,11 @@ async function handleFetch(
 	};
 }
 
-function createJsonResponse(data: ProxyResponseData): Response {
-	return new Response(JSON.stringify(data), {
+function createJsonResponse(data: ProxyResponseData, requestId: string): Response {
+	return new Response(JSON.stringify({
+		...data,
+		requestId,
+	}), {
 		headers: {
 			"Access-Control-Allow-Origin": "*",
 			"Content-Type": "application/json",
@@ -174,12 +177,13 @@ function createJsonResponse(data: ProxyResponseData): Response {
 	});
 }
 
-function createErrorResponse(message: string, status: number): Response {
+function createErrorResponse(message: string, status: number, requestId: string): Response {
 	return new Response(
 		JSON.stringify({
 			data: "",
 			error: message,
 			time: Date.now(),
+			requestId,
 		}),
 		{
 			headers: {
@@ -193,8 +197,11 @@ function createErrorResponse(message: string, status: number): Response {
 
 export default {
 	async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
+		const requestId = crypto.randomUUID().slice(0, 8); // Track this specific request
+
 		if (request.method !== "POST") {
-			return createErrorResponse("Method not allowed", 405);
+			console.warn(`[${requestId}] Method Not Allowed: ${request.method}`);
+			return createErrorResponse("Method not allowed", 405, requestId);
 		}
 
 		let targetUrl: string;
@@ -206,25 +213,39 @@ export default {
 			targetUrl = body.url;
 			new URL(targetUrl);
 			customHeaders = body.headers || {};
-		} catch {
-			return createErrorResponse("Invalid request", 400);
+			console.log(`[${requestId}] Proxying request to: ${targetUrl}`);
+		} catch (err) {
+			console.error(`[${requestId}] Body Parse Error:`, err);
+			return createErrorResponse("Invalid request", 400, requestId);
 		}
 
 		try {
+			console.log(`[${requestId}] Attempting handleSocket...`);
 			const data = await withTimeout(
 				handleSocket(targetUrl, customHeaders, requestTime),
 				CONFIG.TIMEOUT_MS
 			);
-			return createJsonResponse(data);
-		} catch {
+			console.log(`[${requestId}] Success via handleSocket (${Date.now() - requestTime}ms)`);
+			return createJsonResponse(data, requestId);
+		} catch (socketErr: any) {
+			console.warn(
+				`[${requestId}] handleSocket failed: ${socketErr.message}. Falling back to fetch...`
+			);
+
 			try {
 				const data = await withTimeout(
 					handleFetch(targetUrl, customHeaders, requestTime),
 					CONFIG.TIMEOUT_MS
 				);
-				return createJsonResponse(data);
-			} catch {
-				return createErrorResponse("Socket timeout", 504);
+				console.log(
+					`[${requestId}] Success via handleFetch (${Date.now() - requestTime}ms)`
+				);
+				return createJsonResponse(data, requestId);
+			} catch (fetchErr: any) {
+				console.error(
+					`[${requestId}] Critical Failure: Both Socket and Fetch failed. Error: ${fetchErr.message}`
+				);
+				return createErrorResponse(`Proxy failure: ${fetchErr.message}`, 504, requestId);
 			}
 		}
 	},

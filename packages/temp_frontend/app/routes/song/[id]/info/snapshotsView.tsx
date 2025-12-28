@@ -185,7 +185,7 @@ export const SnapshotsView = ({
 							>
 								{achievement.milestoneName}（
 								{achievement.milestone.toLocaleString()}） -{" "}
-								{formatDateTime(new Date(achievement.achievedAt))}
+								{formatDateTime(new Date(achievement.achievedAt), true, false)}
 								{achievement.timeTaken && ` - 用时 ${achievement.timeTaken}`}
 							</p>
 						))}

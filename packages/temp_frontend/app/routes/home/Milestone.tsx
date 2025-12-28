@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MilestoneVideoCard } from "./MilestoneVideoCard";
 
-// @ts-expect-error idk
 const app = treaty<App>(import.meta.env.VITE_API_URL!);
 
 export type CloseMilestoneInfo = Awaited<
