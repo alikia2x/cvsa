@@ -42,22 +42,19 @@ function createAliProxiesObject<T extends readonly string[]>(regions: T) {
 	);
 }
 
-const aliProxiesObject = createAliProxiesObject(aliRegions);
-const aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_${AliRegion}`);
+const _aliProxiesObject = createAliProxiesObject(aliRegions);
+const _aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_${AliRegion}`);
 
 const proxies = {
-	native: {
-		data: {},
-		type: "native" as const,
-	},
-
-	...aliProxiesObject,
-
 	"cf-worker": {
 		data: {
 			url: Bun.env.CF_WORKER_URL,
 		},
 		type: "cf-worker",
+	},
+	native: {
+		data: {},
+		type: "native" as const,
 	},
 } satisfies Record<string, ProxyDef>;
 
@@ -162,7 +159,7 @@ bili_strict[2].max = 100;
 
 type MyProxyKeys = keyof typeof proxies;
 
-const fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
+const _fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
 
 function createNetworkConfig<ProviderKeys extends string, TaskKeys extends string>(
 	config: NetworkConfigInternal<ProviderKeys, TaskKeys>
@@ -173,7 +170,7 @@ function createNetworkConfig<ProviderKeys extends string, TaskKeys extends strin
 const config = createNetworkConfig({
 	providers: {
 		bilibili: { limiters: [] },
-		test: { limiters: [] },
+		// test: { limiters: [] },
 		testCF: { limiters: [] },
 	},
 	proxies: proxies,
@@ -200,10 +197,10 @@ const config = createNetworkConfig({
 			provider: "bilibili",
 			proxies: ["cf-worker"],
 		},
-		test: {
-			provider: "test",
-			proxies: fcProxies,
-		},
+		// test: {
+		// 	provider: "test",
+		// 	proxies: fcProxies,
+		// },
 		testCf: {
 			provider: "testCF",
 			proxies: ["cf-worker"],
