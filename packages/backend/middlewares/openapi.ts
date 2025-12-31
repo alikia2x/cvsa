@@ -14,8 +14,8 @@ export const openAPIMiddleware = openapi({
 	},
 	references: fromTypes(),
 	scalar: {
-		theme: "kepler",
 		hideClientButton: true,
 		hideDarkModeToggle: true,
+		theme: "kepler",
 	},
 });

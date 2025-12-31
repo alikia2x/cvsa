@@ -58,8 +58,8 @@ const latestVideoWorker = new Worker(
 		}
 	},
 	{
-		connection: redis as ConnectionOptions,
 		concurrency: 6,
+		connection: redis as ConnectionOptions,
 		removeOnComplete: { count: 1440 },
 		removeOnFail: { count: 0 },
 	}
@@ -100,7 +100,7 @@ const snapshotWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 50, removeOnComplete: { count: 2000 } }
+	{ concurrency: 50, connection: redis as ConnectionOptions, removeOnComplete: { count: 2000 } }
 );
 
 snapshotWorker.on("error", (err) => {
@@ -118,7 +118,7 @@ const miscWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 5, removeOnComplete: { count: 1000 } }
+	{ concurrency: 5, connection: redis as ConnectionOptions, removeOnComplete: { count: 1000 } }
 );
 
 miscWorker.on("error", (err) => {

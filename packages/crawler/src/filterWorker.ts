@@ -26,7 +26,7 @@ const filterWorker = new Worker(
 				break;
 		}
 	},
-	{ connection: redis as ConnectionOptions, concurrency: 2, removeOnComplete: { count: 1000 } }
+	{ concurrency: 2, connection: redis as ConnectionOptions, removeOnComplete: { count: 1000 } }
 );
 
 process.on("SIGINT", () => shutdown("SIGINT", filterWorker));

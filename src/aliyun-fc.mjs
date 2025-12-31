@@ -35,8 +35,8 @@ export const handler = async (event, _context) => {
 			const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
 			const response = await fetch(eventObj.url, {
 				headers: {
-					"User-Agent": randomUserAgent,
 					Referer: refererUrl,
+					"User-Agent": randomUserAgent,
 				},
 			});
 			statusCode = response.status;
@@ -51,19 +51,19 @@ export const handler = async (event, _context) => {
 				const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
 				const response = await fetch(url, {
 					headers: {
-						"User-Agent": randomUserAgent,
 						Referer: refererUrl,
+						"User-Agent": randomUserAgent,
 					},
 				});
 				const responseBody = await response.text();
 				return {
-					statusCode: response.status,
 					body: responseBody,
+					statusCode: response.status,
 				};
 			} catch (error) {
 				return {
-					statusCode: 500,
 					body: `Error fetching URL: ${error.message}`,
+					statusCode: 500,
 				};
 			}
 		});
@@ -73,7 +73,7 @@ export const handler = async (event, _context) => {
 	}
 
 	return {
-		statusCode: statusCode,
 		body: JSON.stringify(body),
+		statusCode: statusCode,
 	};
 };

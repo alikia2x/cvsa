@@ -166,15 +166,18 @@ async function handleFetch(
 }
 
 function createJsonResponse(data: ProxyResponseData, requestId: string): Response {
-	return new Response(JSON.stringify({
-		...data,
-		requestId,
-	}), {
-		headers: {
-			"Access-Control-Allow-Origin": "*",
-			"Content-Type": "application/json",
-		},
-	});
+	return new Response(
+		JSON.stringify({
+			...data,
+			requestId,
+		}),
+		{
+			headers: {
+				"Access-Control-Allow-Origin": "*",
+				"Content-Type": "application/json",
+			},
+		}
+	);
 }
 
 function createErrorResponse(message: string, status: number, requestId: string): Response {
@@ -182,8 +185,8 @@ function createErrorResponse(message: string, status: number, requestId: string)
 		JSON.stringify({
 			data: "",
 			error: message,
-			time: Date.now(),
 			requestId,
+			time: Date.now(),
 		}),
 		{
 			headers: {

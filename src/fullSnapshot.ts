@@ -10,8 +10,8 @@ const quit = (reason?: string) => {
 };
 
 const args = arg({
-	"--db": String,
 	"--aids": String,
+	"--db": String,
 });
 
 const dbPath = args["--db"];

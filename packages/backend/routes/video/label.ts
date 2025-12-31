@@ -11,12 +11,12 @@ const videoSchema = BiliVideoSchema.omit({ publishedAt: true })
 	.omit({ createdAt: true })
 	.omit({ coverUrl: true })
 	.extend({
-		views: z.number(),
-		username: z.string(),
-		uid: z.number(),
-		published_at: z.string(),
-		createdAt: z.string(),
 		cover_url: z.string(),
+		createdAt: z.string(),
+		published_at: z.string(),
+		uid: z.number(),
+		username: z.string(),
+		views: z.number(),
 	});
 
 export const getUnlabelledVideos = new Elysia({ prefix: "/videos" }).use(requireAuth).get(
@@ -75,9 +75,9 @@ export const postVideoLabel = new Elysia({ prefix: "/video" }).use(requireAuth).
 		if (!aid) {
 			return status(400, {
 				code: "MALFORMED_SLOT",
+				errors: [],
 				message:
 					"We cannot parse the video ID, or we currently do not support this format.",
-				errors: [],
 			});
 		}
 
@@ -90,8 +90,8 @@ export const postVideoLabel = new Elysia({ prefix: "/video" }).use(requireAuth).
 		if (video.length === 0) {
 			return status(400, {
 				code: "VIDEO_NOT_FOUND",
-				message: "Video not found",
 				errors: [],
+				message: "Video not found",
 			});
 		}
 

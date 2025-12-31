@@ -32,12 +32,12 @@ export const bulkSnapshotTickWorker = async (_job: Job) => {
 			const schedulesData = group.map((schedule) => {
 				return {
 					aid: Number(schedule.aid),
-					id: Number(schedule.id),
-					type: schedule.type,
 					created_at: schedule.created_at,
-					started_at: schedule.started_at,
 					finished_at: schedule.finished_at,
+					id: Number(schedule.id),
+					started_at: schedule.started_at,
 					status: schedule.status,
+					type: schedule.type,
 				};
 			});
 			await SnapshotQueue.add(

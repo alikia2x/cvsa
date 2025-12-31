@@ -81,7 +81,7 @@ export const ColorBlock = ({ baseColor, text, l, c, h }: ColorBlockProps) => {
 							animate={{ opacity: 1, width: 22 }}
 							transition={{
 								opacity: { duration: 0.2, ease: "backOut" },
-								width: { type: "spring", bounce: 0.2, duration: 0.5 },
+								width: { bounce: 0.2, duration: 0.5, type: "spring" },
 							}}
 						>
 							<Icon />

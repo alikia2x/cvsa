@@ -17,8 +17,8 @@ import { closetMilestone } from "./snapshotTick";
 
 const snapshotTypeToTaskMap = {
 	milestone: "snapshotMilestoneVideo",
-	normal: "snapshotVideo",
 	new: "snapshotMilestoneVideo",
+	normal: "snapshotVideo",
 } as const;
 
 export const snapshotVideoWorker = async (job: Job): Promise<void> => {

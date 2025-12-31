@@ -17,7 +17,7 @@ import { projectPageAction } from "./projectPageAction";
 export function meta({ loaderData }: Route.MetaArgs) {
 	return [
 		{ title: `${loaderData.project.name} - FramSpor` },
-		{ name: "description", content: `Manage tasks for ${loaderData.project.name}` },
+		{ content: `Manage tasks for ${loaderData.project.name}`, name: "description" },
 	];
 }
 
@@ -77,10 +77,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	);
 
 	return {
-		project,
-		columns: columnsWithTasks,
-		user,
 		canEdit,
+		columns: columnsWithTasks,
+		project,
+		user,
 	};
 }
 
@@ -144,8 +144,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		formData.append("name", data.name);
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		revalidator.revalidate();
@@ -157,8 +157,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		formData.append("columnId", columnId);
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		if (response.ok) {
@@ -179,8 +179,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		formData.append("isPublic", data.isPublic ? "true" : "false");
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		if (response.ok) {
@@ -194,8 +194,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		formData.append("intent", "deleteProject");
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		if (response.ok) {
@@ -229,8 +229,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		}
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		revalidator.revalidate();
@@ -242,8 +242,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 		formData.append("taskId", editingTask.id);
 
 		const response = await fetch(`/project/${project.id}`, {
-			method: "POST",
 			body: formData,
+			method: "POST",
 		});
 
 		revalidator.revalidate();
@@ -279,8 +279,8 @@ export default function ProjectBoard({ loaderData }: Route.ComponentProps) {
 				onSubmit={handleProjectSubmit}
 				onDelete={handleDeleteProject}
 				initialData={{
-					name: project.name,
 					description: project.description || "",
+					name: project.name,
 				}}
 				isEditing={true}
 			/>

@@ -16,7 +16,7 @@ import type { Route } from "./+types/profile";
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "User Profile" },
-		{ name: "description", content: "Manage your account settings" },
+		{ content: "Manage your account settings", name: "description" },
 	];
 }
 
@@ -67,7 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
 			.set({ password: hashedNewPassword, updatedAt: new Date() })
 			.where(eq(users.id, user.id));
 
-		return { success: true, message: "Password updated successfully" };
+		return { message: "Password updated successfully", success: true };
 	}
 
 	if (intent === "changeUsername") {
@@ -88,14 +88,14 @@ export async function action({ request }: Route.ActionArgs) {
 
 		await db
 			.update(users)
-			.set({ username: newUsername, updatedAt: new Date() })
+			.set({ updatedAt: new Date(), username: newUsername })
 			.where(eq(users.id, user.id));
 
 		const updatedUser = await db.select().from(users).where(eq(users.id, user.id)).get();
 
 		return {
-			success: true,
 			message: "Username updated successfully",
+			success: true,
 			updatedUser,
 		};
 	}

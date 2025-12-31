@@ -8,10 +8,10 @@ import { VERSION } from "@backend/src";
 import { Elysia, t } from "elysia";
 
 const SingerObj = t.Object({
-	name: t.String(),
-	color: t.Optional(t.String()),
 	birthday: t.Optional(t.String()),
+	color: t.Optional(t.String()),
 	message: t.Optional(t.String()),
+	name: t.String(),
 });
 
 export const rootHandler = new Elysia().get(
@@ -32,35 +32,35 @@ export const rootHandler = new Elysia().get(
 		}
 		return {
 			project: {
-				name: "中V档案馆",
 				mascot: "知夏",
+				name: "中V档案馆",
 				quote: "星河知海夏生光",
 			},
-			status: 200,
-			version: VERSION,
-			time: Date.now(),
 			singer: singer,
+			status: 200,
+			time: Date.now(),
+			version: VERSION,
 		};
 	},
 	{
-		response: {
-			200: t.Object({
-				project: t.Object({
-					name: t.String(),
-					mascot: t.String(),
-					quote: t.String(),
-				}),
-				status: t.Number(),
-				version: t.String(),
-				time: t.Number(),
-				singer: t.Union([SingerObj, t.Array(SingerObj)]),
-			}),
-		},
 		detail: {
-			summary: "Root route",
 			description:
 				"The root path. It returns a JSON object containing a random virtual singer, \
 			backend version, current server time and other miscellaneous information.",
+			summary: "Root route",
+		},
+		response: {
+			200: t.Object({
+				project: t.Object({
+					mascot: t.String(),
+					name: t.String(),
+					quote: t.String(),
+				}),
+				singer: t.Union([SingerObj, t.Array(SingerObj)]),
+				status: t.Number(),
+				time: t.Number(),
+				version: t.String(),
+			}),
 		},
 	}
 );

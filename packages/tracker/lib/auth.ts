@@ -24,11 +24,11 @@ export async function createUser(username: string, password: string) {
 	const hashedPassword = await Argon2id.hashEncoded(password);
 
 	await db.insert(users).values({
-		id: userId,
-		username,
-		password: hashedPassword,
 		createdAt: now,
+		id: userId,
+		password: hashedPassword,
 		updatedAt: now,
+		username,
 	});
 
 	return userId;
@@ -52,10 +52,10 @@ export async function createSession(userId: string) {
 	const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
 	await db.insert(sessions).values({
+		createdAt: new Date(),
+		expiresAt,
 		id: sessionId,
 		userId,
-		expiresAt,
-		createdAt: new Date(),
 	});
 
 	return sessionId;

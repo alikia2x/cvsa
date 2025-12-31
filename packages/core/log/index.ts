@@ -43,12 +43,12 @@ const createTransport = (level: string, filename: string) => {
 		return value;
 	}
 	return new transports.File({
-		level,
 		filename,
+		format: format.combine(timestampFormat, format.json({ replacer })),
+		level,
+		maxFiles,
 		maxsize,
 		tailable,
-		maxFiles,
-		format: format.combine(timestampFormat, format.json({ replacer })),
 	});
 };
 
@@ -60,13 +60,13 @@ const winstonLogger = winston.createLogger({
 	levels: winston.config.npm.levels,
 	transports: [
 		new transports.Console({
-			level: "debug",
 			format: format.combine(
 				format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSSZZ" }),
 				format.colorize(),
 				format.errors({ stack: true }),
 				customFormat
 			),
+			level: "debug",
 		}),
 		createTransport("silly", sillyLogPath),
 		createTransport("warn", warnLogPath),
@@ -75,27 +75,27 @@ const winstonLogger = winston.createLogger({
 });
 
 const logger = {
-	silly: (message: string, service?: string, codePath?: string) => {
-		winstonLogger.silly(message, { service, codePath });
-	},
-	verbose: (message: string, service?: string, codePath?: string) => {
-		winstonLogger.verbose(message, { service, codePath });
-	},
-	log: (message: string, service?: string, codePath?: string) => {
-		winstonLogger.info(message, { service, codePath });
-	},
 	debug: (message: string, service?: string, codePath?: string) => {
-		winstonLogger.debug(message, { service, codePath });
-	},
-	warn: (message: string, service?: string, codePath?: string) => {
-		winstonLogger.warn(message, { service, codePath });
+		winstonLogger.debug(message, { codePath, service });
 	},
 	error: (error: string | Error, service?: string, codePath?: string) => {
 		if (error instanceof Error) {
-			winstonLogger.error(error.message, { service, error: error, codePath });
+			winstonLogger.error(error.message, { codePath, error: error, service });
 		} else {
-			winstonLogger.error(error, { service, codePath });
+			winstonLogger.error(error, { codePath, service });
 		}
+	},
+	log: (message: string, service?: string, codePath?: string) => {
+		winstonLogger.info(message, { codePath, service });
+	},
+	silly: (message: string, service?: string, codePath?: string) => {
+		winstonLogger.silly(message, { codePath, service });
+	},
+	verbose: (message: string, service?: string, codePath?: string) => {
+		winstonLogger.verbose(message, { codePath, service });
+	},
+	warn: (message: string, service?: string, codePath?: string) => {
+		winstonLogger.warn(message, { codePath, service });
 	},
 };
 

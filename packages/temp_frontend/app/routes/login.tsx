@@ -12,8 +12,8 @@ const app = treaty<App>(import.meta.env.VITE_API_URL!);
 export default function Login() {
 	const navigate = useNavigate();
 	const [formData, setFormData] = useState({
-		username: "",
 		password: "",
+		username: "",
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState("");

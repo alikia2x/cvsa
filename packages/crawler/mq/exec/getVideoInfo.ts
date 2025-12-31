@@ -22,8 +22,8 @@ interface AddSongEventPayload {
 const publishAddsongEvent = async (songID: number, uid: string) =>
 	latestVideosEventsProducer.publishEvent<AddSongEventPayload>({
 		eventName: "addSong",
-		uid: uid,
 		songID: songID,
+		uid: uid,
 	});
 
 export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise<void> => {
@@ -56,34 +56,34 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 	await insertIntoMetadata({
 		aid,
 		bvid: data.View.bvid,
+		coverUrl: data.View.pic,
 		description: data.View.desc,
-		uid: uid,
+		duration: data.View.duration,
+		publishedAt: new Date(data.View.pubdate * 1000).toISOString(),
 		tags: data.Tags.filter((tag) => !["old_channel", "topic"].indexOf(tag.tag_type))
 			.map((tag) => tag.tag_name)
 			.join(","),
 		title: data.View.title,
-		publishedAt: new Date(data.View.pubdate * 1000).toISOString(),
-		duration: data.View.duration,
-		coverUrl: data.View.pic,
+		uid: uid,
 	});
 
 	const userExists = await userExistsInBiliUsers(aid);
 	if (!userExists) {
 		await db.insert(bilibiliUser).values({
-			uid,
-			username: data.View.owner.name,
+			avatar: data.View.owner.face,
 			desc: data.Card.card.sign,
 			fans: data.Card.follower,
-			avatar: data.View.owner.face,
+			uid,
+			username: data.View.owner.name,
 		});
 	} else {
 		await db
 			.update(bilibiliUser)
 			.set({
-				username: data.View.owner.name,
+				avatar: data.View.owner.face,
 				desc: data.Card.card.sign,
 				fans: data.Card.follower,
-				avatar: data.View.owner.face,
+				username: data.View.owner.name,
 			})
 			.where(eq(bilibiliUser.uid, uid));
 	}
@@ -92,13 +92,13 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 
 	await db.insert(videoSnapshot).values({
 		aid,
-		views: stat.view,
-		danmakus: stat.danmaku,
-		replies: stat.reply,
-		likes: stat.like,
 		coins: stat.coin,
-		shares: stat.share,
+		danmakus: stat.danmaku,
 		favorites: stat.favorite,
+		likes: stat.like,
+		replies: stat.reply,
+		shares: stat.share,
+		views: stat.view,
 	});
 
 	snapshotCounter.add(1);

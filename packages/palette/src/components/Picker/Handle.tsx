@@ -84,8 +84,8 @@ export const Handle = ({
              shadow-[0px_0px_7px_2px_rgba(0,0,0,0.35)] cursor-grab active:cursor-grabbing
              touch-none select-none"
 			style={{
-				left: `${pos}%`,
 				backgroundColor: `oklch(${color.l} ${color.c} ${color.h})`,
+				left: `${pos}%`,
 				transform: "translateY(-50%) translateX(-50%) rotate(45deg)",
 			}}
 			onMouseDown={handleMouseDown}

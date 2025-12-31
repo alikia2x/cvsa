@@ -17,14 +17,14 @@ export class BilibiliService {
 		const stats = metadata.data.data.stat;
 		return {
 			aid,
-			createdAt: new Date(metadata.time).toISOString(),
-			views: stats.view,
-			likes: stats.like,
 			coins: stats.coin,
+			createdAt: new Date(metadata.time).toISOString(),
+			danmakus: stats.danmaku,
 			favorites: stats.favorite,
+			likes: stats.like,
 			replies: stats.reply,
 			shares: stats.share,
-			danmakus: stats.danmaku,
+			views: stats.view,
 		};
 	}
 }

@@ -40,15 +40,26 @@ export const addSongHandler = new Elysia()
 				});
 			}
 			return status(201, {
-				message: "Successfully created import session.",
 				jobID: job.id,
+				message: "Successfully created import session.",
 			});
 		},
 		{
+			body: t.Object({
+				id: t.String(),
+			}),
+			detail: {
+				description:
+					"This endpoint allows authenticated users to import a song from bilibili by providing a video ID. \
+				The video ID can be in av or BV format. The system validates the ID format, checks if the video already \
+				exists in the database, and if not, creates a background job to fetch video metadata and add it to the songs collection. \
+				Returns the job ID for tracking the import progress.",
+				summary: "Import song from bilibili",
+			},
 			response: {
 				201: t.Object({
-					message: t.String(),
 					jobID: t.String(),
+					message: t.String(),
 				}),
 				400: t.Object({
 					message: t.String(),
@@ -60,17 +71,6 @@ export const addSongHandler = new Elysia()
 					message: t.String(),
 				}),
 			},
-			body: t.Object({
-				id: t.String(),
-			}),
-			detail: {
-				summary: "Import song from bilibili",
-				description:
-					"This endpoint allows authenticated users to import a song from bilibili by providing a video ID. \
-				The video ID can be in av or BV format. The system validates the ID format, checks if the video already \
-				exists in the database, and if not, creates a background job to fetch video metadata and add it to the songs collection. \
-				Returns the job ID for tracking the import progress.",
-			},
 		}
 	)
 	.get(
@@ -80,10 +80,10 @@ export const addSongHandler = new Elysia()
 			if (parseInt(jobID) === -1) {
 				return {
 					id: jobID,
-					state: "completed",
 					result: {
 						message: "Video already exists in the songs table.",
 					},
+					state: "completed",
 				};
 			}
 			const job = await LatestVideosQueue.getJob(jobID);
@@ -94,33 +94,33 @@ export const addSongHandler = new Elysia()
 			}
 			const state = await job.getState();
 			return {
-				id: job.id!,
-				state,
-				result: job.returnvalue,
 				failedReason: job.failedReason,
+				id: job.id!,
+				result: job.returnvalue,
+				state,
 			};
 		},
 		{
-			response: {
-				200: t.Object({
-					id: t.String(),
-					state: t.String(),
-					result: t.Optional(t.Any()),
-					failedReason: t.Optional(t.String()),
-				}),
-				404: t.Object({
-					message: t.String(),
-				}),
-			},
-			params: t.Object({
-				id: t.String(),
-			}),
 			detail: {
-				summary: "Check import job status",
 				description:
 					"This endpoint retrieves the current status of a song import job. It returns the job state \
 				(completed, failed, active, etc.), the result if completed, and any failure reason if the job failed. \
 				Use this endpoint to monitor the progress of song imports initiated through the import endpoint.",
+				summary: "Check import job status",
+			},
+			params: t.Object({
+				id: t.String(),
+			}),
+			response: {
+				200: t.Object({
+					failedReason: t.Optional(t.String()),
+					id: t.String(),
+					result: t.Optional(t.Any()),
+					state: t.String(),
+				}),
+				404: t.Object({
+					message: t.String(),
+				}),
 			},
 		}
 	);

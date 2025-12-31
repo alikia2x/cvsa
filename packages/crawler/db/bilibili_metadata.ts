@@ -73,9 +73,9 @@ export async function getVideoInfoFromAllData(aid: number) {
 
 	const row = rows[0];
 	return {
-		title: row.title,
 		description: row.description,
 		tags: row.tags,
+		title: row.title,
 	};
 }
 

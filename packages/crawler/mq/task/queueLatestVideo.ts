@@ -1,4 +1,3 @@
-import type { Psql } from "@core/db/psql.d";
 import { SECOND } from "@core/lib";
 import logger from "@core/log";
 import { videoExistsInAllData } from "db/bilibili_metadata";
@@ -6,14 +5,14 @@ import { LatestVideosQueue } from "mq/index";
 import { getLatestVideoAids } from "net/getLatestVideoAids";
 import { sleep } from "utils/sleep";
 
-export async function queueLatestVideos(sql: Psql): Promise<number | null> {
+export async function queueLatestVideos(): Promise<number | null> {
 	let page = 1;
 	let i = 0;
 	const videosFound = new Set();
 	while (true) {
-		const pageSize = page == 1 ? 10 : 30;
+		const pageSize = page === 1 ? 10 : 30;
 		const aids = await getLatestVideoAids(page, pageSize);
-		if (aids.length == 0) {
+		if (aids.length === 0) {
 			logger.verbose("No more videos found", "net", "fn:insertLatestVideos()");
 			break;
 		}
@@ -28,12 +27,12 @@ export async function queueLatestVideos(sql: Psql): Promise<number | null> {
 				"getVideoInfo",
 				{ aid },
 				{
-					delay,
 					attempts: 100,
 					backoff: {
-						type: "fixed",
 						delay: SECOND * 5,
+						type: "fixed",
 					},
+					delay,
 				}
 			);
 			videosFound.add(aid);

@@ -44,10 +44,10 @@ export function useOklchCanvas({ useP3, channel, max, canvasRef, color }: UseOkl
 
 			try {
 				const testColor = oklch({
-					mode: "oklch",
-					l: channel === "l" ? value : color.l,
 					c: channel === "c" ? value : color.c,
 					h: channel === "h" ? value : color.h,
+					l: channel === "l" ? value : color.l,
+					mode: "oklch",
 				});
 
 				if (testColor && inGamut(colorGamut)(testColor)) {

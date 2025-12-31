@@ -140,25 +140,25 @@ export const processSnapshots = (
 };
 
 const createSnapshotData = (timestamp: number, snapshot: any) => ({
-	createdAt: new Date(timestamp).toISOString(),
-	views: snapshot.views,
-	likes: snapshot.likes || 0,
-	favorites: snapshot.favorites || 0,
 	coins: snapshot.coins || 0,
+	createdAt: new Date(timestamp).toISOString(),
 	danmakus: snapshot.danmakus || 0,
+	favorites: snapshot.favorites || 0,
+	likes: snapshot.likes || 0,
+	views: snapshot.views,
 });
 
 const createInterpolatedSnapshot = (timestamp: number, prev: any, next: any, ratio: number) => ({
-	createdAt: new Date(timestamp).toISOString(),
-	views: Math.round(prev.views + (next.views - prev.views) * ratio),
-	likes: Math.round((prev.likes || 0) + ((next.likes || 0) - (prev.likes || 0)) * ratio),
-	favorites: Math.round(
-		(prev.favorites || 0) + ((next.favorites || 0) - (prev.favorites || 0)) * ratio
-	),
 	coins: Math.round((prev.coins || 0) + ((next.coins || 0) - (prev.coins || 0)) * ratio),
+	createdAt: new Date(timestamp).toISOString(),
 	danmakus: Math.round(
 		(prev.danmakus || 0) + ((next.danmakus || 0) - (prev.danmakus || 0)) * ratio
 	),
+	favorites: Math.round(
+		(prev.favorites || 0) + ((next.favorites || 0) - (prev.favorites || 0)) * ratio
+	),
+	likes: Math.round((prev.likes || 0) + ((next.likes || 0) - (prev.likes || 0)) * ratio),
+	views: Math.round(prev.views + (next.views - prev.views) * ratio),
 });
 
 export const detectMilestoneAchievements = (
@@ -198,9 +198,9 @@ export const detectMilestoneAchievements = (
 					const milestoneTime = new Date(prevTime + ratio * timeDiff);
 
 					const achievement: MilestoneAchievement = {
+						achievedAt: milestoneTime.toISOString(),
 						milestone,
 						milestoneName,
-						achievedAt: milestoneTime.toISOString(),
 						views: milestone,
 					};
 
@@ -217,9 +217,9 @@ export const detectMilestoneAchievements = (
 					const exactSnapshot =
 						prevSnapshot.views === milestone ? prevSnapshot : currentSnapshot;
 					const achievement: MilestoneAchievement = {
+						achievedAt: exactSnapshot.createdAt,
 						milestone,
 						milestoneName,
-						achievedAt: exactSnapshot.createdAt,
 						views: milestone,
 					};
 

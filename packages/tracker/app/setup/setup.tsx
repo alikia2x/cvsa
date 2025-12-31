@@ -12,7 +12,7 @@ import type { Route } from "./+types/setup";
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Initial Setup" },
-		{ name: "description", content: "Create initial admin user" },
+		{ content: "Create initial admin user", name: "description" },
 	];
 }
 

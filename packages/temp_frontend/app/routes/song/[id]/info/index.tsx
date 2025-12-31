@@ -55,7 +55,7 @@ export function formatHours(hours: number): string {
 export function addHoursToNow(hours: number): string {
 	const d = new Date();
 	d.setSeconds(d.getSeconds() + hours * 3600);
-	return formatDateTime(d, true)
+	return formatDateTime(d, true);
 }
 
 export default function SongInfo({ loaderData }: Route.ComponentProps) {

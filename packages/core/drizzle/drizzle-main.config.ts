@@ -6,9 +6,9 @@ if (!process.env.DATABASE_URL_MAIN) {
 }
 
 export default defineConfig({
-	out: "./drizzle/main",
-	dialect: "postgresql",
 	dbCredentials: {
 		url: process.env.DATABASE_URL_MAIN,
 	},
+	dialect: "postgresql",
+	out: "./drizzle/main",
 });

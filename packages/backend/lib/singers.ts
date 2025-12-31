@@ -7,100 +7,100 @@ export interface Singer {
 
 export const singers: Singer[] = [
 	{
-		name: "洛天依",
-		color: "#66CCFF",
 		birthday: "0712",
+		color: "#66CCFF",
+		name: "洛天依",
 	},
 	{
-		name: "言和",
-		color: "#00FFCC",
 		birthday: "0711",
+		color: "#00FFCC",
+		name: "言和",
 	},
 	{
-		name: "乐正绫",
-		color: "#EE0000",
 		birthday: "0412",
+		color: "#EE0000",
+		name: "乐正绫",
 	},
 	{
-		name: "乐正龙牙",
-		color: "#006666",
 		birthday: "1002",
+		color: "#006666",
+		name: "乐正龙牙",
 	},
 	{
-		name: "徵羽摩柯",
-		color: "#0080FF",
 		birthday: "1210",
+		color: "#0080FF",
+		name: "徵羽摩柯",
 	},
 	{
-		name: "墨清弦",
+		birthday: "0520",
 		color: "#FFFF00",
-		birthday: "0520",
+		name: "墨清弦",
 	},
 	{
-		name: "星尘",
-		color: "#9999FF",
 		birthday: "0812",
+		color: "#9999FF",
+		name: "星尘",
 	},
 	{
-		name: "永夜Minus",
-		color: "#613c8a",
 		birthday: "1208",
+		color: "#613c8a",
+		name: "永夜Minus",
 	},
 	{
-		name: "心华",
-		color: "#EE82EE",
 		birthday: "0210",
+		color: "#EE82EE",
+		name: "心华",
 	},
 	{
-		name: "海伊",
-		color: "#3399FF",
 		birthday: "0722",
+		color: "#3399FF",
+		name: "海伊",
 	},
 	{
-		name: "苍穹",
-		color: "#8BC0B5",
 		birthday: "0520",
+		color: "#8BC0B5",
+		name: "苍穹",
 	},
 	{
-		name: "赤羽",
-		color: "#FF4004",
 		birthday: "1126",
+		color: "#FF4004",
+		name: "赤羽",
 	},
 	{
-		name: "诗岸",
-		color: "#F6BE72",
 		birthday: "0119",
+		color: "#F6BE72",
+		name: "诗岸",
 	},
 	{
-		name: "牧心",
-		color: "#2A2859",
 		birthday: "0807",
+		color: "#2A2859",
+		name: "牧心",
 	},
 	{
-		name: "起礼",
+		birthday: "0713",
 		color: "#FF0099",
-		birthday: "0713",
+		name: "起礼",
 	},
 	{
-		name: "起复",
+		birthday: "0713",
 		color: "#99FF00",
-		birthday: "0713",
+		name: "起复",
 	},
 	{
-		name: "夏语遥",
-		color: "#34CCCC",
 		birthday: "1110",
+		color: "#34CCCC",
+		name: "夏语遥",
 	},
 ];
 
 export const specialSingers = [
 	{
-		name: "雅音宫羽",
 		message: "你是我最真模样，从来不曾遗忘。",
+		name: "雅音宫羽",
 	},
 	{
-		name: "初音未来",
 		message: "初始之音，响彻未来!",
+		name: "初音未来",
 	},
 ];
 

@@ -24,10 +24,10 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 
 	const canvasRef = useRef<null | HTMLCanvasElement>(null);
 	useOklchCanvas({
-		channel: channel,
-		max: maxValue[channel],
 		canvasRef: canvasRef,
+		channel: channel,
 		color,
+		max: maxValue[channel],
 		useP3,
 	});
 

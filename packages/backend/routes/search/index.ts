@@ -23,11 +23,11 @@ const getSongSearchResult = async (searchQuery: string) => {
 			const lengthRatio = searchQuery.length / song.songs.name.length;
 			const viewsLog = Math.log10(song.latest_video_snapshot.views + 1);
 			return {
-				type: "song" as "song",
 				data: song,
-				occurrences,
-				viewsLog,
 				lengthRatio,
+				occurrences,
+				type: "song" as "song",
+				viewsLog,
 			};
 		})
 		.filter((d) => d !== null);
@@ -52,9 +52,9 @@ const getSongSearchResult = async (searchQuery: string) => {
 			normalizedOccurrences * 0.3 + result.lengthRatio * 0.5 + normalizedViewsLog * 0.2;
 
 		return {
-			type: result.type,
 			data: result.data.songs,
 			rank: Math.min(Math.max(rank, 0), 1), // Ensure rank is between 0 and 1
+			type: result.type,
 		};
 	});
 
@@ -70,9 +70,9 @@ const getDBVideoSearchResult = async (searchQuery: string) => {
 		.innerJoin(latestVideoSnapshot, eq(bilibiliMetadata.aid, latestVideoSnapshot.aid))
 		.where(eq(bilibiliMetadata.aid, aid));
 	return results.map((video) => ({
-		type: "bili-video-db" as "bili-video-db",
 		data: { views: video.latest_video_snapshot.views, ...video.bilibili_metadata },
 		rank: 1, // Exact match
+		type: "bili-video-db" as "bili-video-db",
 	}));
 };
 
@@ -92,9 +92,9 @@ const getVideoSearchResult = async (searchQuery: string) => {
 	}
 	return [
 		{
-			type: "bili-video" as "bili-video",
 			data: data,
 			rank: 0.99, // Exact match
+			type: "bili-video" as "bili-video",
 		},
 	];
 };
@@ -123,43 +123,43 @@ export const searchHandler = new Elysia({ prefix: "/search" }).get(
 		};
 	},
 	{
-		response: {
-			200: z.object({
-				elapsedMs: z.number(),
-				data: z.array(
-					z.union([
-						z.object({
-							type: z.literal("song"),
-							data: SongSchema,
-							rank: z.number(),
-						}),
-						z.object({
-							type: z.literal("bili-video-db"),
-							data: BiliVideoDataSchema,
-							rank: z.number(),
-						}),
-						z.object({
-							type: z.literal("bili-video"),
-							data: BiliAPIVideoMetadataSchema,
-							rank: z.number(),
-						}),
-					])
-				),
-			}),
-			404: z.object({
-				message: z.string(),
-			}),
-		},
-		query: z.object({
-			query: z.string(),
-		}),
 		detail: {
-			summary: "Search songs and videos",
 			description:
 				"This endpoint performs a comprehensive search across songs and videos in the database. \
 			It searches for songs by name and videos by bilibili ID (av/BV format). The results are ranked \
 			by relevance using a weighted algorithm that considers search term frequency, title length, \
 			and view count. Returns search results with performance timing information.",
+			summary: "Search songs and videos",
+		},
+		query: z.object({
+			query: z.string(),
+		}),
+		response: {
+			200: z.object({
+				data: z.array(
+					z.union([
+						z.object({
+							data: SongSchema,
+							rank: z.number(),
+							type: z.literal("song"),
+						}),
+						z.object({
+							data: BiliVideoDataSchema,
+							rank: z.number(),
+							type: z.literal("bili-video-db"),
+						}),
+						z.object({
+							data: BiliAPIVideoMetadataSchema,
+							rank: z.number(),
+							type: z.literal("bili-video"),
+						}),
+					])
+				),
+				elapsedMs: z.number(),
+			}),
+			404: z.object({
+				message: z.string(),
+			}),
 		},
 	}
 );

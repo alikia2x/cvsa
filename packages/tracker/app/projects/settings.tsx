@@ -43,7 +43,7 @@ import type { Route } from "./+types/settings";
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Project Settings" },
-		{ name: "description", content: "Manage project settings and permissions" },
+		{ content: "Manage project settings and permissions", name: "description" },
 	];
 }
 
@@ -85,7 +85,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 		.where(and(eq(projects.id, projectId), eq(projects.ownerId, user.id)))
 		.get();
 
-	return { project, allUsers, currentPermissions, currentUser: user, isOwner };
+	return { allUsers, currentPermissions, currentUser: user, isOwner, project };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -127,9 +127,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 		await db
 			.update(projects)
 			.set({
-				name,
 				description,
 				isPublic,
+				name,
 				updatedAt: new Date(),
 			})
 			.where(eq(projects.id, projectId));
@@ -172,11 +172,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 		}
 
 		await db.insert(projectPermissions).values({
+			canEdit: canEditPermission,
+			createdAt: new Date(),
 			id: crypto.randomUUID(),
 			projectId,
 			userId,
-			canEdit: canEditPermission,
-			createdAt: new Date(),
 		});
 
 		return redirect(`/project/${projectId}`);
@@ -333,8 +333,8 @@ export function UsersManagement({
 															fetch(
 																`/project/${project.id}/settings`,
 																{
-																	method: "POST",
 																	body: formData,
+																	method: "POST",
 																}
 															);
 														}}

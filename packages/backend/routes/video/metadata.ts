@@ -34,13 +34,13 @@ async function insertVideoSnapshot(data: VideoInfoData) {
 
 	await db.insert(videoSnapshot).values({
 		aid,
-		views,
-		danmakus,
-		replies,
-		likes,
 		coins,
-		shares,
+		danmakus,
 		favorites,
+		likes,
+		replies,
+		shares,
+		views,
 	});
 	snapshotCounter.add(1);
 }
@@ -54,9 +54,9 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 		if (!aid) {
 			return c.status(400, {
 				code: "MALFORMED_SLOT",
+				errors: [],
 				message:
 					"We cannot parse the video ID, or we currently do not support this format.",
-				errors: [],
 			});
 		}
 
@@ -70,8 +70,8 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 		if (typeof r === "number") {
 			return c.status(500, {
 				code: "THIRD_PARTY_ERROR",
-				message: `Got status code ${r} from bilibili API.`,
 				errors: [],
+				message: `Got status code ${r} from bilibili API.`,
 			});
 		}
 
@@ -83,18 +83,18 @@ export const getVideoMetadataHandler = new Elysia({ prefix: "/video" }).get(
 		return data;
 	},
 	{
-		response: {
-			200: BiliAPIVideoMetadataSchema,
-			400: ErrorResponseSchema,
-			500: ErrorResponseSchema,
-		},
 		detail: {
-			summary: "Get video metadata",
 			description:
 				"This endpoint retrieves comprehensive metadata for a bilibili video. It accepts video IDs in av or BV format \
 			and returns detailed information including title, description, uploader, statistics (views, likes, coins, etc.), \
 			and publication date. The data is cached for 60 seconds to reduce API calls. If the video is not in cache, \
 			it fetches fresh data from bilibili API and stores a snapshot in the database.",
+			summary: "Get video metadata",
+		},
+		response: {
+			200: BiliAPIVideoMetadataSchema,
+			400: ErrorResponseSchema,
+			500: ErrorResponseSchema,
 		},
 	}
 );

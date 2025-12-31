@@ -54,11 +54,11 @@ export function TaskForm({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const currentColumn = columns.find((col) => col.id === columnId);
-	const priorityLabel = { low: "Low", medium: "Medium", high: "High" }[priority];
+	const priorityLabel = { high: "High", low: "Low", medium: "Medium" }[priority];
 	const priorityColor = {
+		high: "bg-red-100 text-red-800",
 		low: "bg-green-100 text-green-800",
 		medium: "bg-yellow-100 text-yellow-800",
-		high: "bg-red-100 text-red-800",
 	}[priority];
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -71,11 +71,11 @@ export function TaskForm({
 		setIsSubmitting(true);
 		try {
 			await onSubmit({
-				title: title.trim(),
-				description: description.trim(),
 				columnId,
-				priority,
+				description: description.trim(),
 				dueDate,
+				priority,
+				title: title.trim(),
 			});
 		} finally {
 			setIsSubmitting(false);

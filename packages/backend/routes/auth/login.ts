@@ -25,41 +25,41 @@ export const loginHandler = new Elysia({ prefix: "/auth" }).use(ip()).post(
 
 		return {
 			message: "You are logged in.",
+			sessionID: sessionId,
 			user: {
 				id: user.id,
-				username: user.username,
 				nickname: user.nickname,
 				role: user.role,
+				username: user.username,
 			},
-			sessionID: sessionId,
 		};
 	},
 	{
-		response: {
-			200: t.Object({
-				message: t.String(),
-				user: t.Object({
-					id: t.Integer(),
-					username: t.String(),
-					nickname: t.Optional(t.String()),
-					role: t.String(),
-				}),
-				sessionID: t.String(),
-			}),
-			401: t.Object({
-				message: t.String(),
-			}),
-		},
 		body: t.Object({
-			username: t.String(),
 			password: t.String(),
+			username: t.String(),
 		}),
 		detail: {
-			summary: "User login",
 			description:
 				"This endpoint authenticates users by verifying their credentials and creates a new session. \
 			Upon successful authentication, it returns user information and sets a secure HTTP-only cookie \
 			for session management. The session includes IP address and user agent tracking for security purposes.",
+			summary: "User login",
+		},
+		response: {
+			200: t.Object({
+				message: t.String(),
+				sessionID: t.String(),
+				user: t.Object({
+					id: t.Integer(),
+					nickname: t.Optional(t.String()),
+					role: t.String(),
+					username: t.String(),
+				}),
+			}),
+			401: t.Object({
+				message: t.String(),
+			}),
 		},
 	}
 );

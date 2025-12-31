@@ -31,37 +31,37 @@ export const closeMileStoneHandler = new Elysia({ prefix: "/songs" }).use(server
 		return q.limit(limit || 20).offset(offset || 0);
 	},
 	{
-		response: {
-			200: z.array(
-				z.object({
-					eta: z.object({
-						aid: z.number(),
-						eta: z.number(),
-						speed: z.number(),
-						currentViews: z.number(),
-						updatedAt: z.string(),
-					}),
-					bilibili_metadata: BiliVideoSchema,
-				})
-			),
-			404: t.Object({
-				message: t.String(),
-			}),
-		},
-		params: t.Object({
-			type: t.String({ enum: ["dendou", "densetsu", "shinwa"] }),
-		}),
-		query: t.Object({
-			offset: t.Optional(t.Number()),
-			limit: t.Optional(t.Number()),
-		}),
 		detail: {
-			summary: "Get songs close to milestones",
 			description:
 				"This endpoint retrieves songs that are approaching significant view count milestones. \
 			It supports three milestone types: 'dendou' (0-100k views), 'densetsu' (100k-1M views), and 'shinwa' (1M-10M views). \
 			For each type, it returns videos that are within the specified view range and have an estimated time to reach \
 			the next milestone below the threshold. Results are ordered by estimated time to milestone.",
+			summary: "Get songs close to milestones",
+		},
+		params: t.Object({
+			type: t.String({ enum: ["dendou", "densetsu", "shinwa"] }),
+		}),
+		query: t.Object({
+			limit: t.Optional(t.Number()),
+			offset: t.Optional(t.Number()),
+		}),
+		response: {
+			200: z.array(
+				z.object({
+					bilibili_metadata: BiliVideoSchema,
+					eta: z.object({
+						aid: z.number(),
+						currentViews: z.number(),
+						eta: z.number(),
+						speed: z.number(),
+						updatedAt: z.string(),
+					}),
+				})
+			),
+			404: t.Object({
+				message: t.String(),
+			}),
 		},
 	}
 );

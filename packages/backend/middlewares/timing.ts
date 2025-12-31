@@ -13,8 +13,8 @@ class TimeLogger {
 
 	getCompletedDurations() {
 		return Array.from(this.durations.entries()).map(([name, duration]) => ({
-			name,
 			duration,
+			name,
 		}));
 	}
 

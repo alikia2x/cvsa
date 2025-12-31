@@ -54,8 +54,8 @@ export const MilestoneVideos: React.FC = () => {
 			try {
 				const { data, error } = await app.songs["close-milestone"]({ type }).get({
 					query: {
-						offset: currentOffset,
 						limit: 20,
+						offset: currentOffset,
 					},
 				});
 

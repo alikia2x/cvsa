@@ -11,7 +11,7 @@ import { Switch } from "./Switch";
 import { useTheme } from "./ThemeContext";
 import { i18nProvider } from "./utils";
 
-const defaultColor: Oklch = { mode: "oklch", h: 29.2339, c: 0.244572, l: 0.596005 };
+const defaultColor: Oklch = { c: 0.244572, h: 29.2339, l: 0.596005, mode: "oklch" };
 
 const colorAtom = atomWithStorage<Oklch>("selectedColor", defaultColor);
 const p3Atom = atomWithStorage<boolean>("showP3", false);

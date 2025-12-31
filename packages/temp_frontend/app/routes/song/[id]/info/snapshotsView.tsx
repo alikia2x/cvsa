@@ -29,13 +29,13 @@ const StatsTable = ({ snapshots }: { snapshots: Snapshots | null }) => {
 	}
 
 	const tableData: Snapshot[] = snapshots.map((snapshot) => ({
-		createdAt: snapshot.createdAt,
-		views: snapshot.views,
-		likes: snapshot.likes || 0,
-		favorites: snapshot.favorites || 0,
 		coins: snapshot.coins || 0,
+		createdAt: snapshot.createdAt,
 		danmakus: snapshot.danmakus || 0,
+		favorites: snapshot.favorites || 0,
+		likes: snapshot.likes || 0,
 		shares: snapshot.shares || 0,
+		views: snapshot.views,
 	}));
 
 	return <DataTable columns={columns} data={tableData} />;
@@ -85,16 +85,16 @@ export const SnapshotsView = ({
 		if (!snapshots) return null;
 		return [
 			{
-				id: 0,
-				createdAt: publishedAt,
-				views: 0,
-				coins: 0,
-				likes: 0,
-				favorites: 0,
-				shares: 0,
-				danmakus: 0,
 				aid: 0,
+				coins: 0,
+				createdAt: publishedAt,
+				danmakus: 0,
+				favorites: 0,
+				id: 0,
+				likes: 0,
 				replies: 0,
+				shares: 0,
+				views: 0,
 			},
 			...snapshots,
 		]

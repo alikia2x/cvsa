@@ -12,10 +12,10 @@ queueEvents.on<CustomListener>(
 	"addSong",
 	async ({ uid, songID }: { uid: string; songID: number }) => {
 		await db.insert(history).values({
-			objectId: songID,
-			changeType: "add-song",
 			changedBy: uid,
+			changeType: "add-song",
 			data: null,
+			objectId: songID,
 		});
 	}
 );

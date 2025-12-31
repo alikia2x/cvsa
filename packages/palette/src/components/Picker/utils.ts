@@ -7,22 +7,22 @@ export const round = (value: number, precision: number) => {
 export const roundOklch = (oklch: Oklch) => {
 	return {
 		...oklch,
-		l: round(oklch.l, precision.l),
 		c: round(oklch.c, precision.c),
 		h: round(oklch.h!, precision.h),
+		l: round(oklch.l, precision.l),
 	};
 };
 
 export const precision = {
-	l: 4,
 	c: 4,
 	h: 2,
+	l: 4,
 };
 
 export const maxValue = {
-	l: 1,
 	c: 0.37,
 	h: 360,
+	l: 1,
 };
 
 /**

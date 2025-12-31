@@ -35,7 +35,7 @@ import type { Route } from "./+types/users";
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "User Management - Admin" },
-		{ name: "description", content: "Manage users and permissions" },
+		{ content: "Manage users and permissions", name: "description" },
 	];
 }
 
@@ -48,7 +48,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	// Fetch all users
 	const allUsers = await db.select().from(users).orderBy(users.createdAt);
 
-	return { users: allUsers, currentUser: user };
+	return { currentUser: user, users: allUsers };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -119,12 +119,12 @@ export async function action({ request }: Route.ActionArgs) {
 
 		const hashedPassword = await hashPassword(password);
 		await db.insert(users).values({
-			id: await generateId(6),
-			username,
-			password: hashedPassword,
-			isAdmin,
 			createdAt: new Date(),
+			id: await generateId(6),
+			isAdmin,
+			password: hashedPassword,
 			updatedAt: new Date(),
+			username,
 		});
 
 		return { success: true };
@@ -155,8 +155,8 @@ export async function action({ request }: Route.ActionArgs) {
 		}
 
 		const updateData: any = {
-			username,
 			isAdmin,
+			username,
 		};
 
 		// Only update password if provided

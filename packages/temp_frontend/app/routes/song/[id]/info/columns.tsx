@@ -18,6 +18,10 @@ export type Snapshot = {
 export const columns: ColumnDef<Snapshot>[] = [
 	{
 		accessorKey: "createdAt",
+		cell: ({ row }) => {
+			const createdAt = row.getValue("createdAt") as string;
+			return <div>{formatDateTime(new Date(createdAt))}</div>;
+		},
 		header: ({ column }) => {
 			return (
 				<Button
@@ -29,57 +33,53 @@ export const columns: ColumnDef<Snapshot>[] = [
 				</Button>
 			);
 		},
-		cell: ({ row }) => {
-			const createdAt = row.getValue("createdAt") as string;
-			return <div>{formatDateTime(new Date(createdAt))}</div>;
-		},
 	},
 	{
 		accessorKey: "views",
-		header: "播放",
 		cell: ({ row }) => {
 			const views = row.getValue("views") as number;
 			return <div>{views.toLocaleString()}</div>;
 		},
+		header: "播放",
 	},
 	{
 		accessorKey: "likes",
-		header: "点赞",
 		cell: ({ row }) => {
 			const likes = row.getValue("likes") as number;
 			return <div>{likes.toLocaleString()}</div>;
 		},
+		header: "点赞",
 	},
 	{
 		accessorKey: "favorites",
-		header: "收藏",
 		cell: ({ row }) => {
 			const favorites = row.getValue("favorites") as number;
 			return <div>{favorites.toLocaleString()}</div>;
 		},
+		header: "收藏",
 	},
 	{
 		accessorKey: "coins",
-		header: "硬币",
 		cell: ({ row }) => {
 			const coins = row.getValue("coins") as number;
 			return <div>{coins.toLocaleString()}</div>;
 		},
+		header: "硬币",
 	},
 	{
 		accessorKey: "danmakus",
-		header: "弹幕",
 		cell: ({ row }) => {
 			const danmakus = row.getValue("danmakus") as number;
 			return <div>{danmakus.toLocaleString()}</div>;
 		},
+		header: "弹幕",
 	},
 	{
 		accessorKey: "shares",
-		header: "转发",
 		cell: ({ row }) => {
 			const shares = row.getValue("shares") as number;
 			return <div>{shares.toLocaleString()}</div>;
 		},
+		header: "转发",
 	},
 ];

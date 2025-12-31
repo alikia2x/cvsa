@@ -31,12 +31,12 @@ export async function verifyUser(
 	}
 
 	return {
+		createdAt: foundUser.createdAt,
 		id: foundUser.id,
-		username: foundUser.username,
 		nickname: foundUser.nickname,
 		role: foundUser.role,
 		unqId: foundUser.unqId,
-		createdAt: foundUser.createdAt,
+		username: foundUser.username,
 	};
 }
 
@@ -52,12 +52,12 @@ export async function createSession(
 
 	try {
 		await db.insert(loginSessionsInCredentials).values({
-			id: sessionId,
-			uid: userId,
-			ipAddress,
-			userAgent,
-			lastUsedAt: new Date().toISOString(),
 			expireAt: expireAt.toISOString(),
+			id: sessionId,
+			ipAddress,
+			lastUsedAt: new Date().toISOString(),
+			uid: userId,
+			userAgent,
 		});
 	} catch (error) {
 		logger.error(error as Error);
@@ -107,8 +107,8 @@ export async function validateSession(
 		.where(eq(loginSessionsInCredentials.id, sessionId));
 
 	return {
-		user: users[0],
 		session: session,
+		user: users[0],
 	};
 }
 

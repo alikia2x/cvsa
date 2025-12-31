@@ -40,9 +40,9 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 		if (!sessionId) {
 			set.status = 401;
 			return {
-				user: null,
-				session: null,
 				isAuthenticated: false,
+				session: null,
+				user: null,
 			};
 		}
 
@@ -52,17 +52,17 @@ export const requireAuth = new Elysia({ name: "require-auth" })
 		if (!validationResult) {
 			set.status = 401;
 			return {
-				user: null,
-				session: null,
 				isAuthenticated: false,
+				session: null,
+				user: null,
 			};
 		}
 
 		// Session is valid, return user and session context
 		return {
-			user: validationResult.user,
-			session: validationResult.session,
 			isAuthenticated: true,
+			session: validationResult.session,
+			user: validationResult.user,
 		};
 	})
 	.onBeforeHandle({ as: "scoped" }, ({ user, status }) => {

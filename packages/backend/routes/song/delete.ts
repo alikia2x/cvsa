@@ -9,16 +9,26 @@ export const deleteSongHandler = new Elysia({ prefix: "/song" }).use(requireAuth
 		const id = Number(params.id);
 		await db.update(songs).set({ deleted: true }).where(eq(songs.id, id));
 		await db.insert(history).values({
-			objectId: id,
-			changeType: "del-song",
 			changedBy: user!.unqId,
+			changeType: "del-song",
 			data: null,
+			objectId: id,
 		});
 		return {
 			message: `Successfully deleted song ${id}.`,
 		};
 	},
 	{
+		detail: {
+			description:
+				"This endpoint allows authenticated users to soft-delete a song from the database. \
+			The song is marked as deleted rather than being permanently removed, preserving data integrity. \
+			The deletion is logged in the history table for audit purposes. Requires authentication and appropriate permissions.",
+			summary: "Delete song",
+		},
+		params: t.Object({
+			id: t.String(),
+		}),
 		response: {
 			200: t.Object({
 				message: t.String(),
@@ -29,16 +39,6 @@ export const deleteSongHandler = new Elysia({ prefix: "/song" }).use(requireAuth
 			500: t.Object({
 				message: t.String(),
 			}),
-		},
-		params: t.Object({
-			id: t.String(),
-		}),
-		detail: {
-			summary: "Delete song",
-			description:
-				"This endpoint allows authenticated users to soft-delete a song from the database. \
-			The song is marked as deleted rather than being permanently removed, preserving data integrity. \
-			The deletion is logged in the history table for audit purposes. Requires authentication and appropriate permissions.",
 		},
 	}
 );

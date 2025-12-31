@@ -40,9 +40,9 @@ export class MultipleRateLimiter {
 			const { duration, max } = this.configs[i];
 			const { allowed } = await this.limiter.allow(`cvsa:${this.name}_${i}`, {
 				burst: max,
-				ratePerPeriod: max,
-				period: duration,
 				cost: 1,
+				period: duration,
+				ratePerPeriod: max,
 			});
 			if (!allowed && shouldThrow) {
 				throw new RateLimiterError("Rate limit exceeded");

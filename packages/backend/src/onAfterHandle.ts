@@ -24,10 +24,10 @@ export const onAfterHandler = new Elysia().onAfterHandle(
 				? JSON.stringify(realResponse.response, null, 2)
 				: JSON.stringify(realResponse.response);
 			return new Response(encoder.encode(text), {
-				status: realResponse.code as any,
 				headers: {
 					"Content-Type": "application/json; charset=utf-8",
 				},
+				status: realResponse.code as any,
 			});
 		}
 		const text = isBrowser

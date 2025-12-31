@@ -31,10 +31,10 @@ export class APIManager {
 	public async healthCheck(): Promise<boolean> {
 		try {
 			const response = await fetch(`${this.baseUrl}/health`, {
-				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
 				},
+				method: "GET",
 				signal: AbortSignal.timeout(this.timeout),
 			});
 
@@ -57,19 +57,19 @@ export class APIManager {
 		aid?: number
 	): Promise<number> {
 		const request: ClassificationRequest = {
-			title: title.trim() || "untitled",
+			aid: aid,
 			description: description.trim() || "N/A",
 			tags: tags.trim() || "empty",
-			aid: aid,
+			title: title.trim() || "untitled",
 		};
 
 		try {
 			const response = await fetch(`${this.baseUrl}/classify`, {
-				method: "POST",
+				body: JSON.stringify(request),
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(request),
+				method: "POST",
 				signal: AbortSignal.timeout(this.timeout),
 			});
 
@@ -98,11 +98,11 @@ export class APIManager {
 	): Promise<Array<{ aid?: number; label: number; probabilities: number[] }>> {
 		try {
 			const response = await fetch(`${this.baseUrl}/classify_batch`, {
-				method: "POST",
+				body: JSON.stringify(requests),
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(requests),
+				method: "POST",
 				signal: AbortSignal.timeout(this.timeout * 2), // Longer timeout for batch
 			});
 

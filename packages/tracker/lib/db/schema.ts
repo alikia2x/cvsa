@@ -3,26 +3,28 @@ import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // Users table
 export const users = sqliteTable("users", {
-	id: text("id").primaryKey(),
-	username: text("username").notNull(),
-	password: text("password_hash").notNull(),
-	isAdmin: integer("is_admin", { mode: "boolean" }).default(false),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	id: text("id").primaryKey(),
+	isAdmin: integer("is_admin", { mode: "boolean" }).default(false),
+	password: text("password_hash").notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+	username: text("username").notNull(),
 });
 
 // Sessions table for authentication
 export const sessions = sqliteTable("sessions", {
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
 	id: text("id").primaryKey(),
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 // Project permissions table
 export const projectPermissions = sqliteTable("project_permissions", {
+	canEdit: integer("can_edit", { mode: "boolean" }).default(false),
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	id: text("id").primaryKey(),
 	projectId: text("project_id")
 		.notNull()
@@ -30,49 +32,47 @@ export const projectPermissions = sqliteTable("project_permissions", {
 	userId: text("user_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	canEdit: integer("can_edit", { mode: "boolean" }).default(false),
-	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
 
 // Projects table
 export const projects = sqliteTable("projects", {
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	description: text("description"),
 	id: text("id").primaryKey(),
+	isPublic: integer("is_public", { mode: "boolean" }).default(false),
+	name: text("name").notNull(),
 	ownerId: text("owner_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	name: text("name").notNull(),
-	description: text("description"),
-	isPublic: integer("is_public", { mode: "boolean" }).default(false),
-	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
 // Columns table for Kanban board
 export const columns = sqliteTable("columns", {
+	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	position: integer("position").notNull(),
 	projectId: text("project_id")
 		.notNull()
 		.references(() => projects.id, { onDelete: "cascade" }),
-	name: text("name").notNull(),
-	position: integer("position").notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
 // Tasks table
 export const tasks = sqliteTable("tasks", {
-	id: text("id").primaryKey(),
-	projectId: text("project_id")
-		.notNull()
-		.references(() => projects.id, { onDelete: "cascade" }),
 	columnId: text("column_id")
 		.notNull()
 		.references(() => columns.id, { onDelete: "cascade" }),
-	title: text("title").notNull(),
-	description: text("description"),
-	priority: text("priority", { enum: ["low", "medium", "high"] }).default("medium"),
-	dueDate: integer("due_date", { mode: "timestamp" }),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+	description: text("description"),
+	dueDate: integer("due_date", { mode: "timestamp" }),
+	id: text("id").primaryKey(),
+	priority: text("priority", { enum: ["low", "medium", "high"] }).default("medium"),
+	projectId: text("project_id")
+		.notNull()
+		.references(() => projects.id, { onDelete: "cascade" }),
+	title: text("title").notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
@@ -91,13 +91,13 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
+	columns: many(columns),
 	owner: one(users, {
 		fields: [projects.ownerId],
 		references: [users.id],
 		relationName: "owner",
 	}),
 	permissions: many(projectPermissions),
-	columns: many(columns),
 	tasks: many(tasks),
 }));
 
@@ -121,13 +121,13 @@ export const columnsRelations = relations(columns, ({ one, many }) => ({
 }));
 
 export const tasksRelations = relations(tasks, ({ one }) => ({
-	project: one(projects, {
-		fields: [tasks.projectId],
-		references: [projects.id],
-	}),
 	column: one(columns, {
 		fields: [tasks.columnId],
 		references: [columns.id],
+	}),
+	project: one(projects, {
+		fields: [tasks.projectId],
+		references: [projects.id],
 	}),
 }));
 

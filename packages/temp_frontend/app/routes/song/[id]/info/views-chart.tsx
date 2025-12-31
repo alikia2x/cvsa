@@ -11,22 +11,22 @@ import {
 } from "@/components/ui/chart";
 
 const chartConfigLight = {
-	views: {
-		label: "播放",
-		color: "#111417",
-	},
 	likes: {
 		label: "点赞",
+	},
+	views: {
+		color: "#111417",
+		label: "播放",
 	},
 } satisfies ChartConfig;
 
 const chartConfigDark = {
-	views: {
-		label: "播放",
-		color: "#EEEEF0",
-	},
 	likes: {
 		label: "点赞",
+	},
+	views: {
+		color: "#EEEEF0",
+		label: "播放",
 	},
 } satisfies ChartConfig;
 

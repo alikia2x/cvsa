@@ -61,8 +61,8 @@ export const archiveSnapshotsWorker = async (_job: Job) => {
 			const now = Date.now();
 			const targetTime = getRandomTimeInNextWeek();
 			const interval = intervalToDuration({
-				start: new Date(),
 				end: new Date(targetTime),
+				start: new Date(),
 			});
 			const formatted = formatDuration(interval, { format: ["days", "hours"] });
 

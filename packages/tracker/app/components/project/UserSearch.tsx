@@ -40,8 +40,8 @@ export function UserSearchModal({
 
 		try {
 			const response = await fetch(`/project/${projectId}/settings`, {
-				method: "POST",
 				body: formData,
+				method: "POST",
 			});
 
 			if (response.ok) {

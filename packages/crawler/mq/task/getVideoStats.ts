@@ -44,28 +44,28 @@ export async function takeVideoSnapshot(
 	const favorites = data.stat.favorite;
 
 	await insertVideoSnapshot({
-		createdAt: new Date(time).toISOString(),
-		views,
-		coins,
-		likes,
-		favorites,
-		shares,
-		danmakus,
-		replies,
 		aid,
+		coins,
+		createdAt: new Date(time).toISOString(),
+		danmakus,
+		favorites,
+		likes,
+		replies,
+		shares,
+		views,
 	});
 
 	logger.log(`Taken snapshot for video ${aid}.`, "net", "fn:insertVideoSnapshot");
 
 	return {
 		aid,
-		views,
-		danmakus,
-		replies,
-		likes,
 		coins,
-		shares,
+		danmakus,
 		favorites,
+		likes,
+		replies,
+		shares,
 		time,
+		views,
 	};
 }

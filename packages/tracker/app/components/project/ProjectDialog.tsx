@@ -41,9 +41,9 @@ export function ProjectDialog({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onSubmit({
-			name,
 			description,
 			isPublic,
+			name,
 		});
 		onOpenChange(false);
 		// Reset form

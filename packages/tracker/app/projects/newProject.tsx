@@ -14,7 +14,7 @@ import type { Route } from "./+types/newProject";
 export function meta({}: Route.MetaArgs) {
 	return [
 		{ title: "Create New Project" },
-		{ name: "description", content: "Create a new project for task management" },
+		{ content: "Create a new project for task management", name: "description" },
 	];
 }
 
@@ -38,11 +38,11 @@ export async function action({ request }: Route.ActionArgs) {
 
 		// Create the project
 		await db.insert(projects).values({
-			id: projectId,
-			ownerId: user.id,
-			name,
-			description,
 			createdAt: now,
+			description,
+			id: projectId,
+			name,
+			ownerId: user.id,
 			updatedAt: now,
 		});
 
@@ -55,11 +55,11 @@ export async function action({ request }: Route.ActionArgs) {
 
 		for (const column of defaultColumns) {
 			await db.insert(columns).values({
+				createdAt: now,
 				id: await generateId(6),
-				projectId,
 				name: column.name,
 				position: column.position,
-				createdAt: now,
+				projectId,
 				updatedAt: now,
 			});
 		}

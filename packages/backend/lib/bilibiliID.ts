@@ -38,13 +38,13 @@ const avSchema = z.string().regex(AV_REGEX);
 export function detectBiliID(id: string) {
 	if (bvSchema.safeParse(id).success) {
 		return {
-			type: "bv" as const,
 			id: id as `BV1${string}`,
+			type: "bv" as const,
 		};
 	} else if (avSchema.safeParse(id).success) {
 		return {
-			type: "av" as const,
 			id: id as `av${string}`,
+			type: "av" as const,
 		};
 	}
 	return null;

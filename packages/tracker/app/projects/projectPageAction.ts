@@ -67,14 +67,14 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 		const taskId = await generateId(7);
 
 		await db.insert(tasks).values({
-			id: taskId,
-			projectId: projectId,
 			columnId: columnId,
-			title: title,
-			description: description,
-			priority: priority,
-			dueDate: dueDate ? new Date(dueDate) : null,
 			createdAt: new Date(),
+			description: description,
+			dueDate: dueDate ? new Date(dueDate) : null,
+			id: taskId,
+			priority: priority,
+			projectId: projectId,
+			title: title,
 			updatedAt: new Date(),
 		});
 
@@ -96,11 +96,11 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 		await db
 			.update(tasks)
 			.set({
-				title: title,
-				description: description,
 				columnId: columnId,
-				priority: priority,
+				description: description,
 				dueDate: dueDate ? new Date(dueDate) : null,
+				priority: priority,
+				title: title,
 				updatedAt: new Date(),
 			})
 			.where(eq(tasks.id, taskId));
@@ -142,15 +142,15 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 				: 0;
 
 		await db.insert(columns).values({
+			createdAt: new Date(),
 			id: columnId,
-			projectId: projectId,
 			name: name,
 			position: newPosition,
-			createdAt: new Date(),
+			projectId: projectId,
 			updatedAt: new Date(),
 		});
 
-		return { success: true, columnId };
+		return { columnId, success: true };
 	}
 
 	if (intent === "updateColumn") {
@@ -171,7 +171,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 			})
 			.where(eq(columns.id, columnId));
 
-		return { success: true, columnId };
+		return { columnId, success: true };
 	}
 
 	if (intent === "deleteColumn") {
@@ -190,7 +190,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 
 		await db.delete(columns).where(eq(columns.id, columnId));
 
-		return { success: true, columnId };
+		return { columnId, success: true };
 	}
 
 	if (intent === "reorderColumns") {
@@ -223,10 +223,10 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 		await db
 			.update(projects)
 			.set({
-				name: name,
 				description: description,
-				updatedAt: new Date(),
 				isPublic: isPublic,
+				name: name,
+				updatedAt: new Date(),
 			})
 			.where(eq(projects.id, projectId));
 
@@ -248,7 +248,7 @@ export const projectPageAction = async ({ request, params }: Route.ActionArgs) =
 
 		await db.delete(projects).where(eq(projects.id, projectId));
 
-		return { success: true, redirect: "/" };
+		return { redirect: "/", success: true };
 	}
 
 	return { error: "Unknown action" };

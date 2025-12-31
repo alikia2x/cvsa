@@ -28,7 +28,6 @@ function generateErrorCodeRegex(strings: string[]): string {
 
 export const ErrorResponseSchema = t.Object({
 	code: t.String({ pattern: generateErrorCodeRegex(errorCodes) }),
-	message: t.String(),
 	errors: t.Array(t.String()),
 	i18n: t.Optional(
 		t.Object({
@@ -36,4 +35,5 @@ export const ErrorResponseSchema = t.Object({
 			values: t.Optional(t.Record(t.String(), t.Union([t.String(), t.Number(), t.Date()]))),
 		})
 	),
+	message: t.String(),
 });
