@@ -180,12 +180,10 @@ const config = createNetworkConfig({
 			proxies: ["cf-worker"],
 		},
 		getLatestVideos: {
-			limiters: bili_strict,
 			provider: "bilibili",
 			proxies: "all",
 		},
 		getVideoInfo: {
-			limiters: bili_strict,
 			provider: "bilibili",
 			proxies: "all",
 		},
