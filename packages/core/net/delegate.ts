@@ -23,7 +23,7 @@ import { ReplyError } from "ioredis";
 
 type ProxyType = "native" | "alicloud-fc" | "ip-proxy" | "cf-worker";
 
-const aliRegions = ["hangzhou"] as const;
+const aliRegions = ["hangzhou", "beijing", "shanghai", "chengdu"] as const;
 type AliRegion = (typeof aliRegions)[number];
 
 function createAliProxiesObject<T extends readonly string[]>(regions: T) {
@@ -42,8 +42,8 @@ function createAliProxiesObject<T extends readonly string[]>(regions: T) {
 	);
 }
 
-const _aliProxiesObject = createAliProxiesObject(aliRegions);
-const _aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_${AliRegion}`);
+const aliProxiesObject = createAliProxiesObject(aliRegions);
+const aliProxies = aliRegions.map((region) => `alicloud_${region}` as `alicloud_${AliRegion}`);
 
 const proxies = {
 	"cf-worker": {
@@ -56,6 +56,8 @@ const proxies = {
 		data: {},
 		type: "native" as const,
 	},
+
+	...aliProxiesObject,
 } satisfies Record<string, ProxyDef>;
 
 interface FCResponse {
@@ -152,14 +154,9 @@ bili_normal[0].max = 5;
 bili_normal[1].max = 40;
 bili_normal[2].max = 200;
 
-const bili_strict = structuredClone(biliLimiterConfig);
-bili_strict[0].max = 1;
-bili_strict[1].max = 6;
-bili_strict[2].max = 100;
-
 type MyProxyKeys = keyof typeof proxies;
 
-const _fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
+const fcProxies = aliRegions.map((region) => `alicloud_${region}`) as MyProxyKeys[];
 
 function createNetworkConfig<ProviderKeys extends string, TaskKeys extends string>(
 	config: NetworkConfigInternal<ProviderKeys, TaskKeys>
@@ -169,36 +166,41 @@ function createNetworkConfig<ProviderKeys extends string, TaskKeys extends strin
 
 const config = createNetworkConfig({
 	providers: {
-		bilibili: { limiters: [] },
-		// test: { limiters: [] },
+		bilibili: { limiters: biliLimiterConfig },
+		test: { limiters: [] },
 		testCF: { limiters: [] },
 	},
 	proxies: proxies,
 	tasks: {
-		bulkSnapshot: {
+		annualArchive: {
 			provider: "bilibili",
-			proxies: ["cf-worker"],
+			proxies: [...aliProxies],
+		},
+		bulkSnapshot: {
+			limiters: bili_normal,
+			provider: "bilibili",
+			proxies: ["alicloud_hangzhou"],
 		},
 		getLatestVideos: {
 			provider: "bilibili",
-			proxies: "all",
+			proxies: ["alicloud_hangzhou", "cf-worker"],
 		},
 		getVideoInfo: {
 			provider: "bilibili",
-			proxies: "all",
+			proxies: ["alicloud_hangzhou", "cf-worker"],
 		},
 		snapshotMilestoneVideo: {
 			provider: "bilibili",
-			proxies: ["cf-worker"],
+			proxies: ["alicloud_hangzhou", "cf-worker", "native"],
 		},
 		snapshotVideo: {
 			provider: "bilibili",
-			proxies: ["cf-worker"],
+			proxies: ["alicloud_hangzhou", "cf-worker"],
 		},
-		// test: {
-		// 	provider: "test",
-		// 	proxies: fcProxies,
-		// },
+		test: {
+			provider: "test",
+			proxies: fcProxies,
+		},
 		testCf: {
 			provider: "testCF",
 			proxies: ["cf-worker"],

@@ -1,6 +1,6 @@
 import logger from "@core/log";
 import type { MediaListInfoData, MediaListInfoResponse } from "@core/net/bilibili.d";
-import networkDelegate from "@core/net/delegate";
+import networkDelegate, { type RequestTasks } from "@core/net/delegate";
 
 /*
  * Bulk fetch video metadata from bilibili API
@@ -11,7 +11,10 @@ import networkDelegate from "@core/net/delegate";
  * - The native `fetch` function threw an error: with error code `FETCH_ERROR`
  * - The alicloud-fc threw an error: with error code `ALICLOUD_FC_ERROR`
  */
-export async function bulkGetVideoStats(aids: number[]): Promise<
+export async function bulkGetVideoStats(
+	aids: number[],
+	task?: RequestTasks
+): Promise<
 	| {
 			data: MediaListInfoData;
 			time: number;
@@ -25,7 +28,7 @@ export async function bulkGetVideoStats(aids: number[]): Promise<
 	}
 	const { data, time } = await networkDelegate.request<MediaListInfoResponse>(
 		url,
-		"bulkSnapshot"
+		task ?? "bulkSnapshot"
 	);
 	const errMessage = `Error fetching metadata for aid list: ${aids.join(",")}:`;
 	if (data.code !== 0) {

@@ -23,19 +23,11 @@ interface ProxyRequest {
 	headers?: Record<string, string>;
 }
 
-interface ParsedHeaders {
-	status: number;
-	statusText: string;
-	headers: Headers;
-	headerEnd: number;
-}
-
 const CONFIG: ProxyConfig = {
 	TIMEOUT_MS: 5000,
 };
 
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 
 function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
 	const total = arrays.reduce((sum, arr) => sum + arr.length, 0);
@@ -46,31 +38,6 @@ function concatUint8Arrays(...arrays: Uint8Array[]): Uint8Array {
 		offset += arr.length;
 	}
 	return result;
-}
-
-function parseHttpHeaders(buff: Uint8Array): ParsedHeaders | null {
-	const text = decoder.decode(buff);
-	const headerEnd = text.indexOf("\r\n\r\n");
-	if (headerEnd === -1) return null;
-
-	const lines = text.slice(0, headerEnd).split("\r\n");
-	const statusMatch = lines[0].match(/HTTP\/1\.[01] (\d+) (.*)/);
-	if (!statusMatch) throw new Error("Invalid status line");
-
-	const headers = new Headers();
-	for (let i = 1; i < lines.length; i++) {
-		const idx = lines[i].indexOf(": ");
-		if (idx !== -1) {
-			headers.append(lines[i].slice(0, idx), lines[i].slice(idx + 2));
-		}
-	}
-
-	return {
-		headerEnd,
-		headers,
-		status: Number(statusMatch[1]),
-		statusText: statusMatch[2],
-	};
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -198,6 +165,16 @@ function createErrorResponse(message: string, status: number, requestId: string)
 	);
 }
 
+function isJSON(str: string) {
+	if (typeof str !== "string") return false;
+	try {
+		const result = JSON.parse(str);
+		return typeof result === "object" && result !== null;
+	} catch (e) {
+		return false;
+	}
+}
+
 export default {
 	async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
 		const requestId = crypto.randomUUID().slice(0, 8); // Track this specific request
@@ -223,12 +200,14 @@ export default {
 		}
 
 		try {
-			console.log(`[${requestId}] Attempting handleSocket...`);
 			const data = await withTimeout(
 				handleSocket(targetUrl, customHeaders, requestTime),
 				CONFIG.TIMEOUT_MS
 			);
-			console.log(`[${requestId}] Success via handleSocket (${Date.now() - requestTime}ms)`);
+			const json = isJSON(data.data);
+			console.log(
+				`[${requestId}] Success via handleSocket (${Date.now() - requestTime}ms) ${data.data.length} bytes, isJSON: ${json}, rawData: ${data.data}`
+			);
 			return createJsonResponse(data, requestId);
 		} catch (socketErr: any) {
 			console.warn(

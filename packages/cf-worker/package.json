@@ -16,6 +16,6 @@
 		"wrangler": "^4.56.0"
 	},
 	"dependencies": {
-		"@alikia/http-parser": "^1.0.2"
+		"@alikia/http-parser": "1.0.2"
 	}
 }
