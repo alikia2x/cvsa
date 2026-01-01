@@ -45,10 +45,6 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 	};
 
 	const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const value = parseFloat(e.target.value);
-		if (value > maxValue[channel]) onChange(maxValue[channel]);
-		else if (value < 0 || isNaN(value)) onChange(0);
-		else onChange(value);
 		setValue(e.target.value);
 	};
 
@@ -146,7 +142,11 @@ export const Slider = ({ useP3, channel, color, onChange, i18nProvider }: Slider
 					max={maxValue[channel]}
 					step={10 ** -precision[channel]}
 					value={color[channel]}
-					onChange={onInputChange}
+					onClick={(e) => {
+						e.preventDefault();
+						const newValue = getValueFromPosition(e.clientX);
+						handleOnChange(newValue);
+					}}
 					className="absolute z-5 inset-0 w-full h-full opacity-0 cursor-pointer"
 				/>
 				<Handle
