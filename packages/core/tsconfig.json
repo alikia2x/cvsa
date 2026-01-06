@@ -9,7 +9,8 @@
 		"lib": ["ES2020", "DOM", "DOM.Iterable"],
 		"skipLibCheck": true,
 		"paths": {
-			"@core/*": ["./*"]
+			"@core/*": ["./*"],
+			"crawler/*": ["../crawler/*"]
 		},
 		"allowSyntheticDefaultImports": true,
 		"allowImportingTsExtensions": true,
