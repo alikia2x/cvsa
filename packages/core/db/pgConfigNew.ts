@@ -1,6 +1,6 @@
-const requiredEnvVars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_PORT", "DB_NAME_CRED"];
+const requiredEnvVars = ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "DB_PORT"];
 
-const getEnvVar = (key: string) => {
+const getEnvVar = (key: string): string => {
 	return process.env[key] || import.meta.env[key];
 };
 
@@ -10,25 +10,16 @@ if (unsetVars.length > 0) {
 	throw new Error(`Missing required environment variables: ${unsetVars.join(", ")}`);
 }
 
-const databaseHost = getEnvVar("DB_HOST")!;
+const databaseHost = getEnvVar("DB_HOST");
 const databaseName = getEnvVar("DB_NAME");
-const databaseNameCred = getEnvVar("DB_NAME_CRED")!;
-const databaseUser = getEnvVar("DB_USER")!;
-const databasePassword = getEnvVar("DB_PASSWORD")!;
-const databasePort = getEnvVar("DB_PORT")!;
+const databaseUser = getEnvVar("DB_USER");
+const databasePassword = getEnvVar("DB_PASSWORD");
+const databasePort = getEnvVar("DB_PORT");
 
 export const postgresConfig = {
 	database: databaseName,
 	host: databaseHost,
 	password: databasePassword,
-	port: parseInt(databasePort),
+	port: parseInt(databasePort, 10),
 	username: databaseUser,
-};
-
-export const postgresConfigCred = {
-	database: databaseNameCred,
-	hostname: databaseHost,
-	password: databasePassword,
-	port: parseInt(databasePort),
-	user: databaseUser,
 };
