@@ -45,7 +45,7 @@ async function runBackup() {
 	const dayStr = getDayStr();
 	const monthStr = getMonthStr();
 	const fileName = `cvsa_${dayStr}.dump`;
-	const filePath = `${CONFIG.localBackupDir}/${fileName}.dump`;
+	const filePath = `${CONFIG.localBackupDir}/${fileName}`;
 	const localDumpfile = Bun.file(filePath);
 
 	logger.log(`Starting backup...`);
