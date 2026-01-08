@@ -41,6 +41,10 @@ const getMonthStr = (): string => {
 	return dayjs().format("YYYY-MM");
 };
 
+async function dump(filePath: string) {
+	await $`pg_dump -d ${dbUri} -Fc -n public > ${filePath}`;
+}
+
 async function runBackup() {
 	const dayStr = getDayStr();
 	const monthStr = getMonthStr();
@@ -52,23 +56,23 @@ async function runBackup() {
 
 	if (!(await localDumpfile.exists())) {
 		logger.log(`Creating dump ${localDumpfile.name}...`);
-		const cmd = $`pg_dump -d ${dbUri} -Fc -n public > ${filePath}`;
-
-		await cmd;
+		await dump(filePath);
 	}
 
 	const monthlyBackupFile = s3.file(`dump/monthly/${monthStr}`);
 
 	if (!(await monthlyBackupFile.exists())) {
+		const f = Bun.file(filePath);
 		logger.log(`Uploading ${filePath} to ${monthlyBackupFile.name}`);
-		await monthlyBackupFile.write(localDumpfile);
+		await monthlyBackupFile.write(f);
 	}
 
 	const dailyBackupFile = s3.file(`dump/daily/${dayStr}`);
 
 	if (!(await dailyBackupFile.exists())) {
+		const f = Bun.file(filePath);
 		logger.log(`Uploading ${filePath} to ${dailyBackupFile.name}`);
-		await dailyBackupFile.write(localDumpfile);
+		await dailyBackupFile.write(f);
 	}
 }
 
