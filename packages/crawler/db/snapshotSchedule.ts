@@ -19,7 +19,7 @@ function getWindowFromDate(date: Date) {
 }
 
 export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
-	const result = await sql<{ window_start: Date; count: number }[]>`
+	const result = await sql<{ window_start: string; count: number }[]>`
 		SELECT
 			started_at_5min_utc AT TIME ZONE 'UTC' AS window_start,
 			count
@@ -41,7 +41,7 @@ export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis)
 	await redisClient.del(REDIS_KEY);
 
 	for (const row of result) {
-		await redisClient.hset(REDIS_KEY, row.window_start.toISOString(), Number(row.count));
+		await redisClient.hset(REDIS_KEY, new Date(row.window_start).toISOString(), Number(row.count));
 	}
 }
 
@@ -50,11 +50,6 @@ export async function initSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
 	setInterval(async () => {
 		await refreshSnapshotWindowCounts(sql, redisClient);
 	}, 5 * MINUTE);
-}
-
-async function getWindowCount(redisClient: Redis, window: Date): Promise<number> {
-	const count = await redisClient.hget(REDIS_KEY, window.toISOString());
-	return count ? parseInt(count, 10) : 0;
 }
 
 async function incrWindowCount(redisClient: Redis, window: Date) {
