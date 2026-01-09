@@ -1,44 +1,47 @@
 import type { Psql } from "@core/db/psql.d";
 import { redis } from "@core/db/redis";
 import type { SnapshotScheduleType } from "@core/db/schema.d";
+import { db, snapshotSchedule } from "@core/drizzle";
 import { MINUTE } from "@core/lib";
 import logger from "@core/log";
+import dayjs from "dayjs";
+import { eq, inArray } from "drizzle-orm";
 import type { Redis } from "ioredis";
 import { parseTimestampFromPsql } from "../utils/formatTimestampToPostgre";
 
 const REDIS_KEY = "cvsa:snapshot_window_counts";
 
-function getCurrentWindowIndex(): number {
-	const now = new Date();
-	const minutesSinceMidnight = now.getHours() * 60 + now.getMinutes();
-	return Math.floor(minutesSinceMidnight / 5);
+const WINDOW_SIZE = 5 * MINUTE;
+
+function getWindowFromDate(date: Date) {
+	const roundedMs = Math.floor(date.getTime() / WINDOW_SIZE) * WINDOW_SIZE;
+	return new Date(roundedMs);
 }
 
 export async function refreshSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
-	const now = new Date();
-	const startTime = now.getTime();
-
 	const result = await sql<{ window_start: Date; count: number }[]>`
 		SELECT
-		date_trunc('hour', started_at) +
-		(EXTRACT(minute FROM started_at)::int / 5 * INTERVAL '5 minutes') AS window_start,
-		COUNT(*) AS count
-		FROM snapshot_schedule
-		WHERE started_at >= NOW() AND status = 'pending' AND started_at <= NOW() + INTERVAL '14 days'
-		GROUP BY 1
-		ORDER BY window_start
+			started_at_5min_utc AT TIME ZONE 'UTC' AS window_start,
+			count
+		FROM (
+			SELECT
+				started_at_5min_utc,
+				COUNT(*) AS count
+			FROM snapshot_schedule
+			WHERE
+				status = 'pending'
+			AND started_at_5min_utc >= date_trunc('hour', now() AT TIME ZONE 'UTC')
+			AND started_at_5min_utc <  date_trunc('hour', now() AT TIME ZONE 'UTC')
+				+ interval '14 days'
+			GROUP BY started_at_5min_utc
+		) t
+		ORDER BY started_at_5min_utc
   	`;
 
 	await redisClient.del(REDIS_KEY);
 
-	const currentWindow = getCurrentWindowIndex();
-
 	for (const row of result) {
-		const targetOffset = Math.floor((row.window_start.getTime() - startTime) / (5 * MINUTE));
-		const offset = currentWindow + targetOffset;
-		if (offset >= 0) {
-			await redisClient.hset(REDIS_KEY, offset.toString(), Number(row.count));
-		}
+		await redisClient.hset(REDIS_KEY, row.window_start.toISOString(), Number(row.count));
 	}
 }
 
@@ -49,9 +52,17 @@ export async function initSnapshotWindowCounts(sql: Psql, redisClient: Redis) {
 	}, 5 * MINUTE);
 }
 
-async function getWindowCount(redisClient: Redis, offset: number): Promise<number> {
-	const count = await redisClient.hget(REDIS_KEY, offset.toString());
+async function getWindowCount(redisClient: Redis, window: Date): Promise<number> {
+	const count = await redisClient.hget(REDIS_KEY, window.toISOString());
 	return count ? parseInt(count, 10) : 0;
+}
+
+async function incrWindowCount(redisClient: Redis, window: Date) {
+	return redisClient.hincrby(REDIS_KEY, window.toISOString(), 1);
+}
+
+async function decrWindowCount(redisClient: Redis, window: Date) {
+	return redisClient.hincrby(REDIS_KEY, window.toISOString(), -1);
 }
 
 export async function snapshotScheduleExists(sql: Psql, id: number) {
@@ -224,7 +235,7 @@ export async function scheduleSnapshot(
 ) {
 	let adjustedTime = new Date(targetTime);
 	const hasActiveSchedule = await videoHasActiveScheduleWithType(sql, aid, type);
-	if (type == "milestone" && hasActiveSchedule) {
+	if (type === "milestone" && hasActiveSchedule) {
 		const latestActiveSchedule = await getLatestActiveScheduleWithType(sql, aid, type);
 		if (!latestActiveSchedule) {
 			return;
@@ -233,11 +244,21 @@ export async function scheduleSnapshot(
 			parseTimestampFromPsql(latestActiveSchedule.started_at)
 		);
 		if (latestScheduleStartedAt > adjustedTime) {
-			await sql`
-                UPDATE snapshot_schedule
-                SET started_at = ${adjustedTime.toISOString()}
-                WHERE id = ${latestActiveSchedule.id}
-			`;
+			await db.transaction(async (tx) => {
+				const old = await tx.select().from(snapshotSchedule).where(
+					eq(snapshotSchedule.id, latestActiveSchedule.id)
+				).for("update");
+				if (old.length === 0) return;
+				const oldSchedule = old[0];
+				await tx.update(snapshotSchedule).set({ startedAt: adjustedTime.toISOString() }).where(
+					eq(snapshotSchedule.id, latestActiveSchedule.id)
+				);
+				if (oldSchedule.status !== "pending") return;
+				const oldWindow = getWindowFromDate(new Date(oldSchedule.startedAt));
+				await decrWindowCount(redis, oldWindow);
+				const window = getWindowFromDate(adjustedTime);
+				await incrWindowCount(redis, window);
+			});
 			logger.log(
 				`Updated snapshot schedule for ${aid} at ${adjustedTime.toISOString()}`,
 				"mq",
@@ -249,6 +270,10 @@ export async function scheduleSnapshot(
 	if (hasActiveSchedule && !force) return;
 	if (type !== "milestone" && type !== "new" && adjustTime) {
 		adjustedTime = await adjustSnapshotTime(new Date(targetTime), 3000, redis);
+	}
+	else {
+		const window = getWindowFromDate(adjustedTime);
+    	await incrWindowCount(redis, window);
 	}
 	logger.log(
 		`Scheduled ${type} snapshot for ${aid} at ${adjustedTime.toISOString()}`,
@@ -284,32 +309,38 @@ export async function adjustSnapshotTime(
 	allowedCounts: number = 1000,
 	redisClient: Redis
 ): Promise<Date> {
-	const currentWindow = getCurrentWindowIndex();
-	const targetOffset = Math.floor((expectedStartTime.getTime() - Date.now()) / (5 * MINUTE)) - 6;
-
-	const initialOffset = currentWindow + Math.max(targetOffset, 0);
+	const initialWindow = dayjs(getWindowFromDate(expectedStartTime));
 
 	const MAX_ITERATIONS = 4032; // 10 days
-	for (let i = initialOffset; i < MAX_ITERATIONS; i++) {
-		const offset = i;
-		const count = await getWindowCount(redisClient, offset);
+	for (let i = 0; i < MAX_ITERATIONS; i++) {
+		const window = initialWindow.add(i * WINDOW_SIZE, "milliseconds");
+		const newCount = await incrWindowCount(redisClient, window.toDate());
 
-		if (count < allowedCounts) {
-			await redisClient.hincrby(REDIS_KEY, offset.toString(), 1);
-
-			const startPoint = new Date();
-			startPoint.setHours(0, 0, 0, 0);
-			const startTime = startPoint.getTime();
-			const windowStart = startTime + offset * 5 * MINUTE;
-			const randomDelay = Math.floor(Math.random() * 5 * MINUTE);
-			const delayedDate = new Date(windowStart + randomDelay);
-			const now = new Date();
-
-			if (delayedDate.getTime() < now.getTime()) {
-				return now;
-			}
-			return delayedDate;
+		if (newCount > allowedCounts) {
+			await decrWindowCount(redisClient, window.toDate());
+			continue;
 		}
+
+		const randomDelay = Math.random() * WINDOW_SIZE;
+
+		const randomizedExecutionTime = window.add(randomDelay, "milliseconds");
+		const delayedDate = randomizedExecutionTime.toDate();
+		const now = new Date();
+
+		if (delayedDate.getTime() < now.getTime()) {
+			return now;
+		}
+		return delayedDate;
+	}
+
+	for (let i = 0; i < 6; i++) {
+		const window = initialWindow.subtract(i * WINDOW_SIZE, "milliseconds");
+
+		const newCount = await incrWindowCount(redisClient, window.toDate());
+		if (newCount <= allowedCounts) {
+			return window.toDate();
+		}
+		await decrWindowCount(redisClient, window.toDate());
 	}
 	return expectedStartTime;
 }
@@ -343,20 +374,49 @@ export async function getBulkSnapshotsInNextSecond(sql: Psql) {
 	`;
 }
 
-export async function setSnapshotStatus(sql: Psql, id: number, status: string) {
-	return sql`
-        UPDATE snapshot_schedule
-        SET status = ${status}
-        WHERE id = ${id}
-	`;
+export async function setSnapshotStatus(_sql: Psql, id: number, status: string) {
+	return await db.transaction(async (tx) => {
+		const snapshots = await tx
+			.select()
+			.from(snapshotSchedule)
+			.where(eq(snapshotSchedule.id, id))
+			.for("update");
+
+		if (snapshots.length === 0) return;
+
+		const snapshot = snapshots[0];
+
+		const removeFromPending = snapshot.status === "pending" && status !== "pending";
+
+		if (removeFromPending) {
+			const window = getWindowFromDate(new Date(snapshot.startedAt));
+			await decrWindowCount(redis, window);
+		}
+
+		return await tx.update(snapshotSchedule).set({ status }).where(eq(snapshotSchedule.id, id));
+	});
 }
 
-export async function bulkSetSnapshotStatus(sql: Psql, ids: number[], status: string) {
-	return sql`
-        UPDATE snapshot_schedule
-        SET status = ${status}
-        WHERE id = ANY (${ids})
-	`;
+export async function bulkSetSnapshotStatus(_sql: Psql, ids: number[], status: string) {
+	return await db.transaction(async (tx) => {
+		const snapshots = await tx
+			.select()
+			.from(snapshotSchedule)
+			.where(inArray(snapshotSchedule.id, ids))
+			.for("update");
+
+		if (snapshots.length === 0) return;
+
+		for (const snapshot of snapshots) {
+			const removeFromPending = snapshot.status === "pending" && status !== "pending";
+			if (removeFromPending) {
+				const window = getWindowFromDate(new Date(snapshot.startedAt));
+				await decrWindowCount(redis, window);
+			}
+		}
+
+		return await tx.update(snapshotSchedule).set({ status }).where(inArray(snapshotSchedule.id, ids));
+	});
 }
 
 export async function getVideosWithoutActiveSnapshotScheduleByType(sql: Psql, type: string) {
