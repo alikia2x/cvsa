@@ -70,26 +70,24 @@ export const getVideoInfoWorker = async (job: Job<GetVideoInfoJobData>): Promise
 			uid: uid,
 		});
 
-		const userExists = await userExistsInBiliUsers(aid);
-		if (!userExists) {
-			await db.insert(bilibiliUser).values({
+		await db
+			.insert(bilibiliUser)
+			.values({
 				avatar: data.View.owner.face,
 				desc: data.Card.card.sign,
 				fans: data.Card.follower,
 				uid,
 				username: data.View.owner.name,
-			});
-		} else {
-			await db
-				.update(bilibiliUser)
-				.set({
+			})
+			.onConflictDoUpdate({
+				set: {
 					avatar: data.View.owner.face,
 					desc: data.Card.card.sign,
 					fans: data.Card.follower,
 					username: data.View.owner.name,
-				})
-				.where(eq(bilibiliUser.uid, uid));
-		}
+				},
+				target: bilibiliUser.uid,
+			});
 
 		const stat = data.View.stat;
 
