@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { sql } from "@core/index";
+import { sql } from "@core/db/dbNew";
 import logger from "@core/log";
 import { getVideoDetails } from "@core/net/getVideoDetails";
 import arg from "arg";
@@ -45,16 +45,22 @@ async function addCandidates() {
 
 	const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
 
-	let i = 0;
-	for (const aid of newAids) {
-		const stmt = sqlite.query(
-			`INSERT INTO bili_info_crawl (aid, status) VALUES ($aid, 'pending');`
-		);
-		stmt.all({ $aid: aid });
-		i++;
-		logger.log(`Added ${i} to local DB.`);
-	}
-	logger.log(`Added ${newAids.length} to local DB.`);
+	const insertStmt = sqlite.prepare(
+        `INSERT INTO bili_info_crawl (aid, status) VALUES (?, 'pending') ON CONFLICT DO NOTHING;`
+    );
+
+	const insertMany = sqlite.transaction((data) => {
+        for (const aid of data) {
+            insertStmt.run(aid);
+        }
+    });
+
+	try {
+        insertMany(newAids);
+        logger.log(`Successfully added ${newAids.length} to local DB.`);
+    } catch (err) {
+        logger.error(["Failed to insert candidates:", err]);
+    }
 }
 
 async function insertAidsToDB() {
