@@ -35,7 +35,7 @@ __pycache__
 /data
 /redis
 
-# Build 
+# Build
 dist/
 build/
 
@@ -48,3 +48,5 @@ mutagen.yml
 mutagen.yml.lock
 
 .turbo
+
+docker-compose.yml
