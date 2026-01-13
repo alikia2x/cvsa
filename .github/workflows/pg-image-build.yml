@@ -9,7 +9,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/cvsa-pg
+  IMAGE_NAME: ${{ github.repository }}/pg
 
 jobs:
   build:
