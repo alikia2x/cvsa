@@ -42,5 +42,5 @@
 		"vitest": "^3.2.4",
 		"vitest-tsconfig-paths": "^3.4.1"
 	},
-	"packageManager": "bun@1.3.3"
+	"packageManager": "bun@1.3.5"
 }

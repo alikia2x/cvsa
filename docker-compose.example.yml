@@ -1,0 +1,12 @@
+services:
+  db:
+    image: ghcr.io/alikia2x/cvsa/pg:latest
+    container_name: cvsa-pg
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    env_file:
+      - .env.pg
+    ports:
+      - "5432:5432"
+    volumes:
+      - cvsa_data:/var/lib/postgresql/
+    restart: always

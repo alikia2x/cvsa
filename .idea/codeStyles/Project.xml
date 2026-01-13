@@ -1,5 +1,6 @@
 <component name="ProjectCodeStyleConfiguration">
   <code_scheme name="Project" version="173">
+    <option name="AUTODETECT_INDENTS" value="false" />
     <option name="LINE_SEPARATOR" value="&#10;" />
     <HTMLCodeStyleSettings>
       <option name="HTML_SPACE_INSIDE_EMPTY_TAG" value="true" />
@@ -19,6 +20,29 @@
       <option name="TYPE_CASE" value="3" />
       <option name="CUSTOM_TYPE_CASE" value="3" />
       <option name="ALIAS_CASE" value="4" />
+      <option name="QUERY_SECTION_1ST_WORD_ALIGN" value="0" />
+      <option name="QUERY_EL_LINE" value="0" />
+      <option name="QUERY_IN_ONE_STRING" value="0" />
+      <option name="WITH_EL_LINE" value="0" />
+      <option name="WITH_EL_WRAP" value="0" />
+      <option name="SELECT_EL_LINE" value="0" />
+      <option name="SELECT_EL_WRAP" value="0" />
+      <option name="SELECT_ALIGN_AS" value="false" />
+      <option name="FROM_EL_LINE" value="1" />
+      <option name="FROM_EL_WRAP" value="0" />
+      <option name="FROM_WRAP_JOIN_1" value="false" />
+      <option name="FROM_WRAP_JOIN_2" value="false" />
+      <option name="FROM_INDENT_JOIN" value="false" />
+      <option name="FROM_ONLY_JOIN_INDENT" value="2" />
+      <option name="FROM_PLACE_ON" value="10" />
+      <option name="WHERE_EL_LINE" value="0" />
+      <option name="WHERE_EL_WRAP" value="0" />
+      <option name="ORDER_EL_LINE" value="0" />
+      <option name="ORDER_EL_WRAP" value="0" />
+      <option name="ROUTINE_ARG_WRAP" value="1" />
+      <option name="EXPR_CASE_WHEN_WRAP" value="false" />
+      <option name="EXPR_CASE_WHEN_INDENT" value="false" />
+      <option name="EXPR_CASE_COLLAPSE" value="false" />
     </PostgresCodeStyleSettings>
     <TypeScriptCodeStyleSettings version="0">
       <option name="FORCE_SEMICOLON_STYLE" value="true" />
@@ -41,6 +65,11 @@
     </codeStyleSettings>
     <codeStyleSettings language="JavaScript">
       <option name="SOFT_MARGINS" value="120" />
+      <indentOptions>
+        <option name="USE_TAB_CHARACTER" value="true" />
+      </indentOptions>
+    </codeStyleSettings>
+    <codeStyleSettings language="PostgreSQL">
       <indentOptions>
         <option name="USE_TAB_CHARACTER" value="true" />
       </indentOptions>
