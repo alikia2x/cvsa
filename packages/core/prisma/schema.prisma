@@ -1,0 +1,322 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client"
+    output   = "./prisma"
+}
+
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+// TODO
+// Note:
+// 1. All the IDs are 12-digit string generated via Nano ID with a custom 32-character alphabet.
+// 2. Auth-related model has not yet been defined.
+// 3. Indexes and unique constraints have not yet been considered in the design.
+
+enum SongType {
+    ORIGINAL
+    COVER
+    REMIX
+    REMASTER
+    MASHUP
+    INSTRUMENTAL
+    OTHERS
+
+    @@map("song_type")
+}
+
+enum Platform {
+    YOUTUBE
+    NICONICO
+    BILIBILI
+    VOCALOID_WIKI
+    VOCALOID_LYRIC_SWIKI
+    SOUNDCLOUD
+    NETEASE_MUSIC
+    QQ_MUSIC
+    FIVE_SING // 5sing.kugou.com
+    KUGOU
+    SPOTIFY
+    APPLE_MUSIC
+    YOUTUBE_MUSIC
+    WIKIPEDIA
+    BAIDU_BAIKE
+    PIXIV
+    WEIBO
+    TWITTER
+    VOCADB
+    MOEGIRLPEDIA
+    MUSICBRAINZ
+    VCPEDIA
+    XIAOHONGSHU // aka RedNote
+
+    @@map("platform")
+}
+
+model Song {
+    id                    String          @id
+    type                  SongType?
+    originalVersion       Song?           @relation(name: "originalSong", fields: [originalSongId], references: [id])
+    originalSongId        String?         @map("original_song_id")
+    derivations           Song[]          @relation(name: "originalSong")
+    name                  String?
+    duration              Int?
+    lyrics                Lyrics[]
+    songTags              SongTag[]
+    /// [LocalizedField]
+    localizedNames        Json?
+    description           String?
+    /// [LocalizedField]
+    localizedDescriptions Json?
+    songInAlbums          SongInAlbum[]
+    bilibiliAid           BigInt?         @map("bilibili_aid")
+    bilibiliBvid          String?         @map("bilibili_bvid")
+    vocadbId              Int?            @map("vocadb_id")
+    vcpediaId             Int?            @map("vcpedia_id")
+    moegirlId             Int?            @map("moegirl_id")
+    externalLinks         ExternalLink[]
+    coverUrl              String?         @map("cover_url")
+    artists               ArtistRole[]
+    singerOfSongs         SingerOfSong[]
+    publishedAt           DateTime?       @map("published_at")
+    createdAt             DateTime        @default(now()) @map("created_at")
+    updatedAt             DateTime        @updatedAt @map("updated_at")
+    deletedAt             DateTime?       @map("deleted_at")
+
+    @@map("song")
+}
+
+model Tag {
+    id             String          @id
+    name           String
+    /// [LocalizedField]
+    localizedNames Json?
+    songTags       SongTag[]
+    parent         Tag?            @relation(name: "tagTree", fields: [parentId], references: [id])
+    parentId       String?         @map("parent_id")
+    children       Tag[]           @relation(name: "tagTree")
+    createdAt      DateTime        @default(now()) @map("created_at")
+    updatedAt      DateTime        @updatedAt @map("updated_at")
+
+    @@map("tag")
+}
+
+model Lyrics {
+    id        String   @id
+    song      Song     @relation(fields: [songId], references: [id])
+    songId    String   @map("song_id")
+    language  String?
+    plaintext String?
+    ttml      String?
+    lrc       String?
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("lyrics")
+}
+
+model History {
+    id        String   @id
+    table     String
+    objectId  String   @map("object_id")
+    old       Json?
+    new       Json?
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@map("history")
+}
+
+model ExternalLink {
+    id         String    @id
+    label      String?
+    url        String
+    platform   Platform?
+    platformId String?   @map("platform_id")
+    song       Song      @relation(fields: [songId], references: [id])
+    songId     String    @map("song_id")
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
+
+    @@map("external_link")
+}
+
+// Sometimes, we only know the SVS engine (e.g. VOCALOID, Synthesizer V) used in the song.
+// And in other cases, we know exactly the voicebank used in the song. (e.g. Luo Tianyi VOCALOID 5 Chinese)
+// That's why we need to have both SvsEngine and SvsEngineVersion.
+model SingerOfSong {
+    id                 String            @id
+    song               Song              @relation(fields: [songId], references: [id])
+    songId             String            @map("song_id")
+    singer             Singer            @relation(fields: [singerId], references: [id])
+    singerId           String            @map("singer_id")
+    voicebank          Voicebank?        @relation(fields: [voicebankId], references: [id])
+    voicebankId        String?           @map("voicebank_id")
+    svsEngine          SvsEngine?        @relation(fields: [svsEngineId], references: [id])
+    svsEngineId        String?           @map("svs_engine_id")
+    svsEngineVersion   SvsEngineVersion? @relation(fields: [svsEngineVersionId], references: [id])
+    svsEngineVersionId String?           @map("svs_engine_version_id")
+    createdAt          DateTime          @default(now()) @map("created_at")
+    updatedAt          DateTime          @updatedAt @map("updated_at")
+
+    @@map("singer_of_song")
+}
+
+model Voicebank {
+    id                    String           @id
+    singer                Singer           @relation(fields: [singerId], references: [id])
+    description           String?
+    /// [LocalizedField]
+    localizedDescriptions Json?
+    singerId              String           @map("singer_id")
+    language              String
+    svsEngineVersion      SvsEngineVersion @relation(fields: [svsEngineVersionId], references: [id])
+    svsEngineVersionId    String           @map("svs_engine_version_id")
+    singerOfSongs         SingerOfSong[]
+    createdAt             DateTime         @default(now()) @map("created_at")
+    updatedAt             DateTime         @updatedAt @map("updated_at")
+
+    @@map("voicebank")
+}
+
+model Album {
+    id                    String          @id
+    name                  String?
+    /// [LocalizedField]
+    localizedNames        Json?
+    description           String?
+    /// [LocalizedField]
+    localizedDescriptions Json?
+    songInAlbums          SongInAlbum[]
+    coverUrl              String?         @map("cover_url")
+    createdAt             DateTime        @default(now()) @map("created_at")
+    updatedAt             DateTime        @updatedAt @map("updated_at")
+
+    @@map("album")
+}
+
+model SongInAlbum {
+    song        Song   @relation(fields: [songId], references: [id])
+    songId      String @map("song_id")
+    album       Album  @relation(fields: [albumId], references: [id])
+    albumId     String @map("album_id")
+    trackNumber Int    @map("track_number")
+    discNumber  Int    @default(1) @map("disc_number")
+
+    @@id([songId, albumId])
+    @@map("song_in_album")
+}
+
+model SongTag {
+    song   Song   @relation(fields: [songId], references: [id])
+    songId String @map("song_id")
+    tag    Tag    @relation(fields: [tagId], references: [id])
+    tagId  String @map("tag_id")
+
+    @@id([songId, tagId])
+    @@map("song_tag")
+}
+
+model SingerSvsEngineVersion {
+    singer             Singer            @relation(fields: [singerId], references: [id])
+    singerId           String            @map("singer_id")
+    svsEngineVersion   SvsEngineVersion  @relation(fields: [svsEngineVersionId], references: [id])
+    svsEngineVersionId String            @map("svs_engine_version_id")
+
+    @@id([singerId, svsEngineVersionId])
+    @@map("singer_svs_engine_version")
+}
+
+model SingerSvsEngine {
+    singer       Singer     @relation(fields: [singerId], references: [id])
+    singerId     String     @map("singer_id")
+    svsEngine    SvsEngine  @relation(fields: [svsEngineId], references: [id])
+    svsEngineId  String     @map("svs_engine_id")
+
+    @@id([singerId, svsEngineId])
+    @@map("singer_svs_engine")
+}
+
+model Singer {
+    id                String             @id
+    name              String?
+    avatarUrl         String?            @map("avatar_url")
+    /// [LocalizedField]
+    localizedNames           Json?
+    singerSvsEngineVersions  SingerSvsEngineVersion[]
+    singerSvsEngines         SingerSvsEngine[]
+    voicebanks               Voicebank[]
+    singerOfSongs     SingerOfSong[]
+    createdAt         DateTime           @default(now()) @map("created_at")
+    updatedAt         DateTime           @updatedAt @map("updated_at")
+
+    @@map("singer")
+}
+
+model SvsEngine {
+    id                    String             @id
+    name                  String
+    description           String?
+    /// [LocalizedField]
+    localizedDescriptions Json?
+    svsEngineVersions     SvsEngineVersion[]
+    singerSvsEngines      SingerSvsEngine[]
+    performances          SingerOfSong[]
+    createdAt             DateTime           @default(now()) @map("created_at")
+    updatedAt             DateTime           @updatedAt @map("updated_at")
+
+    @@map("svs_engine")
+}
+
+model SvsEngineVersion {
+    id                       String                    @id
+    versionString            String                    @map("version_string")
+    singerSvsEngineVersions  SingerSvsEngineVersion[]
+    svsEngine                SvsEngine                 @relation(fields: [svsEngineId], references: [id])
+    svsEngineId   String         @map("svs_engine_id")
+    singerOfSongs SingerOfSong[]
+    voicebanks    Voicebank[]
+    createdAt     DateTime       @default(now()) @map("created_at")
+    updatedAt     DateTime       @updatedAt @map("updated_at")
+
+    @@map("svs_engine_version")
+}
+
+model Artist {
+    id                    String          @id
+    name                  String?
+    /// [LocalizedField]
+    localizedNames        Json?
+    description           String?
+    /// [LocalizedField]
+    localizedDescriptions Json?
+    artistSongRoles       ArtistRole[]
+    createdAt             DateTime        @default(now()) @map("created_at")
+    updatedAt             DateTime        @updatedAt @map("updated_at")
+
+    @@map("artist")
+}
+
+model ArtistRole {
+    id             String          @id
+    role           String
+    /// [LocalizedField]
+    localizedRoles Json?
+    song           Song            @relation(fields: [songId], references: [id])
+    songId         String          @map("song_id")
+    artist         Artist          @relation(fields: [artistId], references: [id])
+    artistId       String          @map("artist_id")
+    createdAt      DateTime        @default(now()) @map("created_at")
+    updatedAt      DateTime        @updatedAt @map("updated_at")
+
+    @@map("artist_role")
+}
