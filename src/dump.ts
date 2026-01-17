@@ -10,6 +10,7 @@ const ENDPOINT = env.BACKUP_S3_ENDPOINT;
 const REGION = env.BACKUP_S3_REGION;
 const BUCKET = env.BACKUP_S3_BUCKET;
 const DIR = env.BACKUP_DIR;
+const CONTAINER = env.BACKUP_CONTAINER;
 
 const CONFIG = {
 	localBackupDir: DIR,
@@ -42,7 +43,7 @@ const getMonthStr = (): string => {
 };
 
 async function dump(filePath: string) {
-	await $`pg_dump -d ${dbUri} -Fc -n public > ${filePath}`;
+	await $`docker exec -u postgres ${CONTAINER} pg_dump -d ${dbUri} -Fc -n public > ${filePath}`;
 }
 
 async function runBackup() {

@@ -9,6 +9,7 @@ export const env = createEnv({
 		BACKUP_S3_ENDPOINT: z.string(),
 		BACKUP_S3_REGION: z.string(),
 		OSS_ACCESS_KEY_ID: z.string(),
-		OSS_ACCESS_KEY_SECRET: z.string(),
+        OSS_ACCESS_KEY_SECRET: z.string(),
+		BACKUP_CONTAINER: z.string(),
 	},
 });
