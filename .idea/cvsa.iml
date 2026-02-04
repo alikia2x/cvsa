@@ -40,6 +40,15 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/core/.turbo" />
       <excludeFolder url="file://$MODULE_DIR$/packages/crawler/.turbo" />
       <excludeFolder url="file://$MODULE_DIR$/packages/temp_frontend/.turbo" />
+      <excludeFolder url="file://$MODULE_DIR$/ml_new/datasets" />
+      <excludeFolder url="file://$MODULE_DIR$/ml_new/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/cf-worker/.wrangler" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/core/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/docs/.react-router" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/docs/.source" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/temp_frontend/.react-router" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/tracker/.react-router" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/tracker/data" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

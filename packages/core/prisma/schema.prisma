@@ -1,322 +1,60 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
     provider = "prisma-client"
-    output   = "./prisma"
+    output   = "./generated"
 }
 
 generator json {
-  provider = "prisma-json-types-generator"
+    provider = "prisma-json-types-generator"
 }
 
 datasource db {
     provider = "postgresql"
+    schemas  = ["core", "meta", "platform", "auth"]
 }
 
-// TODO
-// Note:
-// 1. All the IDs are 12-digit string generated via Nano ID with a custom 32-character alphabet.
-// 2. Auth-related model has not yet been defined.
-// 3. Indexes and unique constraints have not yet been considered in the design.
+/* 
+# CVSA (Chinese Vocal Synthesis Archive) Database Schema
 
-enum SongType {
-    ORIGINAL
-    COVER
-    REMIX
-    REMASTER
-    MASHUP
-    INSTRUMENTAL
-    OTHERS
+## Overview
+The CVSA is a structured encyclopedia and data platform dedicated to the Chinese Vocal Synthesis (SVS/VC) community.
+It aims to bridge the gap between traditional wikis (like MediaWiki) and structured databases by providing:
+- Automation: Fully automated song discovery, metadata extraction, and statistical tracking.
+- Structured Data: Moving beyond flat text to rich, relational data for songs, artists, engines, and albums.
+- Collaboration: A platform for contributors to provide descriptive content, translations, and corrections.
 
-    @@map("song_type")
-}
+## Schemas
+The database is partitioned into several PostgreSQL schemas.
 
-enum Platform {
-    YOUTUBE
-    NICONICO
-    BILIBILI
-    VOCALOID_WIKI
-    VOCALOID_LYRIC_SWIKI
-    SOUNDCLOUD
-    NETEASE_MUSIC
-    QQ_MUSIC
-    FIVE_SING // 5sing.kugou.com
-    KUGOU
-    SPOTIFY
-    APPLE_MUSIC
-    YOUTUBE_MUSIC
-    WIKIPEDIA
-    BAIDU_BAIKE
-    PIXIV
-    WEIBO
-    TWITTER
-    VOCADB
-    MOEGIRLPEDIA
-    MUSICBRAINZ
-    VCPEDIA
-    XIAOHONGSHU // aka RedNote
+### A. [core] - The Encyclopedia
+This is the heart of the project. It stores universal SVS data that remains objective across platforms.
+- Entities: Songs, Singers (virtual characters), Artists (producers/illustrators), 
+SVS Engines (Vocaloid, Synthesizer V), Voicebanks, Albums, and Tags.
+- Localization: Uses `LocalizedField` (JSON) to support multi-language metadata 
+(Simplified Chinese, Traditional Chinese, Japanese, English, etc.).
+- Versioning: Supports tracking of specific SVS engine versions and voicebank iterations.
 
-    @@map("platform")
-}
+### B. [platform] - The Service Layer
+Contains data specific to the CVSA website as a functional service.
+- Features: User-uploaded files, personal notes, etc.
+- Scope: Data here is specific to this implementation and not necessarily shared with other archives.
 
-model Song {
-    id                    String          @id
-    type                  SongType?
-    originalVersion       Song?           @relation(name: "originalSong", fields: [originalSongId], references: [id])
-    originalSongId        String?         @map("original_song_id")
-    derivations           Song[]          @relation(name: "originalSong")
-    name                  String?
-    duration              Int?
-    lyrics                Lyrics[]
-    songTags              SongTag[]
-    /// [LocalizedField]
-    localizedNames        Json?
-    description           String?
-    /// [LocalizedField]
-    localizedDescriptions Json?
-    songInAlbums          SongInAlbum[]
-    bilibiliAid           BigInt?         @map("bilibili_aid")
-    bilibiliBvid          String?         @map("bilibili_bvid")
-    vocadbId              Int?            @map("vocadb_id")
-    vcpediaId             Int?            @map("vcpedia_id")
-    moegirlId             Int?            @map("moegirl_id")
-    externalLinks         ExternalLink[]
-    coverUrl              String?         @map("cover_url")
-    artists               ArtistRole[]
-    singerOfSongs         SingerOfSong[]
-    publishedAt           DateTime?       @map("published_at")
-    createdAt             DateTime        @default(now()) @map("created_at")
-    updatedAt             DateTime        @updatedAt @map("updated_at")
-    deletedAt             DateTime?       @map("deleted_at")
+### C. [auth] - Identity & Access
+Handles user accounts, session persistence, and secure authentication.
+- RBAC: Connects users to roles defined in the `meta` schema.
 
-    @@map("song")
-}
+### D. [meta] - Governance & Auditing
+Manages the "data about data."
+- Audit Logs: The `History` table tracks every mutation (Create/Update/Delete) 
+in the `core` schema for accountability and rollbacks.
+- Permissions: Granular action-based permissions assigned to roles.
 
-model Tag {
-    id             String          @id
-    name           String
-    /// [LocalizedField]
-    localizedNames Json?
-    songTags       SongTag[]
-    parent         Tag?            @relation(name: "tagTree", fields: [parentId], references: [id])
-    parentId       String?         @map("parent_id")
-    children       Tag[]           @relation(name: "tagTree")
-    createdAt      DateTime        @default(now()) @map("created_at")
-    updatedAt      DateTime        @updatedAt @map("updated_at")
+## 3. Technical Constraints & Design Patterns
+- Soft Deletion: Most core entities implement a `deletedAt` timestamp for soft-deletion support.
+- Modular Relations: Many-to-Many relations are extracted into separate files 
+within the `/relations` directory to keep entity definitions clean and prevent Prisma file bloat.
 
-    @@map("tag")
-}
+## 4. Current Status & TODO
+- Indexing: Performance indexes and unique constraints beyond primary keys are still under design.
+- Constraints: Complex business logic constraints (e.g., preventing circular tag parents) are handled at the application layer.
 
-model Lyrics {
-    id        String   @id
-    song      Song     @relation(fields: [songId], references: [id])
-    songId    String   @map("song_id")
-    language  String?
-    plaintext String?
-    ttml      String?
-    lrc       String?
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-
-    @@map("lyrics")
-}
-
-model History {
-    id        String   @id
-    table     String
-    objectId  String   @map("object_id")
-    old       Json?
-    new       Json?
-    createdAt DateTime @default(now()) @map("created_at")
-
-    @@map("history")
-}
-
-model ExternalLink {
-    id         String    @id
-    label      String?
-    url        String
-    platform   Platform?
-    platformId String?   @map("platform_id")
-    song       Song      @relation(fields: [songId], references: [id])
-    songId     String    @map("song_id")
-    createdAt  DateTime  @default(now()) @map("created_at")
-    updatedAt  DateTime  @updatedAt @map("updated_at")
-
-    @@map("external_link")
-}
-
-// Sometimes, we only know the SVS engine (e.g. VOCALOID, Synthesizer V) used in the song.
-// And in other cases, we know exactly the voicebank used in the song. (e.g. Luo Tianyi VOCALOID 5 Chinese)
-// That's why we need to have both SvsEngine and SvsEngineVersion.
-model SingerOfSong {
-    id                 String            @id
-    song               Song              @relation(fields: [songId], references: [id])
-    songId             String            @map("song_id")
-    singer             Singer            @relation(fields: [singerId], references: [id])
-    singerId           String            @map("singer_id")
-    voicebank          Voicebank?        @relation(fields: [voicebankId], references: [id])
-    voicebankId        String?           @map("voicebank_id")
-    svsEngine          SvsEngine?        @relation(fields: [svsEngineId], references: [id])
-    svsEngineId        String?           @map("svs_engine_id")
-    svsEngineVersion   SvsEngineVersion? @relation(fields: [svsEngineVersionId], references: [id])
-    svsEngineVersionId String?           @map("svs_engine_version_id")
-    createdAt          DateTime          @default(now()) @map("created_at")
-    updatedAt          DateTime          @updatedAt @map("updated_at")
-
-    @@map("singer_of_song")
-}
-
-model Voicebank {
-    id                    String           @id
-    singer                Singer           @relation(fields: [singerId], references: [id])
-    description           String?
-    /// [LocalizedField]
-    localizedDescriptions Json?
-    singerId              String           @map("singer_id")
-    language              String
-    svsEngineVersion      SvsEngineVersion @relation(fields: [svsEngineVersionId], references: [id])
-    svsEngineVersionId    String           @map("svs_engine_version_id")
-    singerOfSongs         SingerOfSong[]
-    createdAt             DateTime         @default(now()) @map("created_at")
-    updatedAt             DateTime         @updatedAt @map("updated_at")
-
-    @@map("voicebank")
-}
-
-model Album {
-    id                    String          @id
-    name                  String?
-    /// [LocalizedField]
-    localizedNames        Json?
-    description           String?
-    /// [LocalizedField]
-    localizedDescriptions Json?
-    songInAlbums          SongInAlbum[]
-    coverUrl              String?         @map("cover_url")
-    createdAt             DateTime        @default(now()) @map("created_at")
-    updatedAt             DateTime        @updatedAt @map("updated_at")
-
-    @@map("album")
-}
-
-model SongInAlbum {
-    song        Song   @relation(fields: [songId], references: [id])
-    songId      String @map("song_id")
-    album       Album  @relation(fields: [albumId], references: [id])
-    albumId     String @map("album_id")
-    trackNumber Int    @map("track_number")
-    discNumber  Int    @default(1) @map("disc_number")
-
-    @@id([songId, albumId])
-    @@map("song_in_album")
-}
-
-model SongTag {
-    song   Song   @relation(fields: [songId], references: [id])
-    songId String @map("song_id")
-    tag    Tag    @relation(fields: [tagId], references: [id])
-    tagId  String @map("tag_id")
-
-    @@id([songId, tagId])
-    @@map("song_tag")
-}
-
-model SingerSvsEngineVersion {
-    singer             Singer            @relation(fields: [singerId], references: [id])
-    singerId           String            @map("singer_id")
-    svsEngineVersion   SvsEngineVersion  @relation(fields: [svsEngineVersionId], references: [id])
-    svsEngineVersionId String            @map("svs_engine_version_id")
-
-    @@id([singerId, svsEngineVersionId])
-    @@map("singer_svs_engine_version")
-}
-
-model SingerSvsEngine {
-    singer       Singer     @relation(fields: [singerId], references: [id])
-    singerId     String     @map("singer_id")
-    svsEngine    SvsEngine  @relation(fields: [svsEngineId], references: [id])
-    svsEngineId  String     @map("svs_engine_id")
-
-    @@id([singerId, svsEngineId])
-    @@map("singer_svs_engine")
-}
-
-model Singer {
-    id                String             @id
-    name              String?
-    avatarUrl         String?            @map("avatar_url")
-    /// [LocalizedField]
-    localizedNames           Json?
-    singerSvsEngineVersions  SingerSvsEngineVersion[]
-    singerSvsEngines         SingerSvsEngine[]
-    voicebanks               Voicebank[]
-    singerOfSongs     SingerOfSong[]
-    createdAt         DateTime           @default(now()) @map("created_at")
-    updatedAt         DateTime           @updatedAt @map("updated_at")
-
-    @@map("singer")
-}
-
-model SvsEngine {
-    id                    String             @id
-    name                  String
-    description           String?
-    /// [LocalizedField]
-    localizedDescriptions Json?
-    svsEngineVersions     SvsEngineVersion[]
-    singerSvsEngines      SingerSvsEngine[]
-    performances          SingerOfSong[]
-    createdAt             DateTime           @default(now()) @map("created_at")
-    updatedAt             DateTime           @updatedAt @map("updated_at")
-
-    @@map("svs_engine")
-}
-
-model SvsEngineVersion {
-    id                       String                    @id
-    versionString            String                    @map("version_string")
-    singerSvsEngineVersions  SingerSvsEngineVersion[]
-    svsEngine                SvsEngine                 @relation(fields: [svsEngineId], references: [id])
-    svsEngineId   String         @map("svs_engine_id")
-    singerOfSongs SingerOfSong[]
-    voicebanks    Voicebank[]
-    createdAt     DateTime       @default(now()) @map("created_at")
-    updatedAt     DateTime       @updatedAt @map("updated_at")
-
-    @@map("svs_engine_version")
-}
-
-model Artist {
-    id                    String          @id
-    name                  String?
-    /// [LocalizedField]
-    localizedNames        Json?
-    description           String?
-    /// [LocalizedField]
-    localizedDescriptions Json?
-    artistSongRoles       ArtistRole[]
-    createdAt             DateTime        @default(now()) @map("created_at")
-    updatedAt             DateTime        @updatedAt @map("updated_at")
-
-    @@map("artist")
-}
-
-model ArtistRole {
-    id             String          @id
-    role           String
-    /// [LocalizedField]
-    localizedRoles Json?
-    song           Song            @relation(fields: [songId], references: [id])
-    songId         String          @map("song_id")
-    artist         Artist          @relation(fields: [artistId], references: [id])
-    artistId       String          @map("artist_id")
-    createdAt      DateTime        @default(now()) @map("created_at")
-    updatedAt      DateTime        @updatedAt @map("updated_at")
-
-    @@map("artist_role")
-}
+*/

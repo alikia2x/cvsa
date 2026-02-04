@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/packages/crawler/db/snapshot.ts" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$PROJECT_DIR$/packages/crawler/mq/task/removeAllTimeoutSchedules.ts" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$PROJECT_DIR$/queries/schedule_count.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$PROJECT_DIR$/queries/schedule_window.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$PROJECT_DIR$/queries/snapshots_count.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$PROJECT_DIR$/src/importSnapshots.ts" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/01377cfc-46b6-46b4-8d53-4f44f035c69a/console.sql" value="01377cfc-46b6-46b4-8d53-4f44f035c69a" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef/console.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef/console_1.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef/console_3.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef/console_4.sql" value="0d2dd3d3-bd27-4e5f-b0fa-ff14fb2a6bef" />
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/a9e5ab87-9e98-49da-b47a-7da0255b6879/console_1.sql" value="a9e5ab87-9e98-49da-b47a-7da0255b6879" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/02601ccd-d0d3-42a7-9b8e-7596c6269559/console.sql" value="02601ccd-d0d3-42a7-9b8e-7596c6269559" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/388ec495-a827-4dfe-9fa2-219cf8dc32d2/console.sql" value="388ec495-a827-4dfe-9fa2-219cf8dc32d2" />
   </component>
 </project>
