@@ -173,7 +173,7 @@ const config = createNetworkConfig({
 	proxies: proxies,
 	tasks: {
 		annualArchive: {
-			provider: "bilibili",
+			provider: "test",
 			proxies: [...aliProxies],
 		},
 		bulkSnapshot: {

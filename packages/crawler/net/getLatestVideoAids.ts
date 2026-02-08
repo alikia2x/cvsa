@@ -12,7 +12,7 @@ export async function getLatestVideoAids(
 	const errMessage = `Error fetching latest aid for ${range}:`;
 	const url = `https://api.bilibili.com/x/web-interface/newlist?rid=30&ps=${pageSize}&pn=${page}`;
 	const { data } = await networkDelegate.request<VideoListResponse>(url, "getLatestVideos");
-	if (data.code != 0) {
+	if (data.code !== 0) {
 		logger.error(errMessage + data.message, "net", "getLastestVideos");
 		return [];
 	}
