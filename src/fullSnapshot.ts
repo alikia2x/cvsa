@@ -27,7 +27,7 @@ const getAids = async () => {
 		return (await Bun.file(aidsFile).text()).split("\n").map(Number);
 	}
 	const aids = await sql<{ aid: number }[]>`SELECT aid FROM bilibili_metadata`;
-	return aids.map((row: any) => row.aid);
+	return aids.map((row) => row.aid);
 };
 
 async function addCandidates() {
@@ -36,9 +36,9 @@ async function addCandidates() {
 	logger.log(`Retrieved ${aids.length} from production DB.`);
 
 	const existingAids = sqlite
-		.prepare("SELECT aid FROM bili_info_crawl")
+		.prepare<{ aid: number }, []>("SELECT aid FROM bili_info_crawl")
 		.all()
-		.map((row: any) => row.aid);
+		.map((row) => row.aid);
 	logger.log(`We have ${existingAids.length} from local DB.`);
 
 	const existingAidsSet = new Set(existingAids);
@@ -46,30 +46,30 @@ async function addCandidates() {
 	const newAids = aids.filter((aid) => !existingAidsSet.has(aid));
 
 	const insertStmt = sqlite.prepare(
-        `INSERT INTO bili_info_crawl (aid, status) VALUES (?, 'pending') ON CONFLICT DO NOTHING;`
-    );
+		`INSERT INTO bili_info_crawl (aid, status) VALUES (?, 'pending') ON CONFLICT DO NOTHING;`
+	);
 
 	const insertMany = sqlite.transaction((data) => {
-        for (const aid of data) {
-            insertStmt.run(aid);
-        }
-    });
+		for (const aid of data) {
+			insertStmt.run(aid);
+		}
+	});
 
 	try {
-        insertMany(newAids);
-        logger.log(`Successfully added ${newAids.length} to local DB.`);
-    } catch (err) {
-        logger.error(["Failed to insert candidates:", err]);
-    }
+		insertMany(newAids);
+		logger.log(`Successfully added ${newAids.length} to local DB.`);
+	} catch (err) {
+		logger.error(["Failed to insert candidates:", err]);
+	}
 }
 
 async function insertAidsToDB() {
 	await addCandidates();
 
 	const aidsInDB = sqlite
-		.prepare("SELECT aid FROM bili_info_crawl WHERE status = 'pending'")
+		.prepare<{ aid: number }, []>("SELECT aid FROM bili_info_crawl WHERE status = 'pending'")
 		.all()
-		.map((row: any) => row.aid) as number[];
+		.map((row) => row.aid) as number[];
 
 	const totalAids = aidsInDB.length;
 	let processedAids = 0;
@@ -77,7 +77,7 @@ async function insertAidsToDB() {
 
 	const processAid = async (aid: number) => {
 		try {
-			const res = await getVideoDetails(aid);
+			const res = await getVideoDetails(aid, "annualArchive");
 			if (res === null) {
 				updateAidStatus(aid, "failed");
 			} else {
